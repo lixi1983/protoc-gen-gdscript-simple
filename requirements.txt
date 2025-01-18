@@ -1,0 +1,2 @@
+protobuf>=4.25.1
+setuptools>=69.0.3

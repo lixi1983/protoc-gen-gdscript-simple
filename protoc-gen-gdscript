@@ -1,0 +1,690 @@
+#!/usr/bin/env python3
+
+import sys
+import os
+from google.protobuf.compiler import plugin_pb2
+from google.protobuf.descriptor_pb2 import DescriptorProto, EnumDescriptorProto
+from google.protobuf.descriptor import FieldDescriptor
+
+# GDScript type mapping
+TYPE_MAPPING = {
+    FieldDescriptor.TYPE_DOUBLE: 'float',
+    FieldDescriptor.TYPE_FLOAT: 'float',
+    FieldDescriptor.TYPE_INT64: 'int',
+    FieldDescriptor.TYPE_UINT64: 'int',
+    FieldDescriptor.TYPE_INT32: 'int',
+    FieldDescriptor.TYPE_FIXED64: 'int',
+    FieldDescriptor.TYPE_FIXED32: 'int',
+    FieldDescriptor.TYPE_BOOL: 'bool',
+    FieldDescriptor.TYPE_STRING: 'String',
+    FieldDescriptor.TYPE_GROUP: 'RefCounted',
+    FieldDescriptor.TYPE_MESSAGE: 'RefCounted',
+    FieldDescriptor.TYPE_BYTES: 'PackedByteArray',
+    FieldDescriptor.TYPE_UINT32: 'int',
+    FieldDescriptor.TYPE_ENUM: 'int',
+    FieldDescriptor.TYPE_SFIXED32: 'int',
+    FieldDescriptor.TYPE_SFIXED64: 'int',
+    FieldDescriptor.TYPE_SINT32: 'int',
+    FieldDescriptor.TYPE_SINT64: 'int',
+}
+
+def get_field_type(field, containing_type=None):
+    """获取字段的GDScript类型"""
+    if field.type == FieldDescriptor.TYPE_MESSAGE:
+        if hasattr(field, 'message_type') and field.message_type:
+            if field.message_type.options.map_entry:
+                return f"Dictionary"  # Map类型在GDScript中使用Dictionary
+            else:
+                # 对于嵌套消息，返回完整的类型名称
+                if containing_type:
+                    return f"{containing_type.name}_{field.message_type.name}"
+                else:
+                    return field.message_type.name
+        else:
+            print(f"Warning: message_type not found for field {field.name}", file=sys.stderr)
+            return "Dictionary"  # 默认使用Dictionary
+    elif field.type == FieldDescriptor.TYPE_ENUM:
+        if hasattr(field, 'enum_type') and field.enum_type:
+            return "int"  # 枚举类型在GDScript中使用整数
+        else:
+            print(f"Warning: enum_type not found for field {field.name}", file=sys.stderr)
+            return "int"
+    elif field.type == FieldDescriptor.TYPE_BOOL:
+        return "bool"
+    elif field.type in [FieldDescriptor.TYPE_INT32, FieldDescriptor.TYPE_SINT32, 
+                       FieldDescriptor.TYPE_UINT32, FieldDescriptor.TYPE_FIXED32, 
+                       FieldDescriptor.TYPE_SFIXED32]:
+        return "int"
+    elif field.type in [FieldDescriptor.TYPE_INT64, FieldDescriptor.TYPE_SINT64,
+                       FieldDescriptor.TYPE_UINT64, FieldDescriptor.TYPE_FIXED64,
+                       FieldDescriptor.TYPE_SFIXED64]:
+        return "int"
+    elif field.type in [FieldDescriptor.TYPE_FLOAT, FieldDescriptor.TYPE_DOUBLE]:
+        return "float"
+    elif field.type == FieldDescriptor.TYPE_STRING:
+        return "String"
+    elif field.type == FieldDescriptor.TYPE_BYTES:
+        return "PackedByteArray"
+    else:
+        return "Variant"
+
+def get_default_value(field, message_type=None):
+    """获取字段的默认值"""
+    try:
+        if field.type == FieldDescriptor.TYPE_STRING:
+            return f'"{field.default_value}"'
+        elif field.type == FieldDescriptor.TYPE_BOOL:
+            return str(field.default_value).lower()
+        elif field.type == FieldDescriptor.TYPE_BYTES:
+            return f"PackedByteArray([])"
+        elif field.type == FieldDescriptor.TYPE_ENUM:
+            enum_value = get_enum_value(field, message_type)
+            if enum_value:
+                return enum_value
+        else:
+            return str(field.default_value)
+    except Exception as e:
+        print(f"Warning: Error getting default value for field {field.name}: {e}", file=sys.stderr)
+        return None
+
+def get_enum_value(field, message_type=None):
+    """获取枚举字段的默认值"""
+    try:
+        if field.type == FieldDescriptor.TYPE_ENUM:
+            if not hasattr(field, 'enum_type') or field.enum_type is None:
+                return "0"
+            if not hasattr(field.enum_type, 'value') or field.enum_type.value is None:
+                return "0"
+            if not hasattr(field, 'default_value') or field.default_value is None:
+                return "0"
+            
+            enum_type = field.enum_type
+            if message_type and enum_type.containing_type == message_type:
+                return f"{enum_type.name}.{field.default_value}"
+            return field.default_value
+        return None
+    except Exception as e:
+        print(f"Warning: Error getting enum value for field {field.name}: {e}", file=sys.stderr)
+        return None
+
+def get_wire_type(field):
+    """获取字段的wire类型"""
+    if field.type in [FieldDescriptor.TYPE_INT32, FieldDescriptor.TYPE_INT64, 
+                     FieldDescriptor.TYPE_UINT32, FieldDescriptor.TYPE_UINT64, 
+                     FieldDescriptor.TYPE_SINT32, FieldDescriptor.TYPE_SINT64, 
+                     FieldDescriptor.TYPE_BOOL, FieldDescriptor.TYPE_ENUM]:
+        return 0  # varint
+    elif field.type in [FieldDescriptor.TYPE_STRING, FieldDescriptor.TYPE_BYTES, 
+                       FieldDescriptor.TYPE_MESSAGE]:
+        return 2  # length-delimited
+    elif field.type in [FieldDescriptor.TYPE_FIXED32, FieldDescriptor.TYPE_SFIXED32]:
+        return 5  # 32-bit
+    elif field.type in [FieldDescriptor.TYPE_FIXED64, FieldDescriptor.TYPE_SFIXED64]:
+        return 1  # 64-bit
+    else:
+        return 0  # varint
+
+def serialize_field(field_info, output, indent):
+    """序列化字段"""
+    field_name = field_info['name']
+    field_number = field_info['number']
+    wire_type = field_info['wire_type']
+    tag = (field_number << 3) | wire_type
+    
+    if field_info['repeated']:
+        output.append(f"{indent}if {field_name} != null:")
+        output.append(f"{indent}\tfor item in {field_name}:")
+        output.append(f"{indent}\t\tbytes.append_array(encode_varint({tag}))")
+        if field_info['type'] == 'Dictionary':
+            output.append(f"{indent}\t\tvar entry = PackedByteArray()")
+            output.append(f"{indent}\t\tentry.append_array(encode_value(item.key))")
+            output.append(f"{indent}\t\tentry.append_array(encode_value(item.value))")
+            output.append(f"{indent}\t\tbytes.append_array(encode_length_delimited(entry))")
+        else:
+            output.append(f"{indent}\t\tbytes.append_array(encode_value(item))")
+    else:
+        output.append(f"{indent}if {field_name} != null:")
+        output.append(f"{indent}\tbytes.append_array(encode_varint({tag}))")
+        if field_info['type'] == 'Dictionary':
+            output.append(f"{indent}\tvar entry = PackedByteArray()")
+            output.append(f"{indent}\tentry.append_array(encode_value({field_name}.key))")
+            output.append(f"{indent}\tentry.append_array(encode_value({field_name}.value))")
+            output.append(f"{indent}\tbytes.append_array(encode_length_delimited(entry))")
+        else:
+            output.append(f"{indent}\tbytes.append_array(encode_value({field_name}))")
+
+def deserialize_field(field_info, output, indent):
+    """反序列化字段"""
+    field_name = field_info['name']
+    field_number = field_info['number']
+    wire_type = field_info['wire_type']
+    
+    output.append(f"{indent}{field_number}:")
+    if field_info['repeated']:
+        if field_info['type'] == 'Dictionary':
+            output.append(f"{indent}\tvar entry = PackedByteArray()")
+            output.append(f"{indent}\tvar length = decode_varint(bytes, pos)")
+            output.append(f"{indent}\tpos += varint_size(length)")
+            output.append(f"{indent}\tentry.resize(length)")
+            output.append(f"{indent}\tentry.set_data(bytes, pos, length)")
+            output.append(f"{indent}\tpos += length")
+            output.append(f"{indent}\tvar key = decode_value(entry)")
+            output.append(f"{indent}\tvar value = decode_value(entry)")
+            output.append(f"{indent}\tif {field_name} == null:")
+            output.append(f"{indent}\t\t{field_name} = {{}}")
+            output.append(f"{indent}\t{field_name}[key] = value")
+        else:
+            output.append(f"{indent}\tif {field_name} == null:")
+            output.append(f"{indent}\t\t{field_name} = []")
+            output.append(f"{indent}\tvar value = decode_value(bytes, pos)")
+            output.append(f"{indent}\t{field_name}.append(value)")
+    else:
+        if field_info['type'] == 'Dictionary':
+            output.append(f"{indent}\tvar entry = PackedByteArray()")
+            output.append(f"{indent}\tvar length = decode_varint(bytes, pos)")
+            output.append(f"{indent}\tpos += varint_size(length)")
+            output.append(f"{indent}\tentry.resize(length)")
+            output.append(f"{indent}\tentry.set_data(bytes, pos, length)")
+            output.append(f"{indent}\tpos += length")
+            output.append(f"{indent}\tvar key = decode_value(entry)")
+            output.append(f"{indent}\tvar value = decode_value(entry)")
+            output.append(f"{indent}\t{field_name} = {{key: value}}")
+        else:
+            output.append(f"{indent}\t{field_name} = decode_value(bytes, pos)")
+
+def generate_nested_message(message_type, indent=""):
+    """生成嵌套消息类型的代码"""
+    output = []
+    
+    # 添加必要的导入
+    output.append(f"{indent}extends RefCounted")
+    output.append("")
+    output.append(f"{indent}const PROTO_VERSION = 2")
+    output.append("")
+    
+    # 生成字段定义
+    for field in message_type.field:
+        field_type = get_field_type(field, message_type)
+        if field.label == FieldDescriptor.LABEL_REPEATED:
+            if hasattr(field, 'message_type') and field.message_type and field.message_type.options.map_entry:
+                output.append(f"{indent}var {field.name}: Dictionary = {{}}")
+            else:
+                output.append(f"{indent}var {field.name}: Array = []")
+        else:
+            default_value = get_default_value(field, message_type)
+            output.append(f"{indent}var {field.name} = {default_value}")
+    
+    # 添加构造函数
+    output.append(f"\n{indent}func _init():")
+    output.append(f"{indent}\tpass")
+    
+    # 生成序列化方法
+    output.append(f"\n{indent}func serialize() -> PackedByteArray:")
+    output.append(f"{indent}\tvar bytes = PackedByteArray()")
+    
+    for field in message_type.field:
+        field_info = {
+            'name': field.name,
+            'number': field.number,
+            'repeated': field.label == FieldDescriptor.LABEL_REPEATED,
+            'type': get_field_type(field, message_type),
+            'wire_type': get_wire_type(field)
+        }
+        
+        serialize_field(field_info, output, indent + "\t")
+    
+    output.append(f"{indent}\treturn bytes")
+    
+    # 生成反序列化方法
+    output.append(f"\n{indent}func deserialize(bytes: PackedByteArray) -> void:")
+    output.append(f"{indent}\tvar pos = 0")
+    output.append(f"{indent}\twhile pos < bytes.size():")
+    output.append(f"{indent}\t\tvar tag = decode_varint(bytes, pos)")
+    output.append(f"{indent}\t\tpos += varint_size(tag)")
+    output.append(f"{indent}\t\tvar field_number = tag >> 3")
+    output.append(f"{indent}\t\tvar wire_type = tag & 0x07")
+    output.append(f"{indent}\t\tmatch field_number:")
+    
+    for field in message_type.field:
+        field_info = {
+            'name': field.name,
+            'number': field.number,
+            'repeated': field.label == FieldDescriptor.LABEL_REPEATED,
+            'type': get_field_type(field, message_type),
+            'wire_type': get_wire_type(field)
+        }
+        
+        deserialize_field(field_info, output, indent + "\t\t")
+    
+    output.append(f"{indent}\t\t_:\n{indent}\t\t\tskip_unknown_field(bytes, wire_type, pos)")
+    
+    # 添加辅助方法
+    output.append(f"\n{indent}static func encode_value(value) -> PackedByteArray:")
+    output.append(f"{indent}\tif value is int:")
+    output.append(f"{indent}\t\treturn encode_varint(value)")
+    output.append(f"{indent}\telif value is String:")
+    output.append(f"{indent}\t\treturn encode_string(value)")
+    output.append(f"{indent}\telif value is PackedByteArray:")
+    output.append(f"{indent}\t\treturn encode_bytes(value)")
+    output.append(f"{indent}\telif value is bool:")
+    output.append(f"{indent}\t\treturn encode_varint(1 if value else 0)")
+    output.append(f"{indent}\telif value is float:")
+    output.append(f"{indent}\t\treturn encode_float(value)")
+    output.append(f"{indent}\telif value is Dictionary:")
+    output.append(f"{indent}\t\treturn encode_map(value)")
+    output.append(f"{indent}\telse:")
+    output.append(f"{indent}\t\treturn value.serialize()")
+    
+    output.append(f"\n{indent}static func decode_value(bytes: PackedByteArray, pos: int) -> Variant:")
+    output.append(f"{indent}\tvar value = decode_varint(bytes, pos)")
+    output.append(f"{indent}\tpos += varint_size(value)")
+    output.append(f"{indent}\treturn value")
+    
+    output.append(f"\n{indent}static func encode_varint(value: int) -> PackedByteArray:")
+    output.append(f"{indent}\tvar bytes = PackedByteArray()")
+    output.append(f"{indent}\twhile value > 0x7F:")
+    output.append(f"{indent}\t\tbytes.append((value & 0x7F) | 0x80)")
+    output.append(f"{indent}\t\tvalue >>= 7")
+    output.append(f"{indent}\tbytes.append(value & 0x7F)")
+    output.append(f"{indent}\treturn bytes")
+    
+    output.append(f"\n{indent}static func decode_varint(bytes: PackedByteArray, pos: int) -> int:")
+    output.append(f"{indent}\tvar result = 0")
+    output.append(f"{indent}\tvar shift = 0")
+    output.append(f"{indent}\twhile true:")
+    output.append(f"{indent}\t\tif pos >= bytes.size():")
+    output.append(f"{indent}\t\t\tbreak")
+    output.append(f"{indent}\t\tvar b = bytes[pos]")
+    output.append(f"{indent}\t\tresult |= (b & 0x7F) << shift")
+    output.append(f"{indent}\t\tif (b & 0x80) == 0:")
+    output.append(f"{indent}\t\t\tbreak")
+    output.append(f"{indent}\t\tshift += 7")
+    output.append(f"{indent}\t\tpos += 1")
+    output.append(f"{indent}\treturn result")
+    
+    output.append(f"\n{indent}static func encode_string(value: String) -> PackedByteArray:")
+    output.append(f"{indent}\tvar bytes = value.to_utf8_buffer()")
+    output.append(f"{indent}\tvar length = encode_varint(bytes.size())")
+    output.append(f"{indent}\tlength.append_array(bytes)")
+    output.append(f"{indent}\treturn length")
+    
+    output.append(f"\n{indent}static func encode_bytes(value: PackedByteArray) -> PackedByteArray:")
+    output.append(f"{indent}\tvar length = encode_varint(value.size())")
+    output.append(f"{indent}\tlength.append_array(value)")
+    output.append(f"{indent}\treturn length")
+    
+    output.append(f"\n{indent}static func encode_float(value: float) -> PackedByteArray:")
+    output.append(f"{indent}\tvar bytes = PackedByteArray()")
+    output.append(f"{indent}\tbytes.resize(8)")
+    output.append(f"{indent}\tbytes.encode_double(0, value)")
+    output.append(f"{indent}\treturn bytes")
+    
+    output.append(f"\n{indent}static func encode_map(value: Dictionary) -> PackedByteArray:")
+    output.append(f"{indent}\tvar bytes = PackedByteArray()")
+    output.append(f"{indent}\tfor key in value:")
+    output.append(f"{indent}\t\tvar entry = PackedByteArray()")
+    output.append(f"{indent}\t\tentry.append_array(encode_value(key))")
+    output.append(f"{indent}\t\tentry.append_array(encode_value(value[key]))")
+    output.append(f"{indent}\t\tbytes.append_array(encode_length_delimited(entry))")
+    output.append(f"{indent}\treturn bytes")
+    
+    output.append(f"\n{indent}static func encode_length_delimited(value: PackedByteArray) -> PackedByteArray:")
+    output.append(f"{indent}\tvar length = encode_varint(value.size())")
+    output.append(f"{indent}\tlength.append_array(value)")
+    output.append(f"{indent}\treturn length")
+    
+    output.append(f"\n{indent}static func varint_size(value: int) -> int:")
+    output.append(f"{indent}\tvar size = 0")
+    output.append(f"{indent}\twhile value > 0x7F:")
+    output.append(f"{indent}\t\tsize += 1")
+    output.append(f"{indent}\t\tvalue >>= 7")
+    output.append(f"{indent}\treturn size + 1")
+    
+    output.append(f"\n{indent}static func skip_unknown_field(bytes: PackedByteArray, wire_type: int, pos: int) -> int:")
+    output.append(f"{indent}\tmatch wire_type:")
+    output.append(f"{indent}\t\t0: # varint")
+    output.append(f"{indent}\t\t\twhile pos < bytes.size() && (bytes[pos] & 0x80) != 0:")
+    output.append(f"{indent}\t\t\t\tpos += 1")
+    output.append(f"{indent}\t\t\treturn pos + 1")
+    output.append(f"{indent}\t\t1: # 64-bit")
+    output.append(f"{indent}\t\t\treturn pos + 8")
+    output.append(f"{indent}\t\t2: # length-delimited")
+    output.append(f"{indent}\t\t\tvar length = decode_varint(bytes, pos)")
+    output.append(f"{indent}\t\t\tpos += varint_size(length)")
+    output.append(f"{indent}\t\t\treturn pos + length")
+    output.append(f"{indent}\t\t5: # 32-bit")
+    output.append(f"{indent}\t\t\treturn pos + 4")
+    output.append(f"{indent}\t\t_:")
+    output.append(f"{indent}\t\t\treturn pos")
+    
+    return "\n".join(output)
+
+def process_nested_messages(message_type, output, prefix=""):
+    """递归处理嵌套消息"""
+    for nested_type in message_type.nested_type:
+        if not nested_type.options.map_entry:
+            # 生成当前嵌套消息的文件
+            nested_content = [
+                "# Generated by protoc-gen-gdscript. DO NOT EDIT!",
+                "extends RefCounted",
+                "",
+                f"class_name {prefix}{message_type.name}_{nested_type.name}",
+                "",
+                "const PROTO_VERSION = 2",
+                ""
+            ]
+            
+            # 添加嵌套消息的内容
+            nested_content.append(generate_nested_message(nested_type))
+            
+            # 创建文件
+            output_file = plugin_pb2.CodeGeneratorResponse.File()
+            output_file.name = f"{prefix}{message_type.name}_{nested_type.name}.gd"
+            output_file.content = "\n".join(nested_content)
+            output.append(output_file)
+            
+            # 递归处理更深层的嵌套消息
+            process_nested_messages(nested_type, output, f"{prefix}{message_type.name}_")
+
+def generate_gdscript(proto_file):
+    """生成GDScript代码"""
+    output = []
+    
+    for message_type in proto_file.message_type:
+        message_fields = []
+        message_enums = []
+        nested_messages = []
+        oneof_fields = {}
+        
+        print(f"\nProcessing message: {message_type.name}", file=sys.stderr)
+        
+        # 处理嵌套消息
+        for nested_type in message_type.nested_type:
+            print(f"  Processing nested message: {nested_type.name}", file=sys.stderr)
+            if not nested_type.options.map_entry:
+                nested_messages.append(nested_type)
+                
+                # 为嵌套消息生成单独的文件
+                process_nested_messages(nested_type, output, f"{message_type.name}_")
+        
+        # 处理枚举
+        for enum_type in message_type.enum_type:
+            enum_values = []
+            print(f"  Processing enum: {enum_type.name}", file=sys.stderr)
+            for value in enum_type.value:
+                enum_values.append({
+                    'name': value.name,
+                    'number': value.number
+                })
+            message_enums.append({
+                'name': enum_type.name,
+                'values': enum_values
+            })
+        
+        # 处理 oneof 字段
+        for oneof_decl in message_type.oneof_decl:
+            oneof_fields[oneof_decl.name] = []
+        
+        # 处理字段
+        for field in message_type.field:
+            print(f"  Processing field: {field.name} (type: {field.type})", file=sys.stderr)
+            
+            # 检查是否是 oneof 字段
+            if field.HasField('oneof_index'):
+                oneof_name = message_type.oneof_decl[field.oneof_index].name
+                oneof_fields[oneof_name].append(field)
+                continue
+            
+            field_info = {
+                'name': field.name,
+                'number': field.number,
+                'repeated': field.label == FieldDescriptor.LABEL_REPEATED,
+                'type': get_field_type(field, message_type),
+                'wire_type': get_wire_type(field),
+                'default': None,
+                'is_map': False
+            }
+            
+            # 处理 map 字段
+            if (field.label == FieldDescriptor.LABEL_REPEATED and
+                hasattr(field, 'message_type') and field.message_type and field.message_type.options.map_entry):
+                field_info['is_map'] = True
+                key_type = get_field_type(field.message_type.field[0], message_type)
+                value_type = get_field_type(field.message_type.field[1], message_type)
+                field_info['type'] = f"Dictionary"  # GDScript 中的字典类型
+            
+            # 处理默认值
+            try:
+                if field.HasField('default_value'):
+                    if field.type == FieldDescriptor.TYPE_STRING:
+                        field_info['default'] = f'"{field.default_value}"'
+                    elif field.type == FieldDescriptor.TYPE_BOOL:
+                        field_info['default'] = str(field.default_value).lower()
+                    elif field.type == FieldDescriptor.TYPE_BYTES:
+                        field_info['default'] = f"PackedByteArray([])"
+                    elif field.type == FieldDescriptor.TYPE_ENUM:
+                        enum_value = get_enum_value(field, message_type)
+                        if enum_value:
+                            field_info['default'] = enum_value
+                    else:
+                        field_info['default'] = str(field.default_value)
+            except Exception as e:
+                print(f"    Warning: Error handling default value: {e}", file=sys.stderr)
+            
+            message_fields.append(field_info)
+        
+        # 生成 GDScript 代码
+        try:
+            gdscript_content = "# Generated by protoc-gen-gdscript. DO NOT EDIT!\n"
+            gdscript_content += "extends RefCounted\n\n"
+            gdscript_content += f"class_name {message_type.name}\n\n"
+            
+            # 添加嵌套消息
+            if nested_messages:
+                for nested_type in nested_messages:
+                    gdscript_content += f"var {nested_type.name} = preload(\"{message_type.name}_{nested_type.name}.gd\")\n"
+                gdscript_content += "\n"
+            
+            # 添加枚举
+            if message_enums:
+                for enum in message_enums:
+                    gdscript_content += f"enum {enum['name']} {{\n"
+                    for value in enum['values']:
+                        gdscript_content += f"    {value['name']} = {value['number']},\n"
+                    gdscript_content += "}\n\n"
+            
+            # 添加 oneof 字段
+            for oneof_name, fields in oneof_fields.items():
+                gdscript_content += f"# oneof {oneof_name}\n"
+                gdscript_content += f"var {oneof_name}_case = 0\n"
+                for field in fields:
+                    field_type = get_field_type(field, message_type)
+                    gdscript_content += f"var {field.name}: {field_type}\n"
+                gdscript_content += "\n"
+            
+            # 添加普通字段
+            for field in message_fields:
+                field_type = field['type']
+                if field['repeated'] and not field['is_map']:
+                    field_type = f"Array[{field_type}]"
+                gdscript_content += f"var {field['name']}: {field_type}"
+                if field['default'] is not None:
+                    gdscript_content += f" = {field['default']}"
+                gdscript_content += "\n"
+            gdscript_content += "\n"
+            
+            # 添加保留字段信息
+            if message_type.reserved_range:
+                gdscript_content += "# Reserved field numbers: "
+                ranges = []
+                for range_ in message_type.reserved_range:
+                    if range_.end == range_.start + 1:
+                        ranges.append(str(range_.start))
+                    else:
+                        ranges.append(f"{range_.start} to {range_.end - 1}")
+                gdscript_content += ", ".join(ranges)
+                gdscript_content += "\n\n"
+            
+            if message_type.reserved_name:
+                gdscript_content += "# Reserved field names: "
+                gdscript_content += ", ".join(message_type.reserved_name)
+                gdscript_content += "\n\n"
+            
+            # 添加序列化和反序列化方法
+            gdscript_content += "func _init():\n"
+            gdscript_content += "    pass\n\n"
+            
+            gdscript_content += "func serialize() -> PackedByteArray:\n"
+            gdscript_content += "    var bytes = PackedByteArray()\n"
+            
+            # 序列化 oneof 字段
+            for oneof_name, fields in oneof_fields.items():
+                gdscript_content += f"    # Serialize oneof {oneof_name}\n"
+                gdscript_content += f"    match {oneof_name}_case:\n"
+                for i, field in enumerate(fields, 1):
+                    gdscript_content += f"        {i}:  # {field.name}\n"
+                    if field.type == FieldDescriptor.TYPE_MESSAGE:
+                        gdscript_content += f"            if {field.name} != null:\n"
+                        gdscript_content += f"                bytes.append_array({field.name}.serialize())\n"
+                    else:
+                        gdscript_content += f"            bytes.append_array(encode_value({field.name}))\n"
+            
+            # 序列化普通字段
+            for field in message_fields:
+                field_name = field['name']
+                field_number = field['number']
+                wire_type = 0  # varint
+                if field['wire_type'] == 'bytes':
+                    wire_type = 2  # length-delimited
+                tag = (field_number << 3) | wire_type
+                
+                if field['is_map']:
+                    gdscript_content += f"    if {field_name} != null:\n"
+                    gdscript_content += f"        for key in {field_name}:\n"
+                    gdscript_content += f"            var entry = PackedByteArray()\n"
+                    gdscript_content += f"            entry.append_array(encode_value(key))\n"
+                    gdscript_content += f"            entry.append_array(encode_value({field_name}[key]))\n"
+                    gdscript_content += f"            bytes.append_array(encode_varint({tag}))\n"
+                    gdscript_content += f"            bytes.append_array(encode_length_delimited(entry))\n"
+                elif field['repeated']:
+                    gdscript_content += f"    if {field_name} != null:\n"
+                    gdscript_content += f"        for item in {field_name}:\n"
+                    gdscript_content += f"            bytes.append_array(encode_varint({tag}))\n"
+                    if field['wire_type'] == 'bytes':
+                        gdscript_content += f"            bytes.append_array(encode_bytes(item))\n"
+                    else:
+                        gdscript_content += f"            bytes.append_array(encode_value(item))\n"
+                else:
+                    gdscript_content += f"    if {field_name} != null:\n"
+                    gdscript_content += f"        bytes.append_array(encode_varint({tag}))\n"
+                    if field['wire_type'] == 'bytes':
+                        gdscript_content += f"        bytes.append_array(encode_bytes({field_name}))\n"
+                    else:
+                        gdscript_content += f"        bytes.append_array(encode_value({field_name}))\n"
+            
+            gdscript_content += "    return bytes\n\n"
+            
+            # 添加辅助方法
+            gdscript_content += "static func encode_value(value) -> PackedByteArray:\n"
+            gdscript_content += "    if value is int:\n"
+            gdscript_content += "        return encode_varint(value)\n"
+            gdscript_content += "    elif value is String:\n"
+            gdscript_content += "        return encode_string(value)\n"
+            gdscript_content += "    elif value is PackedByteArray:\n"
+            gdscript_content += "        return encode_bytes(value)\n"
+            gdscript_content += "    elif value is bool:\n"
+            gdscript_content += "        return encode_varint(1 if value else 0)\n"
+            gdscript_content += "    elif value is float:\n"
+            gdscript_content += "        return encode_float(value)\n"
+            gdscript_content += "    else:\n"
+            gdscript_content += "        return value.serialize()\n\n"
+            
+            gdscript_content += "static func encode_bytes(value: PackedByteArray) -> PackedByteArray:\n"
+            gdscript_content += "    var length = encode_varint(value.size())\n"
+            gdscript_content += "    length.append_array(value)\n"
+            gdscript_content += "    return length\n\n"
+            
+            gdscript_content += "static func encode_float(value: float) -> PackedByteArray:\n"
+            gdscript_content += "    var bytes = PackedByteArray()\n"
+            gdscript_content += "    bytes.resize(8)\n"
+            gdscript_content += "    bytes.encode_float(0, value)\n"
+            gdscript_content += "    return bytes\n\n"
+            
+            gdscript_content += "static func encode_varint(value: int) -> PackedByteArray:\n"
+            gdscript_content += "    var bytes = PackedByteArray()\n"
+            gdscript_content += "    while value > 0:\n"
+            gdscript_content += "        var byte = value & 0x7F\n"
+            gdscript_content += "        value = value >> 7\n"
+            gdscript_content += "        if value:\n"
+            gdscript_content += "            byte |= 0x80\n"
+            gdscript_content += "        bytes.append(byte)\n"
+            gdscript_content += "    return bytes\n\n"
+            
+            gdscript_content += "static func encode_string(value: String) -> PackedByteArray:\n"
+            gdscript_content += "    var bytes = value.to_utf8_buffer()\n"
+            gdscript_content += "    var length = encode_varint(bytes.size())\n"
+            gdscript_content += "    length.append_array(bytes)\n"
+            gdscript_content += "    return length\n\n"
+            
+            gdscript_content += "static func encode_length_delimited(value: PackedByteArray) -> PackedByteArray:\n"
+            gdscript_content += "    var length = encode_varint(value.size())\n"
+            gdscript_content += "    length.append_array(value)\n"
+            gdscript_content += "    return length\n\n"
+            
+            # 创建文件描述符
+            output_file = plugin_pb2.CodeGeneratorResponse.File()
+            output_file.name = message_type.name + '.gd'
+            output_file.content = gdscript_content
+            output.append(output_file)
+            
+            # 打印调试信息
+            print(f"\nGenerated content for {message_type.name}:", file=sys.stderr)
+            print(gdscript_content, file=sys.stderr)
+            print(f"\nOutput file name: {output_file.name}", file=sys.stderr)
+            print(f"Output file content length: {len(output_file.content)}", file=sys.stderr)
+            
+        except Exception as e:
+            print(f"Error generating GDScript for message {message_type.name}: {e}", file=sys.stderr)
+            import traceback
+            traceback.print_exc()
+            continue
+    
+    return output
+
+def main():
+    # Read request message from stdin
+    data = sys.stdin.buffer.read()
+    
+    # Parse request
+    request = plugin_pb2.CodeGeneratorRequest()
+    request.ParseFromString(data)
+    
+    # Generate code
+    response = plugin_pb2.CodeGeneratorResponse()
+    
+    try:
+        # Generate GDScript for each file
+        for proto_file in request.proto_file:
+            output_files = generate_gdscript(proto_file)
+            response.file.extend(output_files)
+        
+        # Print debug information
+        print("\nResponse files:", file=sys.stderr)
+        for file in response.file:
+            print(f"File name: {file.name}", file=sys.stderr)
+            print(f"Content length: {len(file.content)}", file=sys.stderr)
+            print("Content:", file=sys.stderr)
+            print(file.content, file=sys.stderr)
+            print(file=sys.stderr)
+        
+        # Write response message to stdout
+        output = response.SerializeToString()
+        sys.stdout.buffer.write(output)
+        sys.stdout.buffer.flush()
+        
+    except Exception as e:
+        print(str(e), file=sys.stderr)
+        sys.exit(1)
+
+if __name__ == '__main__':
+    main()

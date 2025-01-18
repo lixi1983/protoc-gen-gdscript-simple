@@ -1,0 +1,92 @@
+syntax = "proto2";
+
+package test.proto2.complex;
+
+// 复杂的消息定义，包含各种类型的字段
+message ComplexMessage {
+    // 基本类型
+    required int32 int_field = 1;
+    optional int64 long_field = 2 [default = 1000000];
+    required bool bool_field = 3 [default = true];
+    optional float float_field = 4 [default = 3.14];
+    optional string string_field = 5 [default = "hello"];
+    optional bytes bytes_field = 6;
+    
+    // 枚举类型
+    enum Status {
+        UNKNOWN = 0;
+        ACTIVE = 1;
+        INACTIVE = 2;
+        PENDING = 3;
+    }
+    optional Status status = 7 [default = UNKNOWN];
+    
+    // 嵌套消息
+    message NestedMessage {
+        required string id = 1;
+        optional int32 value = 2 [default = 0];
+        
+        message DeepNested {
+            optional string data = 1 [default = ""];
+            repeated int32 numbers = 2;
+        }
+        
+        optional DeepNested deep = 3;
+    }
+    
+    repeated NestedMessage nested_messages = 8;
+    
+    // Oneof 字段
+    oneof test_oneof {
+        string name = 11;
+        int32 id = 12;
+        NestedMessage message = 13;
+    }
+    
+    // 更多复杂字段
+    repeated Status status_list = 14;
+}
+
+// 递归消息定义
+message TreeNode {
+    required string value = 1;
+    repeated TreeNode children = 2;
+    optional TreeNode parent = 3;
+}
+
+// 包含所有数字类型的消息
+message NumberTypes {
+    optional int32 int32_field = 1 [default = -42];
+    optional int64 int64_field = 2 [default = -9223372036854775808];  // min int64
+    optional uint32 uint32_field = 3 [default = 4294967295];  // max uint32
+    optional uint64 uint64_field = 4 [default = 18446744073709551615];  // max uint64
+    optional sint32 sint32_field = 5 [default = -2147483648];  // min sint32
+    optional sint64 sint64_field = 6 [default = -9223372036854775808];  // min sint64
+    optional fixed32 fixed32_field = 7 [default = 4294967295];  // max fixed32
+    optional fixed64 fixed64_field = 8 [default = 18446744073709551615];  // max fixed64
+    optional sfixed32 sfixed32_field = 9 [default = -2147483648];  // min sfixed32
+    optional sfixed64 sfixed64_field = 10 [default = -9223372036854775808];  // min sfixed64
+    optional float float_field = 11 [default = 3.402823466e+38];  // max float
+    optional double double_field = 12 [default = 2.2250738585072014e-308];  // min normal double
+}
+
+// 测试默认值
+message DefaultValues {
+    optional int32 int_with_default = 1 [default = 42];
+    optional string string_with_default = 2 [default = "default string"];
+    optional bytes bytes_with_default = 3 [default = "default bytes"];
+    optional bool bool_with_default = 4 [default = true];
+    optional float float_with_default = 5 [default = 3.14159];
+    optional ComplexMessage.Status enum_with_default = 6 [default = ACTIVE];
+}
+
+// 测试字段规则
+message FieldRules {
+    required string required_field = 1;
+    optional string optional_field = 2;
+    repeated string repeated_field = 3;
+    
+    required ComplexMessage.NestedMessage required_message = 4;
+    optional ComplexMessage.NestedMessage optional_message = 5;
+    repeated ComplexMessage.NestedMessage repeated_message = 6;
+}

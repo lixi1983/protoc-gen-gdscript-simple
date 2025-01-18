@@ -1,0 +1,48 @@
+syntax = "proto2";
+
+package test.proto2;
+
+// 游戏角色信息
+message Character {
+    required string name = 1;
+    optional int32 level = 2 [default = 1];
+    optional float health = 3 [default = 100.0];
+    
+    enum CharacterClass {
+        WARRIOR = 0;
+        MAGE = 1;
+        ROGUE = 2;
+    }
+    
+    required CharacterClass class = 4 [default = WARRIOR];
+    repeated string skills = 5;
+    
+    message Inventory {
+        required int32 slots = 1 [default = 10];
+        repeated Item items = 2;
+    }
+    
+    message Item {
+        required string id = 1;
+        optional string name = 2;
+        optional int32 quantity = 3 [default = 1];
+    }
+    
+    optional Inventory inventory = 6;
+}
+
+// 游戏对局信息
+message GameSession {
+    required string session_id = 1;
+    required int64 start_time = 2;
+    optional int64 end_time = 3;
+    repeated Character players = 4;
+    
+    enum GameState {
+        WAITING = 0;
+        PLAYING = 1;
+        FINISHED = 2;
+    }
+    
+    required GameState state = 5 [default = WAITING];
+}
