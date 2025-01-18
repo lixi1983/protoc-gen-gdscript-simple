@@ -2,6 +2,8 @@
 
 A Protocol Buffers compiler plugin that generates GDScript code for the Godot Engine.
 
+> **Note**: This project was entirely generated using [Windsurf](https://codeium.com/windsurf), an AI-powered IDE that enables rapid development through natural language interaction. All code, including the protoc plugin, test suites, and documentation, was created through natural language conversation with Windsurf.
+
 ## Features
 
 - Supports both Proto2 and Proto3 syntax
@@ -67,6 +69,18 @@ var bytes = character.serialize()
 var new_character = Character.new()
 new_character.deserialize(bytes)
 ```
+
+## About
+
+This project showcases the power of AI-assisted development. Through natural language interaction with Windsurf IDE, we were able to:
+
+1. Design and implement a Protocol Buffers compiler plugin
+2. Handle complex features like nested messages, enums, and various field types
+3. Create comprehensive test suites for both Proto2 and Proto3
+4. Generate clean, efficient, and well-documented code
+5. Implement robust serialization and deserialization
+
+The entire development process, from initial code generation to testing and documentation, was guided by AI, demonstrating how modern tools can significantly accelerate software development while maintaining high quality standards.
 
 ## Contributing
 

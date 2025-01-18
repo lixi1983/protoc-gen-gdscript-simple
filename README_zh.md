@@ -2,6 +2,8 @@
 
 一个用于生成 Godot 引擎 GDScript 代码的 Protocol Buffers 编译器插件。
 
+> **注意**：本项目完全由 [Windsurf](https://codeium.com/windsurf) 生成，这是一个支持通过自然语言交互实现快速开发的 AI 驱动型 IDE。所有代码，包括 protoc 插件、测试套件和文档，都是通过与 Windsurf 的自然语言对话创建的。
+
 ## 特性
 
 - 支持 Proto2 和 Proto3 语法
@@ -67,6 +69,18 @@ var bytes = character.serialize()
 var new_character = Character.new()
 new_character.deserialize(bytes)
 ```
+
+## 关于
+
+本项目展示了 AI 辅助开发的强大功能。通过与 Windsurf IDE 的自然语言交互，我们实现了：
+
+1. 设计和实现 Protocol Buffers 编译器插件
+2. 处理复杂特性，如嵌套消息、枚举和各种字段类型
+3. 创建针对 Proto2 和 Proto3 的全面测试套件
+4. 生成清晰、高效且文档完善的代码
+5. 实现健壮的序列化和反序列化功能
+
+整个开发过程，从初始代码生成到测试和文档编写，都由 AI 引导完成，展示了现代工具如何在保持高质量标准的同时显著加快软件开发速度。
 
 ## 贡献
 
