@@ -20,13 +20,94 @@
 
 ## 安装
 
+你可以通过以下两种方式之一来安装和使用 protobuf2gdscript：
+
+### 方式 1：通过 pip 安装
+
 ```bash
 pip install protobuf2gdscript
 ```
 
+### 方式 2：构建独立可执行文件
+
+如果你想构建一个独立的可执行文件（不依赖 Python 环境），可以使用提供的 Makefile。注意：可执行文件需要在目标平台上构建，不支持跨平台构建。
+
+```bash
+# 在 macOS 上构建
+make dist-mac
+
+# 在 Linux 上构建
+make dist-linux
+
+# 在 Windows 上构建
+make dist-win
+
+# 自动检测当前平台并构建
+make dist
+
+# 运行测试
+make test
+
+# 清理构建文件
+make clean
+```
+
+构建完成后，可执行文件将位于 `dist` 目录中：
+- macOS: `protoc-gen-gdscript`
+- Linux: `protoc-gen-gdscript`
+- Windows: `protoc-gen-gdscript.exe`
+
+每个平台的可执行文件只能在对应的操作系统上运行。如果需要支持多个平台，需要在每个目标平台上分别进行构建。
+
+### 安装到系统
+
+为了让 protoc 编译器能够找到并使用这个插件，你需要将生成的可执行文件放入系统的 PATH 目录中：
+
+**Linux/macOS**:
+```bash
+# 将可执行文件复制到 /usr/local/bin（需要管理员权限）
+# macOS
+sudo cp dist/protoc-gen-gdscript-mac /usr/local/bin/protoc-gen-gdscript
+
+# Linux
+sudo cp dist/protoc-gen-gdscript-linux /usr/local/bin/protoc-gen-gdscript
+
+# 添加执行权限
+sudo chmod +x /usr/local/bin/protoc-gen-gdscript
+```
+
+**Windows**:
+1. 创建一个新目录，例如 `C:\protoc-plugins`
+2. 将 `dist/protoc-gen-gdscript.exe` 复制到该目录
+3. 将该目录添加到系统的 PATH 环境变量：
+   - 右键点击"此电脑" -> 属性
+   - 点击"高级系统设置" -> "环境变量"
+   - 在"系统变量"中找到 PATH
+   - 点击"编辑" -> "新建"
+   - 添加 `C:\protoc-plugins`
+   - 点击"确定"保存更改
+
+安装完成后，你可以在任何目录下使用 protoc 命令来生成 GDScript 代码。
+
 ## 使用方法
 
-1. 在 `.proto` 文件中定义你的 Protocol Buffers 消息：
+安装完成后，你可以直接通过 protoc 使用这个插件：
+
+```bash
+# 从 .proto 文件生成 GDScript 代码
+protoc --gdscript_out=. your_file.proto
+
+# 生成到指定输出目录
+protoc --gdscript_out=./output your_file.proto
+
+# 从多个 .proto 文件生成
+protoc --gdscript_out=. file1.proto file2.proto
+
+# 从指定目录的 .proto 文件生成
+protoc --gdscript_out=. -I=proto_dir1 -I=proto_dir2 your_file.proto
+```
+
+示例 `.proto` 文件：
 
 ```protobuf
 syntax = "proto2";  // 或 "proto3"
@@ -47,20 +128,14 @@ message Character {
 }
 ```
 
-2. 生成 GDScript 代码：
-
-```bash
-protoc --gdscript_out=. your_file.proto
-```
-
-3. 在你的 Godot 项目中使用生成的代码：
+生成的 GDScript 代码可以在你的 Godot 项目中这样使用：
 
 ```gdscript
 var character = Character.new()
-character.name = "英雄"
+character.name = "Hero"
 character.level = 5
-character.items.append("剑")
-character.items.append("盾")
+character.items.append("Sword")
+character.items.append("Shield")
 
 # 序列化
 var bytes = character.serialize()
@@ -68,6 +143,18 @@ var bytes = character.serialize()
 # 反序列化
 var new_character = Character.new()
 new_character.deserialize(bytes)
+```
+
+## 环境变量
+
+- `PROTOC_GEN_GDSCRIPT_PREFIX`: 设置生成的 GDScript 文件的导入路径前缀。默认值为 `res://protobuf/`。例如：
+
+```bash
+# 默认前缀为 "res://protobuf/"，你可以通过环境变量覆盖它：
+PROTOC_GEN_GDSCRIPT_PREFIX="res://custom_path/" protoc --gdscript_out=. your_file.proto
+
+# 生成的代码将在 preload 语句中使用指定的前缀：
+const Message = preload("res://custom_path/Message.gd")
 ```
 
 ## 关于

@@ -20,13 +20,97 @@ A Protocol Buffers compiler plugin that generates GDScript code for the Godot En
 
 ## Installation
 
+You can install and use protobuf2gdscript in one of two ways:
+
+### Method 1: Via pip
+
 ```bash
 pip install protobuf2gdscript
 ```
 
+### Method 2: Build Standalone Executable
+
+If you want to build a standalone executable (no Python environment required), you can use the provided Makefile:
+
+```bash
+# Build standalone executable
+make dist
+
+# Run tests
+make test
+
+# Clean build files
+make clean
+```
+
+After building, the executable will be located in the `dist` directory:
+- macOS: `protoc-gen-gdscript`
+- Linux: `protoc-gen-gdscript`
+- Windows: `protoc-gen-gdscript.exe`
+
+Each platform's executable can only run on its corresponding operating system. If you need to support multiple platforms, you'll need to build on each target platform separately.
+
+### System Installation
+
+For the protoc compiler to find and use this plugin, you need to place the generated executable in your system's PATH:
+
+**Linux/macOS**:
+```bash
+# Copy the executable to /usr/local/bin (requires admin privileges)
+# macOS
+sudo cp dist/protoc-gen-gdscript-mac /usr/local/bin/protoc-gen-gdscript
+
+# Linux
+sudo cp dist/protoc-gen-gdscript-linux /usr/local/bin/protoc-gen-gdscript
+
+# Add execute permission
+sudo chmod +x /usr/local/bin/protoc-gen-gdscript
+```
+
+**Windows**:
+1. Create a new directory, e.g., `C:\protoc-plugins`
+2. Copy `dist/protoc-gen-gdscript.exe` to this directory
+3. Add the directory to your system's PATH environment variable:
+   - Right-click "This PC" -> Properties
+   - Click "Advanced system settings" -> "Environment Variables"
+   - Under "System variables", find PATH
+   - Click "Edit" -> "New"
+   - Add `C:\protoc-plugins`
+   - Click "OK" to save changes
+
+After installation, you can use the protoc command to generate GDScript code from any directory.
+
+## Environment Variables
+
+- `PROTOC_GEN_GDSCRIPT_PREFIX`: Set the import path prefix for generated GDScript files. Default value is `res://protobuf/`. For example:
+
+```bash
+# The default prefix is "res://protobuf/", you can override it:
+PROTOC_GEN_GDSCRIPT_PREFIX="res://custom_path/" protoc --gdscript_out=. your_file.proto
+
+# Generated code will use the specified prefix in preload statements:
+const Message = preload("res://custom_path/Message.gd")
+```
+
 ## Usage
 
-1. Define your Protocol Buffers messages in a `.proto` file:
+After installation, you can use the plugin directly with protoc:
+
+```bash
+# Generate GDScript code from your .proto file
+protoc --gdscript_out=. your_file.proto
+
+# Generate GDScript code to a specific output directory
+protoc --gdscript_out=./output your_file.proto
+
+# Generate from multiple .proto files
+protoc --gdscript_out=. file1.proto file2.proto
+
+# Generate from .proto files in specific directories
+protoc --gdscript_out=. -I=proto_dir1 -I=proto_dir2 your_file.proto
+```
+
+Example `.proto` file:
 
 ```protobuf
 syntax = "proto2";  // or "proto3"
@@ -47,13 +131,7 @@ message Character {
 }
 ```
 
-2. Generate GDScript code:
-
-```bash
-protoc --gdscript_out=. your_file.proto
-```
-
-3. Use the generated code in your Godot project:
+The generated GDScript code can be used in your Godot project:
 
 ```gdscript
 var character = Character.new()
