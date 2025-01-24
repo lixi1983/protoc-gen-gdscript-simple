@@ -14,7 +14,7 @@ message Character {
         ROGUE = 2;
     }
     
-    required CharacterClass class = 4 [default = WARRIOR];
+    required CharacterClass character = 4 [default = WARRIOR];
     repeated string skills = 5;
     
     message Inventory {
