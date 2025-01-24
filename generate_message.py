@@ -265,6 +265,7 @@ def generate_serialization_methods(message_type):
     """Generate serialization methods for a message type."""
     content = """func SerializeToString() -> PackedByteArray:
 \tvar bytes = PackedByteArray()
+
 """
     
     # Generate serialization code for each field
@@ -314,6 +315,7 @@ def generate_serialization_methods(message_type):
     # Generate dictionary serialization methods
     content += """func SerializeToDictionary() -> Dictionary:
 \tvar data = {}
+
 """
     
     for field in message_type.field:
@@ -333,6 +335,7 @@ def generate_serialization_methods(message_type):
     
     # Generate dictionary parsing method
     content += """func ParseFromDictionary(data: Dictionary) -> bool:
+
 """
     
     for field in message_type.field:
@@ -346,7 +349,37 @@ def generate_serialization_methods(message_type):
             content += f"\tif '{field_name}' in data:\n"
             content += f"\t\t{field_name} = data['{field_name}']\n"
     
-    content += "\treturn true"
+    content += "\treturn true\n\n"
+    
+    # Add New method
+    content += """func New() -> Message:
+\treturn new()
+
+"""
+    
+    # Add Merge method
+    content += """func Merge(other: Message) -> void:
+
+"""
+    
+    for field in message_type.field:
+        field_name = field.name
+        if field.label == FieldDescriptorProto.LABEL_REPEATED:
+            content += f"\tif other.{field_name}:\n"
+            content += f"\t\t{field_name}.append_array(other.{field_name})\n"
+        else:
+            content += f"\tif other.{field_name} != {get_default_value(field)}:\n"
+            content += f"\t\t{field_name} = other.{field_name}\n"
+    
+    content += "\n"
+    
+    # Add Copy method
+    content += """func Copy() -> Message:
+\tvar copy = New()
+\tvar data = SerializeToDictionary()
+\tcopy.ParseFromDictionary(data)
+\treturn copy
+"""
     
     return content
 
