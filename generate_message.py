@@ -376,10 +376,17 @@ def generate_serialization_methods(message_type):
     # Add Copy method
     content += """func Copy() -> Message:
 \tvar copy = New()
-\tvar data = SerializeToDictionary()
-\tcopy.ParseFromDictionary(data)
-\treturn copy
 """
+    
+    # Copy each field
+    for field in message_type.field:
+        field_name = field.name
+        if field.label == FieldDescriptorProto.LABEL_REPEATED:
+            content += f"\tcopy.{field_name} = {field_name}.duplicate()\n"
+        else:
+            content += f"\tcopy.{field_name} = {field_name}\n"
+    
+    content += "\treturn copy\n"
     
     return content
 
