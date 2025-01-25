@@ -1,6 +1,7 @@
 
 proto 生成 .gd 文件规则：
 1 一个proto文件只生产一个.gd脚本
-2 class继承自protobuf/proto/中的  Message
+2 生成的.gd 没有 class_name, 只有 class,
+2 class继承自protobuf/proto/中的  Message, 由const Message = reload() 同一定义
 3 需要继承实现SerializeToString, DeserializeFromString, SerializeToDictionary,ParseFromDictionary, 
     DeserializeFromDictionary, New, Merge, Copy

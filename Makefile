@@ -70,6 +70,9 @@ test: install
 	@echo "Running all tests..."
 	@$(CD) test && $(MAKE) clean test
 
+check:
+	@$(CD) test/godot_test && $(MAKE) link check_only
+
 # 清理目标
 clean:
 	@echo "Cleaning test directories..."

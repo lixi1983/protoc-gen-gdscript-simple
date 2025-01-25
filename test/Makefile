@@ -8,7 +8,7 @@ else
 endif
 
 # 子目录
-SUBDIRS = proto2 proto3
+SUBDIRS = proto2 proto3 godot_test
 clean_dirs=$(addprefix _clean_,$(SUBDIRS))
 
 # 默认目标
