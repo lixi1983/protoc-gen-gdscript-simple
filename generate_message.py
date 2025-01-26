@@ -19,7 +19,9 @@ def get_field_new(field):
         parts = type_name.split(".")
         if len(parts) > 1:
             # If it's a nested type, use the new_instance method
-            return f"{parts[-2]}.{parts[-1]}.new_instance(self)"
+            parent_class = parts[-2]
+            nested_class = parts[-1]
+            return f"{nested_class}.new_instance(self)"
         else:
             return f"{type_name}.new()"
     else:
@@ -57,7 +59,7 @@ def get_default_value(field):
     if field.label == FieldDescriptorProto.LABEL_REPEATED:
         return '[]'
     elif field.type == FieldDescriptorProto.TYPE_MESSAGE:
-        return 'null'
+        return get_field_new(field)
     
     # Check if field has a default value set
     if hasattr(field, 'default_value') and field.default_value:
@@ -84,25 +86,26 @@ def get_default_value(field):
             return str(field.default_value)
     
     # Return type-specific default values if no default value is set
-    if field.type in [FieldDescriptorProto.TYPE_INT32, FieldDescriptorProto.TYPE_INT64,
-                     FieldDescriptorProto.TYPE_SINT32, FieldDescriptorProto.TYPE_SINT64,
-                     FieldDescriptorProto.TYPE_SFIXED32, FieldDescriptorProto.TYPE_SFIXED64]:
-        return '0'
-    elif field.type in [FieldDescriptorProto.TYPE_UINT32, FieldDescriptorProto.TYPE_UINT64,
-                       FieldDescriptorProto.TYPE_FIXED32, FieldDescriptorProto.TYPE_FIXED64]:
-        return '0'
-    elif field.type in [FieldDescriptorProto.TYPE_FLOAT, FieldDescriptorProto.TYPE_DOUBLE]:
-        return '0.0'
+    if field.type == FieldDescriptorProto.TYPE_ENUM:
+        return "0"  # Use 0 as default for now
     elif field.type == FieldDescriptorProto.TYPE_BOOL:
-        return 'false'
+        return "false"
+    elif field.type in [FieldDescriptorProto.TYPE_INT32, FieldDescriptorProto.TYPE_INT64,
+                       FieldDescriptorProto.TYPE_UINT32, FieldDescriptorProto.TYPE_UINT64,
+                       FieldDescriptorProto.TYPE_SINT32, FieldDescriptorProto.TYPE_SINT64,
+                       FieldDescriptorProto.TYPE_FIXED32, FieldDescriptorProto.TYPE_FIXED64,
+                       FieldDescriptorProto.TYPE_SFIXED32, FieldDescriptorProto.TYPE_SFIXED64]:
+        return "0"
+    elif field.type in [FieldDescriptorProto.TYPE_FLOAT, FieldDescriptorProto.TYPE_DOUBLE]:
+        return "0.0"
     elif field.type == FieldDescriptorProto.TYPE_STRING:
         return '""'
     elif field.type == FieldDescriptorProto.TYPE_BYTES:
-        return 'PackedByteArray()'
+        return "PackedByteArray()"
     elif field.type == FieldDescriptorProto.TYPE_ENUM:
-        return '0'
+        return "0"  # Use 0 as default for now
     else:
-        return 'null'
+        return "null"
 
 def get_field_encoder(field):
     """Get the encoder name for a field."""
@@ -245,28 +248,32 @@ def generate_gdscript(request):
             
     return response
 
-def generate_message_class(message_type):
+def generate_message_class(message_type, parent_name=None):
     """Generate a message class."""
     content = ""
     
-    # Generate nested enums first
-    for enum_type in message_type.enum_type:
-        content += generate_enum_class(enum_type, message_type.name)
-    
-    # Generate nested types
-    for nested_type in message_type.nested_type:
-        content += generate_message_class(nested_type)
-    
     # Generate message class
-    content += f"class {message_type.name} extends Message:\n"
+    if parent_name:
+        content += f"class {message_type.name} extends Message:\n"
+        # Add reference to parent class for nested types
+        content += f"\tvar _parent = null\n"
+        content += f"\tfunc get_parent() -> {parent_name}:\n"
+        content += f"\t\treturn _parent\n\n"
+        
+        # Add static method to create a new instance
+        content += f"\tstatic func new_instance(parent) -> {message_type.name}:\n"
+        content += f"\t\tvar instance = {message_type.name}.new()\n"
+        content += f"\t\tinstance._parent = parent\n"
+        content += f"\t\treturn instance\n\n"
+    else:
+        content += f"class {message_type.name} extends Message:\n"
     
     # Generate enum constants at class level
     for enum_type in message_type.enum_type:
-        # Add enum class reference
- #       content += f"\tconst {enum_type.name} = preload('res://proto2/generated/complex.gd').{enum_type.name}\n"
+        content += f"\t# Enum: {enum_type.name}\n"
         # Generate enum values as class constants
         for value in enum_type.value:
-            content += f"\tconst {message_type.name}_{value.name} = {value.number}\n"
+            content += f"\tconst {value.name} = {value.number}\n"
     if message_type.enum_type:
         content += "\n"
     
@@ -293,6 +300,14 @@ def generate_message_class(message_type):
             content += f"\t\t{field_name} = {get_default_value(field)}\n"
     content += "\n"
     
+    # Generate nested enums first
+    for enum_type in message_type.enum_type:
+        content += generate_enum_class(enum_type, message_type.name)
+    
+    # Generate nested types
+    for nested_type in message_type.nested_type:
+        content += generate_message_class(nested_type, message_type.name)
+    
     # Generate serialization methods
     content += generate_serialization_methods(message_type, "\t")
     
@@ -311,14 +326,14 @@ def generate_enum_class(enum_type, parent_name=None):
         content += f"\t\treturn _parent\n\n"
         
         # Add static method to create a new instance
-        content += f"\tstatic func new_instance(parent: {parent_name}) -> {enum_type.name}:\n"
+        content += f"\tstatic func new_instance(parent) -> {enum_type.name}:\n"
         content += f"\t\tvar instance = {enum_type.name}.new()\n"
         content += f"\t\tinstance._parent = parent\n"
         content += f"\t\treturn instance\n\n"
     else:
         content += f"class {enum_type.name} extends RefCounted:\n"
     
-    # Generate enum values
+    # Generate enum values as class constants
     for value in enum_type.value:
         content += f"\tconst {value.name} = {value.number}\n"
     content += "\n"
@@ -331,143 +346,56 @@ def generate_serialization_methods(message_type, indent):
     
     # Generate SerializeToString method
     content += f"{indent}func SerializeToString() -> PackedByteArray:\n"
-    content += f"{indent}\tvar bytes = PackedByteArray()\n"
+    content += f"{indent}\tvar buffer = PackedByteArray()\n"
+    content += f"{indent}\tvar writer = GDScriptUtils.new()\n"
+    
+    # Serialize fields
     for field in message_type.field:
         field_name = field.name
-        field_number = field.number
         field_type = field.type
-        default_value = get_default_value(field)
+        field_number = field.number
+        field_label = field.label
         
-        if field.label == FieldDescriptorProto.LABEL_REPEATED:
-            content += f"{indent}\tif {field_name}:\n"
-            content += f"{indent}\t\tfor item in {field_name}:\n"
-            content += f"{indent}\t\t\tbytes.append_array(GDScriptUtils.encode_varint({field_number}))\n"
-            if field_type == FieldDescriptorProto.TYPE_MESSAGE:
-                content += f"{indent}\t\t\tvar item_bytes = item.SerializeToString()\n"
-                content += f"{indent}\t\t\tbytes.append_array(GDScriptUtils.encode_varint(item_bytes.size()))\n"
-                content += f"{indent}\t\t\tbytes.append_array(item_bytes)\n"
-            else:
-                content += f"{indent}\t\t\tbytes.append_array(GDScriptUtils.{get_serializer_method(field_type)}(item))\n"
+        if field_label == FieldDescriptorProto.LABEL_REPEATED:
+            content += f"{indent}\tfor item in {field_name}:\n"
+            content += f"{indent}\t\twriter.write_{get_field_encoder(field)}(buffer, {field_number}, item)\n"
         else:
-            content += f"{indent}\tif {field_name} != {default_value}:\n"
-            content += f"{indent}\t\tbytes.append_array(GDScriptUtils.encode_varint({field_number}))\n"
-            if field_type == FieldDescriptorProto.TYPE_MESSAGE:
-                content += f"{indent}\t\tvar item_bytes = {field_name}.SerializeToString()\n"
-                content += f"{indent}\t\tbytes.append_array(GDScriptUtils.encode_varint(item_bytes.size()))\n"
-                content += f"{indent}\t\tbytes.append_array(item_bytes)\n"
-            else:
-                content += f"{indent}\t\tbytes.append_array(GDScriptUtils.{get_serializer_method(field_type)}({field_name}))\n"
-    content += f"{indent}\treturn bytes\n\n"
+            content += f"{indent}\twriter.write_{get_field_encoder(field)}(buffer, {field_number}, {field_name})\n"
+    
+    content += f"{indent}\treturn buffer\n\n"
     
     # Generate ParseFromString method
-    content += f"{indent}func ParseFromString(bytes: PackedByteArray) -> bool:\n"
+    content += f"{indent}func ParseFromString(data: PackedByteArray) -> void:\n"
+    content += f"{indent}\tvar reader = GDScriptUtils.new()\n"
+    content += f"{indent}\tvar size = data.size()\n"
     content += f"{indent}\tvar pos = 0\n"
-    content += f"{indent}\twhile pos < bytes.size():\n"
-    content += f"{indent}\t\tvar tag = GDScriptUtils.decode_varint(bytes, pos)\n"
-    content += f"{indent}\t\tpos += GDScriptUtils.varint_size(bytes, pos)\n"
-    content += f"{indent}\t\tmatch tag:\n"
+    content += f"{indent}\twhile pos < size:\n"
+    content += f"{indent}\t\tvar tag = reader.read_tag(data, pos)\n"
+    content += f"{indent}\t\tvar field_number = tag[0]\n"
+    content += f"{indent}\t\tvar wire_type = tag[1]\n"
+    content += f"{indent}\t\tpos = tag[2]\n"
+    content += f"{indent}\t\tmatch field_number:\n"
+    
+    # Parse fields
     for field in message_type.field:
         field_name = field.name
+        field_type = field.type
         field_number = field.number
-        field_type = field.type
+        field_label = field.label
         
-        content += f"{indent}\t\t\t{field_number}:  # {field_name}\n"
-        if field.label == FieldDescriptorProto.LABEL_REPEATED:
-            if field_type == FieldDescriptorProto.TYPE_MESSAGE:
-                content += f"{indent}\t\t\t\tvar size = GDScriptUtils.decode_varint(bytes, pos)\n"
-                content += f"{indent}\t\t\t\tpos += GDScriptUtils.varint_size(bytes, pos)\n"
-                content += f"{indent}\t\t\t\tvar value = {get_field_new(field)}\n"
-                content += f"{indent}\t\t\t\tvalue.ParseFromString(bytes.slice(pos, pos + size))\n"
-                content += f"{indent}\t\t\t\tpos += size\n"
-            else:
-                content += f"{indent}\t\t\t\tvar value = GDScriptUtils.decode_{get_decoder_method(field_type)}(bytes, pos)\n"
-                content += f"{indent}\t\t\t\tpos += GDScriptUtils.{get_decoder_method(field_type)}_size(bytes, pos)\n"
-            content += f"{indent}\t\t\t\t{field_name}.append(value)\n"
+        content += f"{indent}\t\t\t{field_number}:\n"
+        if field_label == FieldDescriptorProto.LABEL_REPEATED:
+            content += f"{indent}\t\t\t\tvar value = reader.read_{get_field_decoder(field)}(data, pos)\n"
+            content += f"{indent}\t\t\t\t{field_name}.append(value[0])\n"
+            content += f"{indent}\t\t\t\tpos = value[1]\n"
         else:
-            if field_type == FieldDescriptorProto.TYPE_MESSAGE:
-                content += f"{indent}\t\t\t\tvar size = GDScriptUtils.decode_varint(bytes, pos)\n"
-                content += f"{indent}\t\t\t\tpos += GDScriptUtils.varint_size(bytes, pos)\n"
-                content += f"{indent}\t\t\t\t{field_name} = {get_field_new(field)}\n"
-                content += f"{indent}\t\t\t\t{field_name}.ParseFromString(bytes.slice(pos, pos + size))\n"
-                content += f"{indent}\t\t\t\tpos += size\n"
-            else:
-                content += f"{indent}\t\t\t\t{field_name} = GDScriptUtils.decode_{get_decoder_method(field_type)}(bytes, pos)\n"
-                content += f"{indent}\t\t\t\tpos += GDScriptUtils.{get_decoder_method(field_type)}_size(bytes, pos)\n"
-    content += f"{indent}\treturn true\n\n"
+            content += f"{indent}\t\t\t\tvar value = reader.read_{get_field_decoder(field)}(data, pos)\n"
+            content += f"{indent}\t\t\t\t{field_name} = value[0]\n"
+            content += f"{indent}\t\t\t\tpos = value[1]\n"
     
-    # Generate SerializeToDictionary method
-    content += f"{indent}func SerializeToDictionary() -> Dictionary:\n"
-    content += f"{indent}\tvar data = {{}}\n"
-    for field in message_type.field:
-        field_name = field.name
-        field_type = field.type
-        default_value = get_default_value(field)
-        
-        if field.label == FieldDescriptorProto.LABEL_REPEATED:
-            content += f"{indent}\tif {field_name}:\n"
-            content += f"{indent}\t\tdata['{field_name}'] = []\n"
-            content += f"{indent}\t\tfor item in {field_name}:\n"
-            if field_type == FieldDescriptorProto.TYPE_MESSAGE:
-                content += f"{indent}\t\t\tdata['{field_name}'].append(item.SerializeToDictionary())\n"
-            else:
-                content += f"{indent}\t\t\tdata['{field_name}'].append(item)\n"
-        else:
-            content += f"{indent}\tif {field_name} != {default_value}:\n"
-            if field_type == FieldDescriptorProto.TYPE_MESSAGE:
-                content += f"{indent}\t\tdata['{field_name}'] = {field_name}.SerializeToDictionary()\n"
-            else:
-                content += f"{indent}\t\tdata['{field_name}'] = {field_name}\n"
-    content += f"{indent}\treturn data\n\n"
-    
-    # Generate ParseFromDictionary method
-    content += f"{indent}func ParseFromDictionary(data: Dictionary) -> bool:\n"
-    for field in message_type.field:
-        field_name = field.name
-        field_type = field.type
-        
-        content += f"{indent}\tif '{field_name}' in data:\n"
-        if field.label == FieldDescriptorProto.LABEL_REPEATED:
-            content += f"{indent}\t\tfor item_data in data['{field_name}']:\n"
-            if field_type == FieldDescriptorProto.TYPE_MESSAGE:
-                content += f"{indent}\t\t\tvar item = {get_field_new(field)}\n"
-                content += f"{indent}\t\t\titem.ParseFromDictionary(item_data)\n"
-                content += f"{indent}\t\t\t{field_name}.append(item)\n"
-            else:
-                content += f"{indent}\t\t\t{field_name}.append(item_data)\n"
-        else:
-            if field_type == FieldDescriptorProto.TYPE_MESSAGE:
-                content += f"{indent}\t\t{field_name} = {get_field_new(field)}\n"
-                content += f"{indent}\t\t{field_name}.ParseFromDictionary(data['{field_name}'])\n"
-            else:
-                content += f"{indent}\t\t{field_name} = data['{field_name}']\n"
-    content += f"{indent}\treturn true\n\n"
-    
-    # Add New method
-    content += f"{indent}func New() -> Message:\n"
-    content += f"{indent}\treturn self\n\n"
-    
-    # Add Merge method
-    content += f"{indent}func Merge(other: Message) -> Message:\n"
-    content += f"{indent}\tif not other is {message_type.name}:\n"
-    content += f"{indent}\t\treturn self\n"
-    for field in message_type.field:
-        field_name = field.name
-        default_value = get_default_value(field)
-        
-        if field.label == FieldDescriptorProto.LABEL_REPEATED:
-            content += f"{indent}\tif other.{field_name}:\n"
-            content += f"{indent}\t\tfor item in other.{field_name}:\n"
-            content += f"{indent}\t\t\t{field_name}.append(item)\n"
-        else:
-            content += f"{indent}\tif other.{field_name} != {default_value}:\n"
-            content += f"{indent}\t\t{field_name} = other.{field_name}\n"
-    content += f"{indent}\treturn self\n\n"
-    
-    # Add Copy method
-    content += f"{indent}func Copy() -> Message:\n"
-    content += f"{indent}\tvar copy = {message_type.name}.new()\n"
-    content += f"{indent}\tcopy.Merge(self)\n"
-    content += f"{indent}\treturn copy\n\n"
+    content += f"{indent}\t\t\t_:\n"
+    content += f"{indent}\t\t\t\tpos = reader.skip_field(data, pos, wire_type)\n"
+    content += "\n"
     
     return content
 
