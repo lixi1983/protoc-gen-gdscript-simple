@@ -2,129 +2,43 @@
 
 class_name GDScriptUtils extends RefCounted
 
-static func serialize_bool(value: bool) -> PackedByteArray:
-    var bytes = PackedByteArray()
-    bytes.resize(4)
-    bytes.encode_u32(0, 1 if value else 0)
-    return bytes
+static var VALUE_KEY = "value"
+static var SIZE_KEY = "size"
 
-static func serialize_int32(value: int) -> PackedByteArray:
-    var bytes = PackedByteArray()
-    bytes.resize(4)
-    bytes.encode_s32(0, value)
-    return bytes
+static func encode_bool(bytes: PackedByteArray, value: bool)  :
+    var s = bytes.size()
+    bytes.resize(s + 1)
+    bytes.encode_u8(s, 1 if value else 0)
 
-static func serialize_int64(value: int) -> PackedByteArray:
-    var bytes = PackedByteArray()
-    bytes.resize(8)
-    bytes.encode_s64(0, value)
-    return bytes
+static func decode_bool(bytes: PackedByteArray, offset: int) -> Dictionary:
+    var value = bytes.decode_u8(offset)
+    return {VALUE_KEY: true if value == 1 else false, SIZE_KEY: 1}
 
-static func serialize_uint32(value: int) -> PackedByteArray:
-    var bytes = PackedByteArray()
-    bytes.resize(4)
-    bytes.encode_u32(0, value)
-    return bytes
-
-static func serialize_uint64(value: int) -> PackedByteArray:
-    var bytes = PackedByteArray()
-    bytes.resize(8)
-    bytes.encode_u64(0, value)
-    return bytes
-
-static func serialize_float(value: float) -> PackedByteArray:
-    var bytes = PackedByteArray()
-    bytes.resize(4)
-    bytes.encode_float(0, value)
-    return bytes
-
-static func serialize_double(value: float) -> PackedByteArray:
-    var bytes = PackedByteArray()
-    bytes.resize(8)
-    bytes.encode_double(0, value)
-    return bytes
-
-static func serialize_string(value: String) -> PackedByteArray:
-    var bytes = PackedByteArray()
-    var str_bytes = value.to_utf8_buffer()
-    var size_bytes = PackedByteArray()
-    size_bytes.resize(4)
-    size_bytes.encode_u32(0, str_bytes.size())
-    bytes.append_array(size_bytes)
-    bytes.append_array(str_bytes)
-    return bytes
-
-static func deserialize_bool(bytes: PackedByteArray, offset: int) -> bool:
-    return bytes.decode_u32(offset) != 0
-
-static func deserialize_int32(bytes: PackedByteArray, offset: int) -> int:
-    return bytes.decode_s32(offset)
-
-static func deserialize_int64(bytes: PackedByteArray, offset: int) -> int:
-    return bytes.decode_s64(offset)
-
-static func deserialize_uint32(bytes: PackedByteArray, offset: int) -> int:
-    return bytes.decode_u32(offset)
-
-static func deserialize_uint64(bytes: PackedByteArray, offset: int) -> int:
-    return bytes.decode_u64(offset)
-
-static func deserialize_float(bytes: PackedByteArray, offset: int) -> float:
-    return bytes.decode_float(offset)
-
-static func deserialize_double(bytes: PackedByteArray, offset: int) -> float:
-    return bytes.decode_double(offset)
-
-static func deserialize_string(bytes: PackedByteArray, offset: int) -> String:
-    var size = bytes.decode_u32(offset)
-    offset += 4
-    var str_bytes = bytes.slice(offset, offset + size)
-    return str_bytes.get_string_from_utf8()
-
-static func encode_varint(value: int) -> PackedByteArray:
-    var bytes = PackedByteArray()
+static func encode_varint( bytes: PackedByteArray, value: int) :
     while value > 0x7F:
-        bytes.append((value & 0x7F) | 0x80)
+#        bytes.resize(bytes.size() + 1)
+        var b = (value & 0x7F) | 0x80
+       # bytes.append((value & 0x7F) | 0x80)
+        bytes.append(b)
         value = value >> 7
-    bytes.append(value & 0x7F)
-    return bytes
 
-static func varint(value: int) -> PackedByteArray:
-    var bytes = PackedByteArray()
-    while value > 0x7F:
-        bytes.append((value & 0x7F) | 0x80)
-        value = value >> 7
-    bytes.append(value & 0x7F)
-    return bytes
+#    bytes.resize(bytes.size() + 1)
+    bytes.append(value)
 
-static func bool(value: bool) -> PackedByteArray:
-    return serialize_bool(value)
-
-static func float(value: float) -> PackedByteArray:
-    return serialize_float(value)
-
-static func string(value: String) -> PackedByteArray:
-    return serialize_string(value)
-
-static func bytes(value: PackedByteArray) -> PackedByteArray:
-    var bytes = PackedByteArray()
-    var size_bytes = encode_varint(value.size())
-    bytes.append_array(size_bytes)
-    bytes.append_array(value)
-    return bytes
-
-static func decode_varint(bytes: PackedByteArray, offset: int) -> int:
+static func decode_varint(bytes: PackedByteArray, offset: int) -> Dictionary:
     var value = 0
     var shift = 0
-    var pos = offset
-    while pos < bytes.size():
-        var byte = bytes[pos]
+    var pos = 0
+
+    while ( offset + pos ) < bytes.size():
+        var byte = bytes[offset + pos]
         value |= (byte & 0x7F) << shift
+        pos += 1
         if (byte & 0x80) == 0:
             break
         shift += 7
-        pos += 1
-    return value
+
+    return {VALUE_KEY: value, SIZE_KEY: pos}
 
 static func varint_size(bytes: PackedByteArray, offset: int) -> int:
     var size = 0
@@ -136,30 +50,49 @@ static func varint_size(bytes: PackedByteArray, offset: int) -> int:
         pos += 1
     return size
 
-static func decode_bool(bytes: PackedByteArray, offset: int) -> bool:
-    return deserialize_bool(bytes, offset)
 
-static func bool_size(bytes: PackedByteArray, offset: int) -> int:
-    return 4
+static func encode_float(bytes: PackedByteArray, value: float) :
+    var s = bytes.size()
+    bytes.resize(s + 4)
+    bytes.encode_float(s, value)
+    return bytes
 
-static func decode_float(bytes: PackedByteArray, offset: int) -> float:
-    return deserialize_float(bytes, offset)
+static func decode_float(bytes: PackedByteArray, offset: int) -> Dictionary:
+    var value = bytes.decode_float(offset)
+    return {VALUE_KEY: value, SIZE_KEY: 4}
 
-static func float_size(bytes: PackedByteArray, offset: int) -> int:
-    return 4
+static func encode_string(bytes: PackedByteArray, value: String):
+    var utf8_value = value.to_utf8_buffer()
+    var size = utf8_value.size()
+    encode_varint(bytes, size)
+#    bytes.resize(bytes.size() + size)
+    bytes.append_array(utf8_value)
 
-static func decode_string(bytes: PackedByteArray, offset: int) -> String:
-    return deserialize_string(bytes, offset)
 
-static func string_size(bytes: PackedByteArray, offset: int) -> int:
-    var size = bytes.decode_u32(offset)
-    return 4 + size
+static func decode_string(bytes: PackedByteArray, offset: int) -> Dictionary:
+    var info = decode_varint(bytes, offset)
+    var size = info[VALUE_KEY]
+    var size_len = info[SIZE_KEY]
 
-static func decode_bytes(bytes: PackedByteArray, offset: int) -> PackedByteArray:
-    var size = decode_varint(bytes, offset)
-    var pos = offset + varint_size(bytes, offset)
-    return bytes.slice(pos, pos + size)
+    var str_bytes = bytes.slice(offset + size_len, offset + size_len + size)
+    var value = str_bytes.get_string_from_utf8()
+    return {VALUE_KEY: value, SIZE_KEY: size_len + size}
 
-static func bytes_size(bytes: PackedByteArray, offset: int) -> int:
-    var size = decode_varint(bytes, offset)
-    return varint_size(bytes, offset) + size
+static func encode_bytes(bytes: PackedByteArray, value: PackedByteArray):
+    var size = value.size()
+    encode_varint(bytes, size)
+    bytes.resize(bytes.size() + value.size())
+    bytes.append_array(value)
+
+static func decode_bytes(bytes: PackedByteArray, offset: int) -> Dictionary:
+    var info = decode_varint(bytes, offset)
+    var value_len = info[VALUE_KEY]
+    var size = info[SIZE_KEY]
+    var value = bytes.slice(offset + size, offset + size + value_len)
+    return {VALUE_KEY: value, SIZE_KEY: value_len + size}
+
+static func decode_tag(bytes: PackedByteArray, offset: int) -> Dictionary:
+    return decode_varint(bytes, offset)
+
+static func encode_tag(bytes: PackedByteArray, value: int):
+    encode_varint(bytes, value)

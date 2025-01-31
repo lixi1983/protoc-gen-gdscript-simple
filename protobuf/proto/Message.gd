@@ -42,12 +42,19 @@ func New() -> Message:
 ## 合并两个消息
 ## 参数: other: Message - 要合并的消息
 ## 返回值: Message - 合并后的消息
-func Merge(other: Message) -> Message:
+func MergeFrom(other: Message) -> void:
 	push_error("Message.Merge() is virtual")
-	return self
 
 ## 复制当前消息
 ## 返回值: Message - 复制的消息
-func Copy() -> Message:
-	push_error("Message.Copy() is virtual")
-	return self
+func Clone() -> Message:
+	var other = New()
+	other.MergeFrom(self)
+	return other
+
+func SerializeToJson() -> String:
+	var map = SerializeToDictionary()
+	return JSON.stringify(map)
+
+func ToString() -> String:
+	return SerializeToJson()

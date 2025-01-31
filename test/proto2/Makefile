@@ -21,7 +21,7 @@ all: test
 # 测试目标
 .PHONY: test
 test: clean
-	$(MKDIR) -p $(OUT_DIR)
+	$(MKDIR) $(OUT_DIR)
 ifeq ($(OS),Windows_NT)
 	@for /f "tokens=*" %%i in ('$(FIND)') do @( \
 		$(PROTOC) --gdscript_out=$(OUT_DIR) -I. "%%i" \
@@ -35,4 +35,4 @@ endif
 # 清理目标
 .PHONY: clean
 clean:
-	-$(RM) $(OUT_DIR)
+	-@$(RM) $(OUT_DIR)

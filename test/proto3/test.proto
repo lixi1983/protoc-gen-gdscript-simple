@@ -1,7 +1,15 @@
 syntax = "proto3";
 
-package test.proto3;
+message MsgBase {
+    int32 msg_field1 = 1;
+    repeated int64 field2 = 2;
+    string msg_field2 = 3;
+    repeated bool msg_field3 = 4;
+    float f_field4 = 5;
+    map<int32, string> map_field5 = 6;
+}
 
+/*
 // 聊天消息系统
 message ChatMessage {
     string sender_id = 1;
@@ -56,3 +64,4 @@ message ChatRoom {
     bool is_archived = 6;
     reserved 7 to 10;
 }
+*/

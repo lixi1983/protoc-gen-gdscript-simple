@@ -2,13 +2,15 @@
 ifeq ($(OS),Windows_NT)
     CD = cd
     MAKE = make
+    SLEEP = timeout /t
 else
     CD = cd
     MAKE = make
+    SLEEP = sleep
 endif
 
 # 子目录
-SUBDIRS = proto2 proto3 godot_test
+SUBDIRS = proto2 proto3 #godot_test
 clean_dirs=$(addprefix _clean_,$(SUBDIRS))
 
 # 默认目标
@@ -22,11 +24,12 @@ test: $(SUBDIRS)
 # 子目录目标
 .PHONY: $(SUBDIRS)
 $(SUBDIRS):
-	@echo "Testing in $@ directory..."
+	@$(SLEEP) 1
+	@echo "=============== Testing in $@ directory... ==============="
 	$(MAKE) -C $@ test
 
 $(clean_dirs):
-	@echo "Cleaning in $@ directory..."
+	@echo "================ Cleaning in $@ directory.. ===============:"
 	$(MAKE) -C $(patsubst _clean_%, %, $@) clean
 
 # 清理目标

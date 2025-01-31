@@ -13,7 +13,7 @@ def main():
         request.ParseFromString(data)
         
         print("Starting GDScript code generator...", file=sys.stderr)
-        
+
         # 生成代码
         response = generate_gdscript(request)
         
