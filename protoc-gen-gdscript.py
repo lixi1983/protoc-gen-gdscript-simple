@@ -9,7 +9,7 @@ def main():
     try:
         # 从标准输入读取请求
         data = sys.stdin.buffer.read()
-        request = plugin_pb2.CodeGeneratorRequest()
+        request: plugin_pb2.CodeGeneratorRequest = plugin_pb2.CodeGeneratorRequest()
         request.ParseFromString(data)
         
         print("Starting GDScript code generator...", file=sys.stderr)

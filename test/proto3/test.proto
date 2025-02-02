@@ -1,5 +1,11 @@
 syntax = "proto3";
 
+enum EnumTest {
+    ENUM_TEST1 = 0;
+    ENUM_TEST2 = 1;
+    ENUM_TEST3 = 2;
+}
+
 message MsgBase {
     int32 msg_field1 = 1;
     repeated int64 field2 = 2;
@@ -7,61 +13,12 @@ message MsgBase {
     repeated bool msg_field3 = 4;
     float f_field4 = 5;
     map<int32, string> map_field5 = 6;
+    EnumTest enum_field6 = 7;
+}
+
+message MsgTest {
+
 }
 
 /*
-// 聊天消息系统
-message ChatMessage {
-    string sender_id = 1;
-    string content = 2;
-    int64 timestamp = 3;
-    MessageType type = 4;
-    
-    enum MessageType {
-        TEXT = 0;
-        IMAGE = 1;
-        VOICE = 2;
-        SYSTEM = 3;
-    }
-    
-    message Attachment {
-        string url = 1;
-        string mime_type = 2;
-        int64 size = 3;
-        bytes thumbnail = 4;
-    }
-    
-    repeated Attachment attachments = 5;
-    map<string, string> metadata = 6;
-}
-
-// 聊天室信息
-message ChatRoom {
-    string room_id = 1;
-    string name = 2;
-    RoomType type = 3;
-    
-    enum RoomType {
-        PUBLIC = 0;
-        PRIVATE = 1;
-        GROUP = 2;
-    }
-    
-    message Member {
-        string user_id = 1;
-        Role role = 2;
-        int64 join_time = 3;
-        
-        enum Role {
-            MEMBER = 0;
-            MODERATOR = 1;
-            ADMIN = 2;
-        }
-    }
-    
-    repeated Member members = 4;
-    int32 max_members = 5;
-    bool is_archived = 6;
-    reserved 7 to 10;
-}
 */

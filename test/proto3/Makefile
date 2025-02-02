@@ -36,3 +36,7 @@ endif
 .PHONY: clean
 clean:
 	-$(RM) $(OUT_DIR)
+
+python_out:
+	$(MKDIR) python
+	$(PROTOC) --python_out=./python -I. test.proto
