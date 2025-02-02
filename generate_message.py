@@ -69,6 +69,8 @@ def get_field_type(field):
         return out("bool")
     elif field.type == FieldDescriptorProto.TYPE_BYTES:
         return out("PackedByteArray")
+    elif field.type == FieldDescriptorProto.TYPE_ENUM:
+        return out(f"{field.type_name.split('.')[-1]}")
     else:
         return out("int")
 
@@ -89,8 +91,8 @@ def get_field_coder(field):
         return "bool"
     elif field.type == FieldDescriptorProto.TYPE_BYTES:
         return "bytes"
-#    elif field.type == FieldDescriptorProto.TYPE_MAP:
-#        return "map"
+    elif field.type == FieldDescriptorProto.TYPE_MESSAGE:
+        return "message"
     else:
         return "varint"
 
@@ -183,6 +185,9 @@ def generate_gdscript(request: plugin_pb2.CodeGeneratorRequest) -> plugin_pb2.Co
         # Add imports - write line by line
         file.content += f'const GDScriptUtils = preload("{get_protobuf_base_path()}/proto/GDScriptUtils.gd")\n'
         file.content += f'const Message = preload("{get_protobuf_base_path()}/proto/Message.gd")\n\n'
+
+        for enum_type in proto_file.enum_type:
+            file.content += generate_enum_type(enum_type, "", 0)
 
         # Generate code for each message type
         for message_type in proto_file.message_type:
@@ -447,13 +452,14 @@ def generate_merge_methods(message_type, indent):
 
     return content
 
+
 def generate_parse_from_string_methods(message_type, indent):
     content =""
     # Generate ParseFromString method
-    content += f"{indent}func ParseFromString(data: PackedByteArray) -> bool:\n"
+    content += f"{indent}func ParseFromString(data: PackedByteArray) -> int:\n"
 
     if len(message_type.field) <= 0:
-        content += f"{indent}\treturn true\n"
+        content += f"{indent}\treturn 0\n"
         return content
 
     content += f"{indent}\tvar size = data.size()\n"
@@ -493,7 +499,7 @@ def generate_parse_from_string_methods(message_type, indent):
 
     content += f"{indent}\t\t\t_:\n"
     content += f"{indent}\t\t\t\tpass\n\n"
-    content += f"{indent}\treturn true\n\n"
+    content += f"{indent}\treturn pos\n\n"
 #    content += " \n"
 
     return content
@@ -501,9 +507,8 @@ def generate_parse_from_string_methods(message_type, indent):
 def generate_serialize_to_string_methods(message_type, indent):
     """Generate serialize methods for a message type."""
     content = ""
-
-    content += f"{indent}func SerializeToString() -> PackedByteArray:\n"
-    content += f"{indent}\tvar buffer = PackedByteArray()\n \n"
+    content += f"{indent}func SerializeToString(buffer: PackedByteArray = PackedByteArray()) -> PackedByteArray:\n"
+#    content += f"{indent}\tvar buffer = PackedByteArray()\n \n"
 
     for field in message_type.field:
         field_name = field.name
@@ -520,9 +525,14 @@ def generate_serialize_to_string_methods(message_type, indent):
             content += f"{indent}\tfor item in {field_name}:\n"
             content += f"{indent}\t\tGDScriptUtils.encode_varint(buffer, {field_number})\n"
             content += f"{indent}\t\tGDScriptUtils.encode_{get_field_coder(field)}(buffer, item)\n"
+        elif field.type == FieldDescriptorProto.TYPE_MESSAGE:
+            content += f"{indent}\tif {field_name}:\n"
+            content += f"{indent}\t\tGDScriptUtils.encode_varint(buffer, {field_number})\n"
+            content += f"{indent}\t\t{field_name}.SerializeToString(buffer)\n"
         else:
-            content += f"{indent}\tGDScriptUtils.encode_varint(buffer, {field_number})\n"
-            content += f"{indent}\tGDScriptUtils.encode_{get_field_coder(field)}(buffer, {field_name})\n"
+            content += f"{indent}\tif {field_name} != {get_default_value(field)}:\n"
+            content += f"{indent}\t\tGDScriptUtils.encode_varint(buffer, {field_number})\n"
+            content += f"{indent}\t\tGDScriptUtils.encode_{get_field_coder(field)}(buffer, {field_name})\n"
 
         content += " \n"
 
@@ -539,15 +549,14 @@ def generate_serialize_dictionary_methods(message_type, indent):
     for field in message_type.field:
         if field.label == FieldDescriptorProto.LABEL_REPEATED:
             content += f"{indent}\t\t\"{field.name}\": {field.name},\n"
+        elif field.type == FieldDescriptorProto.TYPE_MESSAGE:
+            content += f"{indent}\t\tif {field.name}:\n"
+            content += f"{indent}\t\t\t\"{field.name}\": {field.name}.SerializeToDictionary(),\n"
         else:
             content += f"{indent}\t\t\"{field.name}\": {field.name},\n"
-
     content += f"{indent}\t}}\n"
-
     content += f"{indent}\treturn map\n\n"
-
     return content
-
 
 def generate_parse_dictionary_methods(message_type, indent):
     """Generate parse dictionary methods for a message type."""

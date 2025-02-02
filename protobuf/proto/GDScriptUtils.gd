@@ -2,6 +2,8 @@
 
 class_name GDScriptUtils extends RefCounted
 
+const Message = preload("res://protobuf/proto/Message.gd")
+
 static var VALUE_KEY = "value"
 static var SIZE_KEY = "size"
 
@@ -10,7 +12,7 @@ static func encode_bool(bytes: PackedByteArray, value: bool)  :
     bytes.resize(s + 1)
     bytes.encode_u8(s, 1 if value else 0)
 
-static func decode_bool(bytes: PackedByteArray, offset: int) -> Dictionary:
+static func decode_bool(bytes: PackedByteArray, offset: int, msg: Message = null) -> Dictionary:
     var value = bytes.decode_u8(offset)
     return {VALUE_KEY: true if value == 1 else false, SIZE_KEY: 1}
 
@@ -84,12 +86,23 @@ static func encode_bytes(bytes: PackedByteArray, value: PackedByteArray):
     bytes.resize(bytes.size() + value.size())
     bytes.append_array(value)
 
-static func decode_bytes(bytes: PackedByteArray, offset: int) -> Dictionary:
+static func decode_bytes(bytes: PackedByteArray, offset: int, msg: Message = null) -> Dictionary:
     var info = decode_varint(bytes, offset)
     var value_len = info[VALUE_KEY]
     var size = info[SIZE_KEY]
     var value = bytes.slice(offset + size, offset + size + value_len)
     return {VALUE_KEY: value, SIZE_KEY: value_len + size}
+
+static func encode_message(bytes: PackedByteArray, value: Message):
+    value.SerializeToString(bytes)
+
+static func decode_message(bytes: PackedByteArray, offset: int, msg: Message = null) -> Dictionary:
+    if msg == null:
+        return {VALUE_KEY: null, SIZE_KEY: 0}
+
+    var msg_bytes = bytes.slice(offset)
+    var pos = msg.ParseFromString(msg_bytes)
+    return {VALUE_KEY: msg, SIZE_KEY: pos}
 
 static func decode_tag(bytes: PackedByteArray, offset: int) -> Dictionary:
     return decode_varint(bytes, offset)

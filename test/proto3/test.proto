@@ -2,11 +2,15 @@ syntax = "proto3";
 
 enum EnumTest {
     ENUM_TEST1 = 0;
-    ENUM_TEST2 = 1;
-    ENUM_TEST3 = 2;
+    ENUM_TEST2 = 2;
+    ENUM_TEST3 = 3;
 }
 
 message MsgBase {
+    message SubMsg {
+        int32 sub_field1 = 1;
+        string sub_field2 = 2;
+    }
     int32 msg_field1 = 1;
     repeated int64 field2 = 2;
     string msg_field2 = 3;
@@ -14,6 +18,7 @@ message MsgBase {
     float f_field4 = 5;
     map<int32, string> map_field5 = 6;
     EnumTest enum_field6 = 7;
+    SubMsg sub_msg = 8;
 }
 
 message MsgTest {
