@@ -29,9 +29,9 @@ func SerializeToDictionary() -> Dictionary:
 ## 从字典解析消息
 ## 参数: data: Dictionary - 包含消息数据的字典
 ## 返回值: bool - 解析是否成功
-func ParseFromDictionary(data: Dictionary) -> bool:
+func ParseFromDictionary(data: Dictionary) -> void:
 	push_error("Message.ParseFromDictionary() is virtual")
-	return false
+	return
 
 ## 创建一个新的消息实例
 ## 返回值: Message - 新的消息实例

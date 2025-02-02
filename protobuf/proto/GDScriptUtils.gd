@@ -27,7 +27,7 @@ static func encode_varint( bytes: PackedByteArray, value: int) :
 #    bytes.resize(bytes.size() + 1)
     bytes.append(value)
 
-static func decode_varint(bytes: PackedByteArray, offset: int) -> Dictionary:
+static func decode_varint(bytes: PackedByteArray, offset: int, msg: Message = null) -> Dictionary:
     var value = 0
     var shift = 0
     var pos = 0
@@ -59,7 +59,7 @@ static func encode_float(bytes: PackedByteArray, value: float) :
     bytes.encode_float(s, value)
     return bytes
 
-static func decode_float(bytes: PackedByteArray, offset: int) -> Dictionary:
+static func decode_float(bytes: PackedByteArray, offset: int, msg: Message = null) -> Dictionary:
     var value = bytes.decode_float(offset)
     return {VALUE_KEY: value, SIZE_KEY: 4}
 
@@ -71,7 +71,7 @@ static func encode_string(bytes: PackedByteArray, value: String):
     bytes.append_array(utf8_value)
 
 
-static func decode_string(bytes: PackedByteArray, offset: int) -> Dictionary:
+static func decode_string(bytes: PackedByteArray, offset: int, msg: Message = null) -> Dictionary:
     var info = decode_varint(bytes, offset)
     var size = info[VALUE_KEY]
     var size_len = info[SIZE_KEY]
@@ -104,7 +104,7 @@ static func decode_message(bytes: PackedByteArray, offset: int, msg: Message = n
     var pos = msg.ParseFromString(msg_bytes)
     return {VALUE_KEY: msg, SIZE_KEY: pos}
 
-static func decode_tag(bytes: PackedByteArray, offset: int) -> Dictionary:
+static func decode_tag(bytes: PackedByteArray, offset: int, msg: Message = null) -> Dictionary:
     return decode_varint(bytes, offset)
 
 static func encode_tag(bytes: PackedByteArray, value: int):
