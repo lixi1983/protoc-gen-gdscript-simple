@@ -1,6 +1,3 @@
-from enum import EnumMeta
-from operator import index
-from pprint import isreadable
 from typing import List, Optional
 
 from google.protobuf.descriptor import FieldDescriptor as FieldDescriptorProto, EnumDescriptor, FieldDescriptor
@@ -9,10 +6,7 @@ from google.protobuf.descriptor import Descriptor as MessageType
 import sys
 import os
 
-from google.protobuf.internal.well_known_types import Any
-
-
-def get_field_new(field):
+def get_field_new(field, proto_file=None):
     """Get code to create a new instance of a field."""
     if field.label == FieldDescriptorProto.LABEL_REPEATED:
         return "[]"
@@ -26,53 +20,47 @@ def get_field_new(field):
         # Handle nested types
         parts = type_name.split(".")
         if len(parts) > 1:
-            # If it's a nested type, use the new_instance method
-            parent_class = parts[-2]
-            nested_class = parts[-1]
-            return f"{nested_class}.new()"
+            # 如果是导入的类型，使用完整的命名空间
+            return f"{parts[0]}.{parts[-1]}.new()"
         else:
             return f"{type_name}.new()"
     else:
-        return get_default_value(field)
+        return get_default_value(field, proto_file)
 
-def get_field_type(field):
-    """Get the field type for GDScript."""
-    isRepeated = field.label == FieldDescriptorProto.LABEL_REPEATED
-    out = lambda t: f"Array[{t}]" if isRepeated else t
-
-    # Handle map fields
-    if field.type == FieldDescriptorProto.TYPE_MESSAGE and field.type_name:
+def get_field_type(field, proto_file=None):
+    """Get the GDScript type for a field."""
+    if field.type == FieldDescriptorProto.TYPE_MESSAGE:
         type_name = field.type_name
         if type_name.startswith("."):
             type_name = type_name[1:]
         parts = type_name.split(".")
-        if len(parts) > 1 and parts[-1].endswith("Entry"):
-            # This is likely a map field
-            return "Dictionary"  # Default map types
-
-    if field.type == FieldDescriptorProto.TYPE_MESSAGE:
-        msg_type = field.type_name
-        if msg_type.startswith("."):
-            msg_type = msg_type[1:]  # Remove leading dot
-        return out(f"{msg_type.split('.')[-1]}")
+        if len(parts) > 1:
+            # 如果是导入的类型，使用完整的命名空间
+            return f"{parts[0]}.{parts[-1]}"
+        return parts[-1]
+    elif field.type == FieldDescriptorProto.TYPE_ENUM:
+        type_name = field.type_name
+        if type_name.startswith("."):
+            type_name = type_name[1:]
+        parts = type_name.split(".")
+        if len(parts) > 1:
+            # 如果是导入的枚举，使用完整的命名空间
+            return f"{parts[0]}.{parts[-1]}"
+        return parts[-1]
     elif field.type == FieldDescriptorProto.TYPE_STRING:
-        return out("String")
+        return "String"
     elif field.type in [FieldDescriptorProto.TYPE_INT32, FieldDescriptorProto.TYPE_INT64,
                        FieldDescriptorProto.TYPE_UINT32, FieldDescriptorProto.TYPE_UINT64,
                        FieldDescriptorProto.TYPE_SINT32, FieldDescriptorProto.TYPE_SINT64,
                        FieldDescriptorProto.TYPE_FIXED32, FieldDescriptorProto.TYPE_FIXED64,
                        FieldDescriptorProto.TYPE_SFIXED32, FieldDescriptorProto.TYPE_SFIXED64]:
-        return out("int")
-    elif field.type in [FieldDescriptorProto.TYPE_FLOAT, FieldDescriptorProto.TYPE_DOUBLE]:
-        return out("float")
+        return "int"
     elif field.type == FieldDescriptorProto.TYPE_BOOL:
-        return out("bool")
-    elif field.type == FieldDescriptorProto.TYPE_BYTES:
-        return out("PackedByteArray")
-    elif field.type == FieldDescriptorProto.TYPE_ENUM:
-        return out(f"{field.type_name.split('.')[-1]}")
+        return "bool"
+    elif field.type in [FieldDescriptorProto.TYPE_FLOAT, FieldDescriptorProto.TYPE_DOUBLE]:
+        return "float"
     else:
-        return out("int")
+        return "var"
 
 def get_field_coder(field):
     """Get the encoder name for a field."""
@@ -164,6 +152,59 @@ def get_protobuf_base_path():
     return os.getenv("GD_PROTOBUF_PATH", "res://protobuf")
 
 
+def get_import_path(proto_file_path: str, import_path: str) -> str:
+    """获取导入文件的路径
+    
+    Args:
+        proto_file_path: 当前 proto 文件的路径
+        import_path: import 语句中的路径
+        
+    Returns:
+        str: 导入文件的 GDScript 路径
+    """
+    # 获取当前 proto 文件的目录
+    proto_dir = os.path.dirname(proto_file_path)
+    
+    # 计算导入文件的绝对路径
+    import_abs_path = os.path.normpath(os.path.join(proto_dir, import_path))
+    
+    # 将 .proto 扩展名替换为 .gd
+    import_gd_path = os.path.splitext(import_abs_path)[0] + ".gd"
+    
+    # 获取相对于当前文件的路径
+    rel_path = os.path.relpath(import_gd_path, proto_dir)
+    
+    # 如果在同一目录下，添加 "./"
+    if not rel_path.startswith('.'):
+        rel_path = f"./{rel_path}"
+        
+    return rel_path
+
+def generate_imports(proto_file) -> str:
+    """生成导入语句
+    
+    Args:
+        proto_file: protobuf 文件描述符
+        
+    Returns:
+        str: 导入语句
+    """
+    content = ""
+    
+    # 添加基础依赖
+    content += f'const GDScriptUtils = preload("{get_protobuf_base_path()}/proto/GDScriptUtils.gd")\n'
+    content += f'const Message = preload("{get_protobuf_base_path()}/proto/Message.gd")\n'
+    
+    # 添加导入的其他 proto 文件
+    for dependency in proto_file.dependency:
+        import_path = get_import_path(proto_file.name, dependency)
+        content += f'const {os.path.splitext(os.path.basename(dependency))[0]} = preload("{import_path}")\n'
+    
+    if content:
+        content += "\n"
+    
+    return content
+
 def generate_gdscript(request: plugin_pb2.CodeGeneratorRequest) -> plugin_pb2.CodeGeneratorResponse:
     """Generate GDScript code from the request."""
     response = plugin_pb2.CodeGeneratorResponse()
@@ -180,12 +221,9 @@ def generate_gdscript(request: plugin_pb2.CodeGeneratorRequest) -> plugin_pb2.Co
         file.name = file_name
         
         # Initialize an empty content
-        file.content = ""
+        file.content = generate_imports(proto_file)
         
-        # Add imports - write line by line
-        file.content += f'const GDScriptUtils = preload("{get_protobuf_base_path()}/proto/GDScriptUtils.gd")\n'
-        file.content += f'const Message = preload("{get_protobuf_base_path()}/proto/Message.gd")\n\n'
-
+        # Generate enums at file level
         for enum_type in proto_file.enum_type:
             file.content += generate_enum_type(enum_type, "", 0)
 
@@ -222,15 +260,6 @@ def generate_message_class(message_type: MessageType, parent_name: Optional[str]
         if nested_type.options.map_entry:
             # This is a map field
             continue
-#        if nested_type.name:
-#            type_name = nested_type.type_name
-#            if type_name.startswith("."):
-#                type_name = type_name[1:]
-#            parts = type_name.split(".")
-#            if len(parts) > 1 and parts[-1].endswith("Entry"):
-#                # This is a map field
-#                continue
-
         content += generate_message_class(nested_type, message_type.name, indent_level + 1)
 
     # Generate serialization methods
@@ -347,12 +376,19 @@ def generate_enum_type(enum_type: EnumDescriptor, parent_name: Optional[str] = N
     content += f"{indent}}} \n \n"  # Add empty line at end
     return content
 
-def get_default_value(field):
+def get_default_value(field, proto_file=None):
     """Get the default value for a field."""
     if field.label == FieldDescriptorProto.LABEL_REPEATED:
         return '[]'
     elif field.type == FieldDescriptorProto.TYPE_MESSAGE:
-        return get_field_new(field)
+        type_name = field.type_name
+        if type_name.startswith("."):
+            type_name = type_name[1:]
+        parts = type_name.split(".")
+        if len(parts) > 1:
+            # 如果是导入的类型，使用完整的命名空间
+            return f"{parts[0]}.{parts[-1]}.new()"
+        return f"{parts[-1]}.new()"
     
     # Check if field has a default value set
     if hasattr(field, 'default_value') and field.default_value:
@@ -441,7 +477,7 @@ def generate_merge_methods(message_type, indent):
                 content += f"{indent}\t\t{field_name}.append_array(other.{field_name}.duplicate(true))\n"
             elif field.type == FieldDescriptorProto.TYPE_MESSAGE:
                 content += f"{indent}\t\t{field_name}.MergeFrom(other.{field_name})\n"
-            elif field.type == FieldDescriptorProto.TYPE_ENUM:
+            elif field.type in [FieldDescriptorProto.TYPE_ENUM, FieldDescriptorProto.TYPE_BOOL]:
                 content += f"{indent}\t\t{field_name} = other.{field_name}\n"
             elif field.type == FieldDescriptorProto.TYPE_BYTES:
                 content += f"{indent}\t\t{field_name}.append_array(other.{field_name})\n"
@@ -499,6 +535,7 @@ def generate_parse_from_string_methods(message_type, indent):
             content += f"{indent}\t\t\t\t{field_name} = value[GDScriptUtils.VALUE_KEY]\n"
             content += f"{indent}\t\t\t\tpos += value[GDScriptUtils.SIZE_KEY]\n"
 
+    content += f"{indent}\t\t\t\tbreak\n"
     content += f"{indent}\t\t\t_:\n"
     content += f"{indent}\t\t\t\tpass\n\n"
     content += f"{indent}\treturn pos\n\n"

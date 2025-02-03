@@ -2,7 +2,7 @@
 
 class_name GDScriptUtils extends RefCounted
 
-const Message = preload("res://protobuf/proto/Message.gd")
+const Message = preload("./Message.gd")
 
 static var VALUE_KEY = "value"
 static var SIZE_KEY = "size"
@@ -69,6 +69,7 @@ static func encode_string(bytes: PackedByteArray, value: String):
     encode_varint(bytes, size)
 #    bytes.resize(bytes.size() + size)
     bytes.append_array(utf8_value)
+    print("$$$$$$$ encode_string: ", value, " size: ", size)
 
 
 static func decode_string(bytes: PackedByteArray, offset: int, msg: Message = null) -> Dictionary:
@@ -78,6 +79,8 @@ static func decode_string(bytes: PackedByteArray, offset: int, msg: Message = nu
 
     var str_bytes = bytes.slice(offset + size_len, offset + size_len + size)
     var value = str_bytes.get_string_from_utf8()
+
+    print("$$$$$$.  decode_string: ", value, " size: ", size)
     return {VALUE_KEY: value, SIZE_KEY: size_len + size}
 
 static func encode_bytes(bytes: PackedByteArray, value: PackedByteArray):
@@ -102,6 +105,7 @@ static func decode_message(bytes: PackedByteArray, offset: int, msg: Message = n
 
     var msg_bytes = bytes.slice(offset)
     var pos = msg.ParseFromString(msg_bytes)
+    print("decode_message pos: ", pos, " msg_bytes.size(): ", msg_bytes.size())
     return {VALUE_KEY: msg, SIZE_KEY: pos}
 
 static func decode_tag(bytes: PackedByteArray, offset: int, msg: Message = null) -> Dictionary:

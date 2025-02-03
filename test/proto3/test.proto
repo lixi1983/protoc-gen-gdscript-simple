@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+import "common.proto";
+
 enum EnumTest {
     ENUM_TEST1 = 0;
     ENUM_TEST2 = 2;
@@ -14,16 +16,16 @@ message MsgBase {
     int32 msg_field1 = 1;
     repeated int64 field2 = 2;
     string msg_field2 = 3;
-    repeated bool msg_field3 = 4;
+    bool b_field3 = 4;
     float f_field4 = 5;
     map<int32, string> map_field5 = 6;
     EnumTest enum_field6 = 7;
     SubMsg sub_msg = 8;
+    common.CommonMessage common_msg = 9;
+    common.CommonEnum common_enum = 10;
 }
 
 message MsgTest {
-
+    common.CommonMessage common_msg = 1;
+    repeated common.CommonEnum common_enums = 2;
 }
-
-/*
-*/
