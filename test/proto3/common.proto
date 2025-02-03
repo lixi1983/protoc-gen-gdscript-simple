@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package common;
+
+message CommonMessage {
+    string common_field1 = 2;
+    int32 common_field2 = 1;
+}
+
+enum CommonEnum {
+    COMMON_ENUM_ZERO = 0;
+    COMMON_ENUM_ONE = 1;
+    COMMON_ENUM_TWO = 2;
+}
