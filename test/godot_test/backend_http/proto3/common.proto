@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package common;
+
+option go_package = "backend_http/proto3";
+
+message CommonMessage {
+    int32 common_field2 = 2;
+    string common_field1 = 1;
+}
+
+enum CommonEnum {
+    COMMON_ENUM_ZERO = 0;
+    COMMON_ENUM_ONE = 1;
+    COMMON_ENUM_TWO = 2;
+}

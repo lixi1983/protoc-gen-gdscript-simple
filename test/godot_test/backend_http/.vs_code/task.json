@@ -1,0 +1,21 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "go: build current package",
+            "type": "shell",
+            "command": "go",
+            "args": [
+                "build",
+                "-o",
+                "${workspaceFolder}/bin/debug",
+                "${workspaceFolder}/backend_http"
+            ],
+            "group": "build",
+            "problemMatcher": [
+                "$go"
+            ],
+            "detail": "Build the current package"
+        }
+    ]
+}
