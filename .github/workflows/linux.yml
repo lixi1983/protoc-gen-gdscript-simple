@@ -2,11 +2,8 @@ name: Linux CI/CD
 
 on:
   push:
-    branches: [ main ]
     tags:
-      - 'v*'
-  pull_request:
-    branches: [ main ]
+      - '*'
 
 jobs:
   build:
@@ -38,7 +35,7 @@ jobs:
         make dist-linux
 
     - name: Upload artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: protoc-gen-gdscript-simple-linux-py${{ matrix.python-version }}
         path: dist/protoc-gen-gdscript
