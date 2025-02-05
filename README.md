@@ -1,4 +1,4 @@
-# protobuf2gdscript
+# protoc-gen-gdscript-simple
 
 A Protocol Buffers compiler plugin for generating Godot Engine GDScript code.
 

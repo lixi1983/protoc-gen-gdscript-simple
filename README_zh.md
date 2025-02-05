@@ -1,4 +1,4 @@
-# protobuf2gdscript
+# protoc-gen-gdscript-simple
 
 一个用于生成 Godot 引擎 GDScript 代码的 Protocol Buffers 编译器插件。
 

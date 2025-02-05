@@ -40,7 +40,7 @@ jobs:
     - name: Upload artifact
       uses: actions/upload-artifact@v3
       with:
-        name: protoc-gen-gdscript-linux-py${{ matrix.python-version }}
+        name: protoc-gen-gdscript-simple-linux-py${{ matrix.python-version }}
         path: dist/protoc-gen-gdscript
 
   release:
@@ -61,7 +61,7 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         files: |
-          artifacts/protoc-gen-gdscript-linux-py3.11/protoc-gen-gdscript
+          artifacts/protoc-gen-gdscript-simple-linux-py3.11/protoc-gen-gdscript
         name: Release ${{ github.ref_name }}
         draft: false
         prerelease: false
