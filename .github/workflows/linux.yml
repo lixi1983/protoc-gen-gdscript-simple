@@ -4,6 +4,10 @@ on:
   push:
     tags:
       - '*'
+  workflow_dispatch:  
+
+env:
+    BUILD_TYPE: Release  
 
 jobs:
   build:
