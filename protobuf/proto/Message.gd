@@ -9,14 +9,14 @@ func _init() -> void:
 
 ## 将消息序列化为二进制字符串
 ## 返回值: PackedByteArray - 序列化后的二进制数据
-func SerializeToString(bytes: PackedByteArray = PackedByteArray()) -> PackedByteArray:
+func SerializeToBytes(bytes: PackedByteArray = PackedByteArray()) -> PackedByteArray:
 	push_error("Message.SerializeToString() is virtual")
 	return bytes
 
 ## 从二进制字符串解析消息
 ## 参数: bytes: PackedByteArray - 要解析的二进制数据
 ## 返回值: bool - 解析是否成功
-func ParseFromString(bytes: PackedByteArray) -> int:
+func ParseFromBytes(bytes: PackedByteArray) -> int:
 	push_error("Message.ParseFromString() is virtual")
 	return 0
 

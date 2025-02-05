@@ -1,10 +1,12 @@
 syntax = "proto3";
 
+option go_package = "./;proto3";
+
 package common;
 
 message CommonMessage {
-    string common_field1 = 2;
-    int32 common_field2 = 1;
+    string common_field2 = 2;
+    int32 common_field1 = 1;
 }
 
 enum CommonEnum {

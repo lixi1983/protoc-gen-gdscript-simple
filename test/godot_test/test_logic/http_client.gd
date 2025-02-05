@@ -57,10 +57,12 @@ func process_websocket():
     
     # 重置超时计时器
     start_time = Time.get_unix_time_from_system()
-    
+
+
+    send_test_message2()
     # 发送测试消息
-    send_test_message()
-    
+   # send_test_message()
+
     # 持续处理消息
     var message_received = false
     while websocket.get_ready_state() == WebSocketPeer.STATE_OPEN:
@@ -88,13 +90,29 @@ func process_websocket():
         print("WebSocket connection closed")
         quit(0)
 
+func send_test_message2():
+    var test = proto3Test.MsgBase.new()
+    test.common_msg.common_field2 = "test"
+    test.common_msg.common_field1 = 42
+
+    var test_bytes = test.SerializeToString()
+
+    print("send_test_message2 Message size: ", len(test_bytes))
+    print("send_test_message2 Message hex: ", bytes_to_hex(test_bytes))
+    print("Send message: ", test.ToString())
+        # 发送消息
+    var error = websocket.send(test_bytes, WebSocketPeer.WRITE_MODE_BINARY)
+    if error != OK:
+        push_error("Failed to send message: " + str(error))
+        quit(1)
+
 func send_test_message():
     # 手动构建 protobuf 消息
     var binary_data = PackedByteArray()
     
     # MsgTest message
     # Field 1: common_msg (embedded message)
-    binary_data.append(0x0A)  # Field number 1, wire type 2 (length-delimited)
+    binary_data.append(0x4A)  # Field number 1, wire type 2 (length-delimited)
     
     # Build CommonMessage
     var common_msg_data = PackedByteArray()
@@ -124,7 +142,14 @@ func send_test_message():
 func handle_message(packet: PackedByteArray):
     print("Received packet, size: ", len(packet))
     print("Received packet hex: ", bytes_to_hex(packet))
-    
+
+    var res = proto3Test.MsgBase.new()
+    res.ParseFromString(packet)
+
+    print("Received message:", res.ToString())
+
+    return
+
     # 手动解析 protobuf 消息
     var offset = 0
     

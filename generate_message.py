@@ -69,10 +69,12 @@ def get_field_coder(field):
     elif field.type in [FieldDescriptorProto.TYPE_INT32, FieldDescriptorProto.TYPE_INT64,
                        FieldDescriptorProto.TYPE_UINT32, FieldDescriptorProto.TYPE_UINT64,
                        FieldDescriptorProto.TYPE_SINT32, FieldDescriptorProto.TYPE_SINT64,
-                       FieldDescriptorProto.TYPE_FIXED32, FieldDescriptorProto.TYPE_FIXED64,
-                       FieldDescriptorProto.TYPE_SFIXED32, FieldDescriptorProto.TYPE_SFIXED64,
                        FieldDescriptorProto.TYPE_ENUM]:
         return "varint"
+    elif field.type == [FieldDescriptorProto.TYPE_FIXED32, FieldDescriptorProto.TYPE_SFIXED32]:
+        return "int32"
+    elif field.type == [FieldDescriptorProto.TYPE_FIXED64, FieldDescriptorProto.TYPE_SFIXED64]:
+        return "int64"
     elif field.type in [FieldDescriptorProto.TYPE_FLOAT, FieldDescriptorProto.TYPE_DOUBLE]:
         return "float"
     elif field.type == FieldDescriptorProto.TYPE_BOOL:
@@ -84,6 +86,7 @@ def get_field_coder(field):
     else:
         return "varint"
 
+"""
 def get_serializer_method(field_type):
     if field_type == FieldDescriptorProto.TYPE_STRING:
         return "string"
@@ -125,6 +128,7 @@ def get_decoder_method(field_type):
         return "map"
     else:
         return "varint"
+"""
 
 def get_class_name(name, package_name=None):
     """Get the class name with proper package prefix."""
@@ -494,7 +498,7 @@ def generate_parse_from_string_methods(message_type, indent):
 
     field_msg = lambda f: "self" if f.type != FieldDescriptorProto.TYPE_MESSAGE else f.name
     # Generate ParseFromString method
-    content += f"{indent}func ParseFromString(data: PackedByteArray) -> int:\n"
+    content += f"{indent}func ParseFromBytes(data: PackedByteArray) -> int:\n"
 
     if len(message_type.field) <= 0:
         content += f"{indent}\treturn 0\n"
@@ -535,7 +539,6 @@ def generate_parse_from_string_methods(message_type, indent):
             content += f"{indent}\t\t\t\t{field_name} = value[GDScriptUtils.VALUE_KEY]\n"
             content += f"{indent}\t\t\t\tpos += value[GDScriptUtils.SIZE_KEY]\n"
 
-    content += f"{indent}\t\t\t\tbreak\n"
     content += f"{indent}\t\t\t_:\n"
     content += f"{indent}\t\t\t\tpass\n\n"
     content += f"{indent}\treturn pos\n\n"
@@ -545,8 +548,7 @@ def generate_parse_from_string_methods(message_type, indent):
 def generate_serialize_to_string_methods(message_type, indent):
     """Generate serialize methods for a message type."""
     content = ""
-    content += f"{indent}func SerializeToString(buffer: PackedByteArray = PackedByteArray()) -> PackedByteArray:\n"
-#    content += f"{indent}\tvar buffer = PackedByteArray()\n \n"
+    content += f"{indent}func SerializeToBytes(buffer: PackedByteArray = PackedByteArray()) -> PackedByteArray:\n"
 
     for field in message_type.field:
         field_name = field.name
@@ -556,20 +558,16 @@ def generate_serialize_to_string_methods(message_type, indent):
         map_field = get_field_map_info(message_type, field_number)
         if map_field:
             content += f"{indent}\tfor key in {field_name}:\n"
-            content += f"{indent}\t\tGDScriptUtils.encode_varint(buffer, {field_number})\n"
+            content += f"{indent}\t\tGDScriptUtils.encode_tag(buffer, {field_number}, {field.type})\n"
             content += f"{indent}\t\tGDScriptUtils.encode_{get_field_coder(map_field.get('key_field'))}(buffer, key)\n"
             content += f"{indent}\t\tGDScriptUtils.encode_{get_field_coder(map_field.get('value_field'))}(buffer, {field_name}[key])\n"
         elif field.label == FieldDescriptorProto.LABEL_REPEATED:
             content += f"{indent}\tfor item in {field_name}:\n"
-            content += f"{indent}\t\tGDScriptUtils.encode_varint(buffer, {field_number})\n"
+            content += f"{indent}\t\tGDScriptUtils.encode_tag(buffer, {field_number}, {field.type})\n"
             content += f"{indent}\t\tGDScriptUtils.encode_{get_field_coder(field)}(buffer, item)\n"
-#        elif field.type == FieldDescriptorProto.TYPE_MESSAGE:
-#            content += f"{indent}\tif {field_name}:\n"
-#            content += f"{indent}\t\tGDScriptUtils.encode_varint(buffer, {field_number})\n"
-#            content += f"{indent}\t\t{field_name}.SerializeToString(buffer)\n"
         else:
             content += f"{indent}\tif {field_name} != {get_default_value(field)}:\n"
-            content += f"{indent}\t\tGDScriptUtils.encode_varint(buffer, {field_number})\n"
+            content += f"{indent}\t\tGDScriptUtils.encode_tag(buffer, {field_number}, {field.type})\n"
             content += f"{indent}\t\tGDScriptUtils.encode_{get_field_coder(field)}(buffer, {field_name})\n"
 
         content += " \n"

@@ -37,7 +37,8 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
         log.Printf("Raw message hex: %x", data)
 
         // 解析 protobuf 消息
-        msg := &pb.MsgTest{}
+//        msg := &pb.MsgTest{}
+        msg := &pb.MsgBase{}
         err = proto.Unmarshal(data, msg)
         if err != nil {
             log.Printf("Failed to unmarshal protobuf message: %v", err)

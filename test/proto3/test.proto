@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+option go_package = "./;proto3";
+
 import "common.proto";
 
 enum EnumTest {
@@ -23,6 +25,8 @@ message MsgBase {
     SubMsg sub_msg = 8;
     common.CommonMessage common_msg = 9;
     common.CommonEnum common_enum = 10;
+    fixed32 fixed_field = 11;
+    fixed64 fixed_field2 = 12;
 }
 
 message MsgTest {

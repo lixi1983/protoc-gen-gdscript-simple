@@ -144,7 +144,7 @@ class MsgBase extends Message:
 			GDScriptUtils.encode_varint(buffer, 7)
 			GDScriptUtils.encode_varint(buffer, enum_field6)
  
-		if sub_msg != test.SubMsg.new():
+		if sub_msg != null:
 			GDScriptUtils.encode_varint(buffer, 8)
 			GDScriptUtils.encode_message(buffer, sub_msg)
  

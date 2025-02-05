@@ -25,8 +25,8 @@ func test_proto3_serialize():
     test.enum_field6 = proto3Test.EnumTest.ENUM_TEST2
     test.sub_msg.sub_field1 = 123
     test.sub_msg.sub_field2 = "hello"
-    test.common_msg.common_field2 = 764
-    test.common_msg.common_field1 = "world444"
+    test.common_msg.common_field2 = "world344"
+    test.common_msg.common_field1 = 23232
 #    test.common_enum = common.CommonEnum.COMMON_ENUM_ONE
 
     print("test string: ", test.ToString())
@@ -38,7 +38,7 @@ func test_proto3_serialize():
     var testBytesString = test2.SerializeToString()
     print("test2 size: ", testBytesString.size())
     print("test2: ", test2.ToString())
-    print("test end")
+    print("test end, is equal: ", test.ToString() == test2.ToString())
 
     print("========= end proto3/test.proto serialize ==============")
 

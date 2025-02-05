@@ -3,6 +3,7 @@
 class_name GDScriptUtils extends RefCounted
 
 const Message = preload("./Message.gd")
+const FieldDescriptor = preload("./FieldDescriptor.gd")
 
 static var VALUE_KEY = "value"
 static var SIZE_KEY = "size"
@@ -15,6 +16,26 @@ static func encode_bool(bytes: PackedByteArray, value: bool)  :
 static func decode_bool(bytes: PackedByteArray, offset: int, msg: Message = null) -> Dictionary:
     var value = bytes.decode_u8(offset)
     return {VALUE_KEY: true if value == 1 else false, SIZE_KEY: 1}
+
+static func encode_int32(bytes: PackedByteArray, value: int) :
+    var s = bytes.size()
+    bytes.resize(s + 4)
+    bytes.encode_int32(s, value)
+    return bytes
+
+static func decode_int32(bytes: PackedByteArray, offset: int, msg: Message = null) -> Dictionary:
+    var value = bytes.decode_int32(offset)
+    return {VALUE_KEY: value, SIZE_KEY: 4}
+
+static func encode_int64(bytes: PackedByteArray, value: int) :
+    var s = bytes.size()
+    bytes.resize(s + 8)
+    bytes.encode_int64(s, value)
+    return bytes
+
+static func decode_int64(bytes: PackedByteArray, offset: int, msg: Message = null) -> Dictionary:
+    var value = bytes.decode_int64(offset)
+    return {VALUE_KEY: value, SIZE_KEY: 8}
 
 static func encode_varint( bytes: PackedByteArray, value: int) :
     while value > 0x7F:
@@ -95,18 +116,34 @@ static func decode_bytes(bytes: PackedByteArray, offset: int, msg: Message = nul
     return {VALUE_KEY: value, SIZE_KEY: value_len + size}
 
 static func encode_message(bytes: PackedByteArray, value: Message):
-    value.SerializeToString(bytes)
+    var msg_bytes = value.SerializeToString()
+    var size = msg_bytes.size()
+    encode_varint(bytes, size)
+    bytes.append_array(msg_bytes)
 
 static func decode_message(bytes: PackedByteArray, offset: int, msg: Message = null) -> Dictionary:
     if msg == null:
         return {VALUE_KEY: null, SIZE_KEY: 0}
 
-    var msg_bytes = bytes.slice(offset)
+    var tag = decode_varint(bytes, offset)
+    var tag_size = tag[SIZE_KEY]
+    var msg_size = tag[VALUE_KEY]
+
+    if offset + tag_size + msg_size > bytes.size():
+        return {VALUE_KEY: msg, SIZE_KEY: offset + tag_size}
+
+    var msg_bytes = bytes.slice(offset + tag_size, offset + tag_size + msg_size)
     var pos = msg.ParseFromString(msg_bytes)
-    return {VALUE_KEY: msg, SIZE_KEY: pos}
+    return {VALUE_KEY: msg, SIZE_KEY: pos + tag_size}
 
 static func decode_tag(bytes: PackedByteArray, offset: int, msg: Message = null) -> Dictionary:
-    return decode_varint(bytes, offset)
+    var value = decode_varint(bytes, offset)
+    var v = value[VALUE_KEY]
+    var tag = v >> 3
+    value[VALUE_KEY] = tag
+    return value
 
-static func encode_tag(bytes: PackedByteArray, value: int):
+static func encode_tag(bytes: PackedByteArray, tag: int, field_type: int):
+    var wire_type = FieldDescriptor.get_wire_type(field_type)
+    var value = (tag << 3) | wire_type
     encode_varint(bytes, value)

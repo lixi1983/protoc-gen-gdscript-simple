@@ -96,3 +96,9 @@ help:
 	@echo "  clean      - Clean all generated files"
 	@echo "  install    - Install dependencies"
 	@echo "  help       - Show this help message"
+
+proto: go_proto
+
+go_proto:
+	mkdir -p test/godot_test/ackend_http/proto3
+	protoc --go_out=test/godot_test/backend_http/proto3 -I test/proto3/ test/proto3/*.proto
