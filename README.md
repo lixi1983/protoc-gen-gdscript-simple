@@ -1,39 +1,43 @@
 # protobuf2gdscript
 
-A Protocol Buffers compiler plugin that generates GDScript code for the Godot Engine.
+A Protocol Buffers compiler plugin for generating Godot Engine GDScript code.
 
-> **Note**: This project was entirely generated using [Windsurf](https://codeium.com/windsurf), an AI-powered IDE that enables rapid development through natural language interaction. All code, including the protoc plugin, test suites, and documentation, was created through natural language conversation with Windsurf.
+> **Note**: This project was initially generated with [Windsurf](https://codeium.com/windsurf), an AI-powered IDE that enables rapid development through natural language interaction. All code, including the protoc plugin, test suite, and documentation, was created through natural language conversations with Windsurf.
+
+Note: The project cannot be entirely implemented by Windsurf AI. There might be certain issues that require iteration and human intervention.
 
 ## Features
 
-- Supports both Proto2 and Proto3 syntax
+- Support for Proto2 and Proto3 syntax
 - Generates clean and efficient GDScript code
 - Handles all Protocol Buffers field types:
-  - Basic types (int32, int64, float, string, bytes)
+  - Basic types (int32, int64, float, string, bytes, sint, fixed32)
   - Complex types (nested messages, enums)
-  - Collection types (repeated fields)
-  - Special fields (oneof)
-- Proper serialization and deserialization
+  - Collection types (repeated fields, map)
+  - Special fields not supported (oneof, group)
+- Complete serialization and deserialization support
 - Full support for field rules (required, optional, repeated)
-- Handles unknown fields gracefully
-- Generates separate files for nested messages
+- Graceful handling of unknown fields
 
 ## Installation
 
-You can install and use protobuf2gdscript in one of two ways:
+You can install and use protobuf2gdscript in the following way:
 
-### Method 1: Via pip
+### Building Standalone Executable
 
-```bash
-pip install protobuf2gdscript
-```
-
-### Method 2: Build Standalone Executable
-
-If you want to build a standalone executable (no Python environment required), you can use the provided Makefile:
+If you want to build a standalone executable (without Python environment dependency), you can use the provided Makefile. Note: The executable needs to be built on the target platform, cross-platform building is not supported.
 
 ```bash
-# Build standalone executable
+# Build on macOS
+make dist-mac
+
+# Build on Linux
+make dist-linux
+
+# Build on Windows
+make dist-win
+
+# Auto-detect current platform and build
 make dist
 
 # Run tests

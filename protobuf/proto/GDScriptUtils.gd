@@ -20,21 +20,21 @@ static func decode_bool(bytes: PackedByteArray, offset: int, msg: Message = null
 static func encode_int32(bytes: PackedByteArray, value: int) :
     var s = bytes.size()
     bytes.resize(s + 4)
-    bytes.encode_int32(s, value)
+    bytes.encode_s32(s, value)
     return bytes
 
 static func decode_int32(bytes: PackedByteArray, offset: int, msg: Message = null) -> Dictionary:
-    var value = bytes.decode_int32(offset)
+    var value = bytes.decode_s32(offset)
     return {VALUE_KEY: value, SIZE_KEY: 4}
 
 static func encode_int64(bytes: PackedByteArray, value: int) :
     var s = bytes.size()
     bytes.resize(s + 8)
-    bytes.encode_int64(s, value)
+    bytes.encode_s64(s, value)
     return bytes
 
 static func decode_int64(bytes: PackedByteArray, offset: int, msg: Message = null) -> Dictionary:
-    var value = bytes.decode_int64(offset)
+    var value = bytes.decode_s64(offset)
     return {VALUE_KEY: value, SIZE_KEY: 8}
 
 static func encode_varint( bytes: PackedByteArray, value: int) :
@@ -45,8 +45,7 @@ static func encode_varint( bytes: PackedByteArray, value: int) :
         bytes.append(b)
         value = value >> 7
 
-#    bytes.resize(bytes.size() + 1)
-    bytes.append(value)
+    bytes.append(value & 0x7F)
 
 static func decode_varint(bytes: PackedByteArray, offset: int, msg: Message = null) -> Dictionary:
     var value = 0
@@ -84,6 +83,16 @@ static func decode_float(bytes: PackedByteArray, offset: int, msg: Message = nul
     var value = bytes.decode_float(offset)
     return {VALUE_KEY: value, SIZE_KEY: 4}
 
+static func encode_double(bytes: PackedByteArray, value: float) :
+    var s = bytes.size()
+    bytes.resize(s + 8)
+    bytes.encode_double(s, value)
+    return bytes
+
+static func decode_double(bytes: PackedByteArray, offset: int, msg: Message = null) -> Dictionary:
+    var value = bytes.decode_double(offset)
+    return {VALUE_KEY: value, SIZE_KEY: 8}
+
 static func encode_string(bytes: PackedByteArray, value: String):
     var utf8_value = value.to_utf8_buffer()
     var size = utf8_value.size()
@@ -116,7 +125,7 @@ static func decode_bytes(bytes: PackedByteArray, offset: int, msg: Message = nul
     return {VALUE_KEY: value, SIZE_KEY: value_len + size}
 
 static func encode_message(bytes: PackedByteArray, value: Message):
-    var msg_bytes = value.SerializeToString()
+    var msg_bytes = value.SerializeToBytes()
     var size = msg_bytes.size()
     encode_varint(bytes, size)
     bytes.append_array(msg_bytes)
@@ -133,7 +142,7 @@ static func decode_message(bytes: PackedByteArray, offset: int, msg: Message = n
         return {VALUE_KEY: msg, SIZE_KEY: offset + tag_size}
 
     var msg_bytes = bytes.slice(offset + tag_size, offset + tag_size + msg_size)
-    var pos = msg.ParseFromString(msg_bytes)
+    var pos = msg.ParseFromBytes(msg_bytes)
     return {VALUE_KEY: msg, SIZE_KEY: pos + tag_size}
 
 static func decode_tag(bytes: PackedByteArray, offset: int, msg: Message = null) -> Dictionary:
@@ -147,3 +156,29 @@ static func encode_tag(bytes: PackedByteArray, tag: int, field_type: int):
     var wire_type = FieldDescriptor.get_wire_type(field_type)
     var value = (tag << 3) | wire_type
     encode_varint(bytes, value)
+
+static func encode_zigzag32(bytes: PackedByteArray, value: int):
+    var zv = (value << 1) ^ (value >> 31)
+    encode_varint(bytes, zv)
+
+static func decode_zigzag32(bytes: PackedByteArray, offset: int, msg: Message = null) -> Dictionary:
+    var value_d = decode_varint(bytes, offset, msg )
+    var value = value_d[VALUE_KEY]
+    value = (value >> 1) ^ -(value & 1)
+    return {VALUE_KEY: value, SIZE_KEY: value_d[SIZE_KEY]}
+
+
+static func encode_zigzag64(bytes: PackedByteArray, value: int) :
+    print("zig64 value: ", value)
+    var zv = (value << 1) ^ (value >> 63)
+    print("zv value: ", zv)
+    encode_varint(bytes, zv)
+
+static func decode_zigzag64(bytes: PackedByteArray, offset: int, msg: Message = null) -> Dictionary:
+#    return (value >> 1) ^ -(value & 1)
+    var value_d = decode_varint(bytes, offset, msg )
+#    var value_d = decode_int64(bytes, offset, msg )
+    var value = value_d[VALUE_KEY]
+    value = (value >> 1) ^ -(value & 1)
+    return {VALUE_KEY: value, SIZE_KEY: value_d[SIZE_KEY]}
+

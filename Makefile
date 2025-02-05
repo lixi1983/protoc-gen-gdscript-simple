@@ -97,7 +97,10 @@ help:
 	@echo "  install    - Install dependencies"
 	@echo "  help       - Show this help message"
 
-proto: go_proto
+proto: py_proto go_proto test
+
+py_proto:
+	cd test/proto3; make python_out
 
 go_proto:
 	mkdir -p test/godot_test/ackend_http/proto3

@@ -5,8 +5,12 @@ option go_package = "./;proto3";
 package common;
 
 message CommonMessage {
-    string common_field2 = 2;
     int32 common_field1 = 1;
+    sint32 common_sint32 = 2;
+    string common_field2 = 3;
+    sfixed32 common_sfixed32 = 4;
+    sfixed64 common_sfixed64 = 5;
+    sint64  common_sint64 = 6;
 }
 
 enum CommonEnum {

@@ -4,31 +4,26 @@
 
 > **注意**：本项目完全由 [Windsurf](https://codeium.com/windsurf) 生成，这是一个支持通过自然语言交互实现快速开发的 AI 驱动型 IDE。所有代码，包括 protoc 插件、测试套件和文档，都是通过与 Windsurf 的自然语言对话创建的。
 
+说明: 工程不能完全都是由windsurf AI实现全部功能， 有可能会在某几个问题上面循环处理， 最后必须要有人工干预 
+
 ## 特性
 
 - 支持 Proto2 和 Proto3 语法
 - 生成清晰高效的 GDScript 代码
 - 处理所有 Protocol Buffers 字段类型：
-  - 基本类型（int32、int64、float、string、bytes）
+  - 基本类型（int32、int64、float、string、bytes, sint, fixed32）
   - 复杂类型（嵌套消息、枚举）
-  - 集合类型（repeated 字段）
-  - 特殊字段（oneof）
+  - 集合类型（repeated 字段, map）
+  - 不支持特殊字段（oneof, group）
 - 完整的序列化和反序列化支持
 - 完全支持字段规则（required、optional、repeated）
 - 优雅处理未知字段
-- 为嵌套消息生成独立文件
 
 ## 安装
 
 你可以通过以下两种方式之一来安装和使用 protobuf2gdscript：
 
-### 方式 1：通过 pip 安装
-
-```bash
-pip install protobuf2gdscript
-```
-
-### 方式 2：构建独立可执行文件
+### ：构建独立可执行文件
 
 如果你想构建一个独立的可执行文件（不依赖 Python 环境），可以使用提供的 Makefile。注意：可执行文件需要在目标平台上构建，不支持跨平台构建。
 

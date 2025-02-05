@@ -92,10 +92,17 @@ func process_websocket():
 
 func send_test_message2():
     var test = proto3Test.MsgBase.new()
-    test.common_msg.common_field2 = "test"
-    test.common_msg.common_field1 = 42
+#    test.common_msg.common_field2 = "test"
+#    test.common_msg.common_field1 = 42
+    test.common_msg.common_sint32 = 22222333
+#    test.common_msg.common_sfixed32 = 3333333
+#    test.common_msg.common_sfixed64 = 4444444444
+    test.common_msg.common_sint64 = 55555555
+#    test.msg_field32 = 13232323232323
+#    test.fixed_field32 = 1234567890
+#    test.fixed_field64 = 1234567890123456789
 
-    var test_bytes = test.SerializeToString()
+    var test_bytes = test.SerializeToBytes()
 
     print("send_test_message2 Message size: ", len(test_bytes))
     print("send_test_message2 Message hex: ", bytes_to_hex(test_bytes))
@@ -144,7 +151,7 @@ func handle_message(packet: PackedByteArray):
     print("Received packet hex: ", bytes_to_hex(packet))
 
     var res = proto3Test.MsgBase.new()
-    res.ParseFromString(packet)
+    res.ParseFromBytes(packet)
 
     print("Received message:", res.ToString())
 

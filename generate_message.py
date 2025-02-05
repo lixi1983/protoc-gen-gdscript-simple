@@ -68,13 +68,17 @@ def get_field_coder(field):
         return "string"
     elif field.type in [FieldDescriptorProto.TYPE_INT32, FieldDescriptorProto.TYPE_INT64,
                        FieldDescriptorProto.TYPE_UINT32, FieldDescriptorProto.TYPE_UINT64,
-                       FieldDescriptorProto.TYPE_SINT32, FieldDescriptorProto.TYPE_SINT64,
+#                       FieldDescriptorProto.TYPE_SINT32, FieldDescriptorProto.TYPE_SINT64,
                        FieldDescriptorProto.TYPE_ENUM]:
         return "varint"
-    elif field.type == [FieldDescriptorProto.TYPE_FIXED32, FieldDescriptorProto.TYPE_SFIXED32]:
+    elif field.type in [FieldDescriptorProto.TYPE_FIXED32, FieldDescriptorProto.TYPE_SFIXED32]:
         return "int32"
-    elif field.type == [FieldDescriptorProto.TYPE_FIXED64, FieldDescriptorProto.TYPE_SFIXED64]:
+    elif field.type in [FieldDescriptorProto.TYPE_FIXED64, FieldDescriptorProto.TYPE_SFIXED64]:
         return "int64"
+    elif field.type == FieldDescriptorProto.TYPE_SINT32:
+        return "zigzag32"
+    elif field.type == FieldDescriptorProto.TYPE_SINT64:
+        return "zigzag64"
     elif field.type in [FieldDescriptorProto.TYPE_FLOAT, FieldDescriptorProto.TYPE_DOUBLE]:
         return "float"
     elif field.type == FieldDescriptorProto.TYPE_BOOL:
@@ -565,6 +569,10 @@ def generate_serialize_to_string_methods(message_type, indent):
             content += f"{indent}\tfor item in {field_name}:\n"
             content += f"{indent}\t\tGDScriptUtils.encode_tag(buffer, {field_number}, {field.type})\n"
             content += f"{indent}\t\tGDScriptUtils.encode_{get_field_coder(field)}(buffer, item)\n"
+        elif field.type == FieldDescriptorProto.TYPE_MESSAGE:
+            content += f"{indent}\tif {field_name} != null:\n"
+            content += f"{indent}\t\tGDScriptUtils.encode_tag(buffer, {field_number}, {field.type})\n"
+            content += f"{indent}\t\tGDScriptUtils.encode_{get_field_coder(field)}(buffer, {field_name})\n"
         else:
             content += f"{indent}\tif {field_name} != {get_default_value(field)}:\n"
             content += f"{indent}\t\tGDScriptUtils.encode_tag(buffer, {field_number}, {field.type})\n"

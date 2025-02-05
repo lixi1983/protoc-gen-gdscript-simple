@@ -16,9 +16,9 @@ func _read():
 func test_proto3_serialize():
     print("========= begin proto3/test.proto serialize ==============")
     var test = proto3Test.MsgBase.new()
-    test.msg_field1 = 12345789098765
+    test.msg_field32 = 12345789098765
     test.msg_field2 = "132"
-    test.field2 = [12345, 13]
+    test.field64 = [123451232232332233, 13]
     test.b_field3 = true
     test.f_field4 = 1234.5566
     test.map_field5 = {1: "hello", 2: "world"}
@@ -27,15 +27,19 @@ func test_proto3_serialize():
     test.sub_msg.sub_field2 = "hello"
     test.common_msg.common_field2 = "world344"
     test.common_msg.common_field1 = 23232
+    test.common_msg.common_sint32 = 654321
+    test.common_msg.common_sint64 = 9876789876
+    test.fixed_field32 = 112323
+    test.fixed_field64 = 11232322
 #    test.common_enum = common.CommonEnum.COMMON_ENUM_ONE
 
     print("test string: ", test.ToString())
 
-    var bytesString = test.SerializeToString()
+    var bytesString = test.SerializeToBytes()
     print("test: ", bytesString.size())
     var test2 = proto3Test.MsgBase.new()
-    test2.ParseFromString(bytesString)
-    var testBytesString = test2.SerializeToString()
+    test2.ParseFromBytes(bytesString)
+    var testBytesString = test2.SerializeToBytes()
     print("test2 size: ", testBytesString.size())
     print("test2: ", test2.ToString())
     print("test end, is equal: ", test.ToString() == test2.ToString())
@@ -45,8 +49,8 @@ func test_proto3_serialize():
 func test_proto3_merge():
     print("========= begin proto3/test.proto merge ==============")
     var first = proto3Test.MsgBase.new()
-    first.msg_field1 = 13232
-    first.field2 = [1, 2, 3, 4, 5]
+    first.msg_field32 = 13232
+    first.field64 = [1, 2, 3, 4, 5]
     first.msg_field2 = "hello"
     first.b_field3 = true
     first.map_field5 = {3: "hello", 4: "world"}
@@ -55,7 +59,7 @@ func test_proto3_merge():
 
     print("first toString: ", first.ToString())
     second.MergeFrom(first)
-    first.field2[1] = 10
+    first.field64[1] = 10
     print("second toString: ", second.ToString())
 
     print("after first toString: ", first.ToString())
@@ -64,8 +68,8 @@ func test_proto3_merge():
 func test_proto3_clone():
     print("========= begin proto3/test.proto clone ==============")
     var first = proto3Test.MsgBase.new()
-    first.msg_field1 = 668866
-    first.field2 = [1, 2, 3, 4]
+    first.msg_field32 = 668866
+    first.field64 = [1, 2, 3, 4]
     first.msg_field2 = "world"
     first.b_field3 = false
     first.map_field5 = {5: "hello", 6: "world"}
@@ -73,7 +77,7 @@ func test_proto3_clone():
     var second = first.Clone() #proto3Test.MsgBase.new()
 
     print("first toString: ", first.ToString())
-    first.field2[1] = 10
+    first.field64[1] = 10
     print("second toString: ", second.ToString())
 
     print("after first toString: ", first.ToString())
