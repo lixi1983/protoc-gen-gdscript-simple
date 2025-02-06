@@ -79,6 +79,7 @@ jobs:
           fi
         fi
         echo "Using version: ${VERSION}"
+        echo "version=${VERSION}" >> $GITHUB_ENV
         PACKAGE_NAME="protoc-gen-gdscript-${{ env.PLATFORM }}-${VERSION}"
         mkdir -p ${PACKAGE_NAME}
         cp -r ${{ env.BIN_DIR }} ${PACKAGE_NAME}/
@@ -88,8 +89,9 @@ jobs:
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: protoc-gen-gdscript-${{ env.PLATFORM }}
+        name: protoc-gen-gdscript-${{ env.PLATFORM }}-${{ env.version }}
         path: protoc-gen-gdscript-${{ env.PLATFORM }}-*.zip
+        if-no-files-found: error
 
   release:
     needs: build
@@ -108,7 +110,7 @@ jobs:
       id: create_release
       uses: softprops/action-gh-release@v1
       with:
-        files: artifacts/protoc-gen-gdscript-${{ env.PLATFORM }}/*.zip
+        files: artifacts/protoc-gen-gdscript-${{ env.PLATFORM }}-*/*.zip
         name: Release ${{ github.ref_name }}
         draft: false
         prerelease: false
