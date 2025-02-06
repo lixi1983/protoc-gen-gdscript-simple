@@ -12,6 +12,7 @@ env:
   GODOT_VERSION: 4.3
   GODOT_RELEASE_NAME: 4.3-stable
   PLATFORM: linux
+  DEFAULT_VERSION: 0.0.0
 
 jobs:
   build:
@@ -67,7 +68,11 @@ jobs:
 
     - name: Create release package
       run: |
+        # 从标签获取版本号，如果没有标签则使用默认版本
         VERSION=${GITHUB_REF#refs/tags/}
+        if [ "$VERSION" = "" ] || [ "$VERSION" = "$GITHUB_REF" ]; then
+          VERSION="${{ env.DEFAULT_VERSION }}"
+        fi
         PACKAGE_NAME="protoc-gen-gdscript-${{ env.PLATFORM }}-${VERSION}"
         mkdir -p ${PACKAGE_NAME}
         cp -r ${{ env.BIN_DIR }} ${PACKAGE_NAME}/
