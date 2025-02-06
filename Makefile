@@ -12,7 +12,7 @@ PLATFORM := $(shell uname -s)
 ifeq ($(OS),Windows_NT)
     PLATFORM := Windows
     EXE_SUFFIX = .exe
-    RM = rmdir /s /q
+    RM = -rmdir /s /q
     CD = cd
 else
     ifeq ($(PLATFORM),Darwin)
