@@ -8,7 +8,7 @@ on:
 
 env:
   BUILD_TYPE: Release
-  BIN_DIR: dist
+  BIN_DIR: bin
 
 jobs:
   build:
