@@ -6,6 +6,11 @@ on:
       - '*'
   workflow_dispatch:
 
+permissions:
+  actions: write    # 允许管理 Actions
+  contents: write   # 允许创建发布
+  packages: write   # 允许推送包
+
 env:
   BUILD_TYPE: Release
   BIN_DIR: bin
@@ -118,3 +123,17 @@ jobs:
         generate_release_notes: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  cleanup:
+    needs: [build, release]
+    runs-on: ubuntu-latest
+    if: always()  # 即使其他作业失败也运行
+
+    steps:
+    - name: Delete old workflow runs
+      uses: dmvict/clean-workflow-runs@v1
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        workflow_name: Linux CI/CD
+        save_period: 0
+        save_min_runs_number: 3
