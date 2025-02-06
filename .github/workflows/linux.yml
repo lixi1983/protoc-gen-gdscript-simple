@@ -12,7 +12,6 @@ env:
   GODOT_VERSION: 4.3
   GODOT_RELEASE_NAME: 4.3-stable
   PLATFORM: linux
-  DEFAULT_VERSION: 0.0.0
 
 jobs:
   build:
@@ -64,15 +63,22 @@ jobs:
         which protoc
         which protoc-gen-gdscript
         which godot
-        make test
+        make test check
+        cd test/godot_test
+        make serialize
 
     - name: Create release package
       run: |
-        # 从标签获取版本号，如果没有标签则使用默认版本
+        # 从标签获取版本号，如果没有标签则使用分支名
         VERSION=${GITHUB_REF#refs/tags/}
         if [ "$VERSION" = "" ] || [ "$VERSION" = "$GITHUB_REF" ]; then
-          VERSION="${{ env.DEFAULT_VERSION }}"
+          # 获取当前分支名
+          VERSION=${GITHUB_REF#refs/heads/}
+          if [ "$VERSION" = "" ] || [ "$VERSION" = "$GITHUB_REF" ]; then
+            VERSION="main"
+          fi
         fi
+        echo "Using version: ${VERSION}"
         PACKAGE_NAME="protoc-gen-gdscript-${{ env.PLATFORM }}-${VERSION}"
         mkdir -p ${PACKAGE_NAME}
         cp -r ${{ env.BIN_DIR }} ${PACKAGE_NAME}/
