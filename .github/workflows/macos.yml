@@ -6,6 +6,11 @@ on:
       - '*'
   workflow_dispatch:
 
+permissions:
+  actions: write  # Required for deleting workflow runs
+  contents: write   # 允许创建发布
+  packages: write   # 允许推送包
+
 env:
   BUILD_TYPE: Release
   BIN_DIR: bin
