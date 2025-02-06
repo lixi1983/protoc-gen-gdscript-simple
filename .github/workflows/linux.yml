@@ -134,6 +134,6 @@ jobs:
       uses: dmvict/clean-workflow-runs@v1
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
-        workflow_id: Linux CI/CD
+    #    workflow_name: Linux CI/CD
         save_period: 0
-        save_min_runs_number: 3
+        save_min_runs_number: 5
