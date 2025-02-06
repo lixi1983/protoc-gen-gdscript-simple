@@ -2,7 +2,7 @@
 ifeq ($(OS),Windows_NT)
     PROTOC = protoc.exe
     MKDIR = mkdir
-    RM = rmdir /s /q
+    RM = -rmdir /s /q
     FIND = dir /b /s *.proto
 else
     PROTOC = protoc
