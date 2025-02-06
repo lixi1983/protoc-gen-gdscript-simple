@@ -60,7 +60,7 @@ jobs:
 
     - name: Build Linux executable
       run: |
-        make dist-linux
+        make dist
         chmod +x ${{ env.BIN_DIR }}/protoc-gen-gdscript
 
     - name: Run tests
@@ -134,6 +134,6 @@ jobs:
       uses: dmvict/clean-workflow-runs@v1
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
-        workflow_name: Linux CI/CD
+        workflow_id: Linux CI/CD
         save_period: 0
         save_min_runs_number: 3
