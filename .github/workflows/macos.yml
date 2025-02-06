@@ -53,7 +53,7 @@ jobs:
 
     - name: Build macOS executable
       run: |
-        make dist-macos
+        make dist
         chmod +x ${{ env.BIN_DIR }}/protoc-gen-gdscript
 
     - name: Run tests

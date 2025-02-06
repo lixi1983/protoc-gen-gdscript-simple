@@ -63,7 +63,7 @@ jobs:
 
     - name: Build Windows executable
       run: |
-        make dist-windows
+        make dist
       shell: bash
 
     - name: Run tests
