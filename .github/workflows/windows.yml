@@ -61,20 +61,31 @@ jobs:
         echo "${{ github.workspace }}\${{ env.BIN_DIR }}" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
       shell: pwsh
 
+    - name: Setup Python Virtual Environment
+      run: |
+        python -m venv venv
+        .\venv\Scripts\Activate.ps1
+        python -m pip install --upgrade pip
+        python -m pip install pyinstaller protobuf pytest
+        if (Test-Path requirements.txt) { python -m pip install -r requirements.txt }
+      shell: pwsh
+
     - name: Build Windows executable
       run: |
+        .\venv\Scripts\Activate.ps1
         make dist
-      shell: bash
+      shell: pwsh
 
     - name: Run tests
       run: |
+        .\venv\Scripts\Activate.ps1
         where protoc
         where protoc-gen-gdscript
         where Godot.exe
         make test check
         cd test/godot_test
         make serialize
-      shell: cmd
+      shell: pwsh
 
     - name: Create release package
       run: |
