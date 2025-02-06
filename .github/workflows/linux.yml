@@ -43,16 +43,10 @@ jobs:
         mv Godot_v${{ env.GODOT_VERSION }}-stable_linux.x86_64 godot
         chmod +x godot
         sudo mv godot /usr/local/bin/
-        wget https://github.com/godotengine/godot/releases/download/${{ env.GODOT_RELEASE_NAME }}/Godot_v${{ env.GODOT_VERSION }}-stable_linux_headless.64.zip
-        unzip Godot_v${{ env.GODOT_VERSION }}-stable_linux_headless.64.zip
-        mv Godot_v${{ env.GODOT_VERSION }}-stable_linux_headless.64 godot-headless
-        chmod +x godot-headless
-        sudo mv godot-headless /usr/local/bin/
 
     - name: Verify Godot installation
       run: |
         godot --version
-        godot-headless --version
 
     - name: Add BIN_DIR to PATH
       run: |
@@ -69,7 +63,6 @@ jobs:
         which protoc
         which protoc-gen-gdscript
         which godot
-        which godot-headless
         make test
 
     - name: Create release package
