@@ -22,7 +22,7 @@ else
     endif
     RM = rm -rf
     CD = cd
-    PYTHON = $(VENV)/bin/python
+    PYTHON = python
 endif
 
 # 默认目标
