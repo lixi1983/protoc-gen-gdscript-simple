@@ -7,7 +7,12 @@ ifeq ($(OS),Windows_NT)
 	PROTO2_PATH = ..\proto2\generated
 	PROTO3_PATH = ..\proto3\generated
 else
-	GODOT = Godot
+	UNAME_S := $(shell uname -s)
+	ifeq ($(UNAME_S),Linux)
+		GODOT = godot
+	else
+		GODOT = Godot
+	endif
 	RM = rm -rf
 	RMFILE = rm -f
 	LN = ln -s
@@ -34,13 +39,13 @@ endif
 
 install:
 ifneq ($(OS),Windows_NT)
-	@echo "Creating symlink for Godot in /usr/local/bin..."
+	@echo "Creating symlink for godot in /usr/local/bin..."
 	@if [ -n "$(GODOT_PATH)" ]; then \
 		sudo $(RMFILE) /usr/local/bin/$(GODOT); \
 		sudo $(LN) $(GODOT_PATH) /usr/local/bin/$(GODOT); \
 		echo "Symlink created successfully."; \
 	else \
-		echo "Error: Cannot find Godot executable."; \
+		echo "Error: Cannot find godot executable."; \
 		exit 1; \
 	fi
 else
