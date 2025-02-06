@@ -5,7 +5,7 @@ PYTHON = python3
 VENV = venv
 BIN_DIR = bin
 PIP = $(VENV)/bin/pip
-PYINSTALLER = $(VENV)/bin/pyinstaller
+#PYINSTALLER = $(VENV)/bin/pyinstaller
 
 # 检测操作系统类型
 PLATFORM := $(shell uname -s)
@@ -14,6 +14,7 @@ ifeq ($(OS),Windows_NT)
     EXE_SUFFIX = .exe
     RM = -rmdir /s /q
     CD = cd
+	PYINSTALLER = $(VENV)\bin\pyinstaller
 else
     ifeq ($(PLATFORM),Darwin)
         EXE_SUFFIX = -mac
@@ -22,6 +23,7 @@ else
     endif
     RM = rm -rf
     CD = cd
+	PYINSTALLER	= $(VENV)/bin/pyinstaller
 endif
 
 # 默认目标
