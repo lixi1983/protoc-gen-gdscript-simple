@@ -1,11 +1,9 @@
 .PHONY: all clean install test dist dist-mac dist-linux dist-win
 
 # 基本变量
-PYTHON = python3
 VENV = venv
 BIN_DIR = bin
 PIP = $(VENV)/bin/pip
-#PYINSTALLER = $(VENV)/bin/pyinstaller
 
 # 检测操作系统类型
 PLATFORM := $(shell uname -s)
@@ -14,61 +12,55 @@ ifeq ($(OS),Windows_NT)
     EXE_SUFFIX = .exe
     RM = -rmdir /s /q
     CD = cd
-	PYINSTALLER = $(VENV)\bin\pyinstaller
+    PYTHON = python
 else
     ifeq ($(PLATFORM),Darwin)
         EXE_SUFFIX = -mac
+        PLATFORM := Darwin
     else
         EXE_SUFFIX = -linux
     endif
     RM = rm -rf
     CD = cd
-	PYINSTALLER	= $(VENV)/bin/pyinstaller
+    PYTHON = $(VENV)/bin/python
 endif
 
 # 默认目标
-all: dist test
+.DEFAULT_GOAL := help
 
 # 虚拟环境
-$(VENV):
+venv:
 	$(PYTHON) -m venv $(VENV)
+ifeq ($(OS),Windows_NT)
+	.\venv\Scripts\activate.bat && python -m pip install --upgrade pip && python -m pip install -r requirements.txt
+else
 	$(PIP) install --upgrade pip
 	$(PIP) install -r requirements.txt
-	$(PIP) install pyinstaller pytest
+endif
 
-# 安装依赖
-install: $(VENV)
-
-build: dist
-
-# 构建目标
-dist: clean install
-ifeq ($(PLATFORM),Windows)
-	@echo "Building for Windows..."
-	$(MAKE) dist-win
-else ifeq ($(PLATFORM),Darwin)
-	@echo "Building for macOS..."
-	$(MAKE) dist-mac
+# 构建可执行文件
+dist: venv
+ifeq ($(OS),Windows_NT)
+	.\venv\Scripts\activate.bat && python -m PyInstaller --onefile protoc-gen-gdscript.py --name protoc-gen-gdscript$(EXE_SUFFIX) --distpath $(BIN_DIR)
 else
-	@echo "Building for Linux..."
-	$(MAKE) dist-linux
+	$(VENV)/bin/pyinstaller --onefile protoc-gen-gdscript.py --name protoc-gen-gdscript$(EXE_SUFFIX) --distpath $(BIN_DIR)
 endif
 
 # 平台特定构建
-dist-mac: install
+dist-mac: venv
 	mkdir -p $(BIN_DIR)
-	$(PYINSTALLER) --onefile protoc-gen-gdscript.py --name protoc-gen-gdscript --distpath $(BIN_DIR)
+	$(VENV)/bin/pyinstaller --onefile protoc-gen-gdscript.py --name protoc-gen-gdscript-mac --distpath $(BIN_DIR)
 
-dist-linux: install
+dist-linux: venv
 	mkdir -p $(BIN_DIR)
-	$(PYINSTALLER) --onefile protoc-gen-gdscript.py --name protoc-gen-gdscript --distpath $(BIN_DIR)
+	$(VENV)/bin/pyinstaller --onefile protoc-gen-gdscript.py --name protoc-gen-gdscript-linux --distpath $(BIN_DIR)
 
-dist-win: install
+dist-win: venv
 	mkdir -p $(BIN_DIR)
-	$(PYINSTALLER) --onefile protoc-gen-gdscript.py --name protoc-gen-gdscript.exe --distpath $(BIN_DIR)
+	.\venv\Scripts\activate.bat && python -m PyInstaller --onefile protoc-gen-gdscript.py --name protoc-gen-gdscript.exe --distpath $(BIN_DIR)
 
 # 测试目标
-test: install
+test: venv
 	@echo "Running all tests..."
 	@$(CD) test && $(MAKE) clean test
 
