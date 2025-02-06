@@ -84,6 +84,7 @@ jobs:
         mkdir -p ${PACKAGE_NAME}
         cp -r ${{ env.BIN_DIR }} ${PACKAGE_NAME}/
         cp -r protobuf ${PACKAGE_NAME}/
+        cp README.md README_zh.md ${PACKAGE_NAME}/
         zip -r ${PACKAGE_NAME}.zip ${PACKAGE_NAME}
 
     - name: Upload artifact
