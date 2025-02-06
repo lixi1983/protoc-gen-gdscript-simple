@@ -9,6 +9,8 @@ on:
 env:
   BUILD_TYPE: Release
   BIN_DIR: bin
+  GODOT_VERSION: 4.3
+  GODOT_RELEASE_NAME: 4.3-stable
 
 jobs:
   build:
@@ -33,6 +35,24 @@ jobs:
         pip install pyinstaller protobuf pytest
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
+    - name: Download and setup Godot
+      run: |
+        wget https://github.com/godotengine/godot/releases/download/${{ env.GODOT_RELEASE_NAME }}/Godot_v${{ env.GODOT_VERSION }}-stable_linux.x86_64.zip
+        unzip Godot_v${{ env.GODOT_VERSION }}-stable_linux.x86_64.zip
+        mv Godot_v${{ env.GODOT_VERSION }}-stable_linux.x86_64 godot
+        chmod +x godot
+        sudo mv godot /usr/local/bin/
+        wget https://github.com/godotengine/godot/releases/download/${{ env.GODOT_RELEASE_NAME }}/Godot_v${{ env.GODOT_VERSION }}-stable_linux_headless.64.zip
+        unzip Godot_v${{ env.GODOT_VERSION }}-stable_linux_headless.64.zip
+        mv Godot_v${{ env.GODOT_VERSION }}-stable_linux_headless.64 godot-headless
+        chmod +x godot-headless
+        sudo mv godot-headless /usr/local/bin/
+
+    - name: Verify Godot installation
+      run: |
+        godot --version
+        godot-headless --version
+
     - name: Add BIN_DIR to PATH
       run: |
         echo "${{ github.workspace }}/${{ env.BIN_DIR }}" >> $GITHUB_PATH
@@ -47,6 +67,8 @@ jobs:
       run: |
         which protoc
         which protoc-gen-gdscript
+        which godot
+        which godot-headless
         make test
 
     - name: Upload artifact
