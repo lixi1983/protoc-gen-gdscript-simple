@@ -1,0 +1,118 @@
+name: macOS CI/CD
+
+on:
+  push:
+    tags:
+      - '*'
+  workflow_dispatch:
+
+env:
+  BUILD_TYPE: Release
+  BIN_DIR: bin
+  GODOT_VERSION: 4.3
+  GODOT_RELEASE_NAME: 4.3-stable
+  PLATFORM: macos
+
+jobs:
+  build:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        python-version: ['3.9']
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
+      run: |
+        brew install protobuf
+        python -m pip install --upgrade pip
+        pip install pyinstaller protobuf pytest
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+    - name: Download and setup Godot
+      run: |
+        curl -L -o godot.zip https://github.com/godotengine/godot/releases/download/${{ env.GODOT_RELEASE_NAME }}/Godot_v${{ env.GODOT_VERSION }}-stable_macos.universal.zip
+        unzip godot.zip
+        mv Godot.app/Contents/MacOS/Godot /usr/local/bin/
+        chmod +x /usr/local/bin/Godot
+
+    - name: Verify Godot installation
+      run: |
+        Godot --version
+
+    - name: Add BIN_DIR to PATH
+      run: |
+        echo "${{ github.workspace }}/${{ env.BIN_DIR }}" >> $GITHUB_PATH
+        echo "Added ${{ github.workspace }}/${{ env.BIN_DIR }} to PATH"
+
+    - name: Build macOS executable
+      run: |
+        make dist-macos
+        chmod +x ${{ env.BIN_DIR }}/protoc-gen-gdscript
+
+    - name: Run tests
+      run: |
+        which protoc
+        which protoc-gen-gdscript
+        which Godot
+        make test check
+        cd test/godot_test
+        make serialize
+
+    - name: Create release package
+      run: |
+        # 从标签获取版本号，如果没有标签则使用分支名
+        VERSION=${GITHUB_REF#refs/tags/}
+        if [ "$VERSION" = "" ] || [ "$VERSION" = "$GITHUB_REF" ]; then
+          # 获取当前分支名
+          VERSION=${GITHUB_REF#refs/heads/}
+          if [ "$VERSION" = "" ] || [ "$VERSION" = "$GITHUB_REF" ]; then
+            VERSION="main"
+          fi
+        fi
+        echo "Using version: ${VERSION}"
+        echo "version=${VERSION}" >> $GITHUB_ENV
+        PACKAGE_NAME="protoc-gen-gdscript-${{ env.PLATFORM }}-${VERSION}"
+        mkdir -p ${PACKAGE_NAME}
+        cp -r ${{ env.BIN_DIR }} ${PACKAGE_NAME}/
+        cp -r protobuf ${PACKAGE_NAME}/
+        cp README.md README_zh.md ${PACKAGE_NAME}/
+        zip -r ${PACKAGE_NAME}.zip ${PACKAGE_NAME}
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: protoc-gen-gdscript-${{ env.PLATFORM }}-${{ env.version }}
+        path: protoc-gen-gdscript-${{ env.PLATFORM }}-*.zip
+        if-no-files-found: error
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Download artifacts
+      uses: actions/download-artifact@v3
+      with:
+        path: artifacts
+
+    - name: Create Release
+      id: create_release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: artifacts/protoc-gen-gdscript-${{ env.PLATFORM }}-*/*.zip
+        name: Release ${{ github.ref_name }}
+        draft: false
+        prerelease: false
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
