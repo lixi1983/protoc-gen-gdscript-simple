@@ -49,11 +49,11 @@ endif
 # 平台特定构建
 dist-mac: venv
 	mkdir -p $(BIN_DIR)
-	$(VENV)/bin/pyinstaller --onefile protoc-gen-gdscript.py --name protoc-gen-gdscript-mac --distpath $(BIN_DIR)
+	/$(VENV)/bin/pyinstaller --onefile protoc-gen-gdscript.py --name protoc-gen-gdscript-mac --distpath $(BIN_DIR)
 
 dist-linux: venv
 	mkdir -p $(BIN_DIR)
-	$(VENV)/bin/pyinstaller --onefile protoc-gen-gdscript.py --name protoc-gen-gdscript-linux --distpath $(BIN_DIR)
+	/$(VENV)/bin/pyinstaller --onefile protoc-gen-gdscript.py --name protoc-gen-gdscript-linux --distpath $(BIN_DIR)
 
 dist-win: venv
 	mkdir -p $(BIN_DIR)
