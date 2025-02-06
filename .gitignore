@@ -176,3 +176,5 @@ dist/protoc-gen-gdscript.exe
 *.swo
 .DS_Store
 server
+bin
+dist

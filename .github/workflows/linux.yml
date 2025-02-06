@@ -4,10 +4,11 @@ on:
   push:
     tags:
       - '*'
-  workflow_dispatch:  
+  workflow_dispatch:
 
 env:
-  BUILD_TYPE: Release  
+  BUILD_TYPE: Release
+  BIN_DIR: dist
 
 jobs:
   build:
@@ -32,20 +33,27 @@ jobs:
         pip install pyinstaller protobuf pytest
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-    - name: Run tests
+    - name: Add BIN_DIR to PATH
       run: |
-        which protoc
-        make test
+        echo "${{ github.workspace }}/${{ env.BIN_DIR }}" >> $GITHUB_PATH
+        echo "Added ${{ github.workspace }}/${{ env.BIN_DIR }} to PATH"
 
     - name: Build Linux executable
       run: |
         make dist-linux
+        chmod +x ${{ env.BIN_DIR }}/protoc-gen-gdscript
+
+    - name: Run tests
+      run: |
+        which protoc
+        which protoc-gen-gdscript
+        make test
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
         name: protoc-gen-gdscript-simple-linux-py${{ matrix.python-version }}
-        path: dist/protoc-gen-gdscript
+        path: ${{ env.BIN_DIR }}/protoc-gen-gdscript
 
   release:
     needs: build
@@ -65,7 +73,7 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         files: |
-          artifacts/protoc-gen-gdscript-simple-linux-py3.11/protoc-gen-gdscript
+          artifacts/protoc-gen-gdscript-simple-linux-py3.9/protoc-gen-gdscript
         name: Release ${{ github.ref_name }}
         draft: false
         prerelease: false
