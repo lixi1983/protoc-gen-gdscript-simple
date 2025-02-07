@@ -57,7 +57,9 @@ def get_field_type(field, proto_file=None):
         return "int"
     elif field.type == FieldDescriptorProto.TYPE_BOOL:
         return "bool"
-    elif field.type in [FieldDescriptorProto.TYPE_FLOAT, FieldDescriptorProto.TYPE_DOUBLE]:
+    elif field.type == FieldDescriptorProto.TYPE_DOUBLE:
+        return "float"
+    elif field.type == FieldDescriptorProto.TYPE_FLOAT:
         return "float"
     else:
         return "var"
@@ -79,8 +81,10 @@ def get_field_coder(field):
         return "zigzag32"
     elif field.type == FieldDescriptorProto.TYPE_SINT64:
         return "zigzag64"
-    elif field.type in [FieldDescriptorProto.TYPE_FLOAT, FieldDescriptorProto.TYPE_DOUBLE]:
+    elif field.type == FieldDescriptorProto.TYPE_FLOAT:
         return "float"
+    elif field.type ==  FieldDescriptorProto.TYPE_DOUBLE:
+        return "double"
     elif field.type == FieldDescriptorProto.TYPE_BOOL:
         return "bool"
     elif field.type == FieldDescriptorProto.TYPE_BYTES:
@@ -498,9 +502,16 @@ def generate_merge_methods(message_type, indent):
 
 
 def generate_parse_from_string_methods(message_type, indent):
-    content =""
 
     field_msg = lambda f: "self" if f.type != FieldDescriptorProto.TYPE_MESSAGE else f.name
+
+    base_field_content_info = lambda f_indent, f, decode_value="value", f_value="", p="pos", b="data": (
+        f"{f_indent}var {decode_value} = GDScriptUtils.decode_{get_field_coder(f)}({b}, pos, {field_msg(f)})\n"
+        f"{f_indent}{f.name if f_value == "" else f_value} = {decode_value}[GDScriptUtils.VALUE_KEY]\n"
+        f"{f_indent}{p} += {decode_value}[GDScriptUtils.SIZE_KEY]\n"
+    )
+
+    content =""
     # Generate ParseFromString method
     content += f"{indent}func ParseFromBytes(data: PackedByteArray) -> int:\n"
 
@@ -529,19 +540,30 @@ def generate_parse_from_string_methods(message_type, indent):
         if field_label == FieldDescriptorProto.LABEL_REPEATED:
             map_info = get_field_map_info(message_type, field_number)
             if map_info is None:
-                content += f"{indent}\t\t\t\tvar value = GDScriptUtils.decode_{get_field_coder(field)}(data, pos, {field_msg(field)})\n"
+                content += f"{indent}\t\t\t\tvar value = GDScriptUtils.decode_{get_field_coder(field)}(data, pos)\n"
                 content += f"{indent}\t\t\t\t{field_name}.append_array([value[GDScriptUtils.VALUE_KEY]])\n"
                 content += f"{indent}\t\t\t\tpos += value[GDScriptUtils.SIZE_KEY]\n"
             else:
-                content += f"{indent}\t\t\t\tvar key_value = GDScriptUtils.decode_{get_field_coder(map_info.get(key_field_name))}(data, pos)\n"
-                content += f"{indent}\t\t\t\tpos += key_value[GDScriptUtils.SIZE_KEY]\n"
-                content += f"{indent}\t\t\t\tvar value_value = GDScriptUtils.decode_{get_field_coder(map_info.get(value_field_name))}(data, pos)\n"
-                content += f"{indent}\t\t\t\t{field_name}[key_value[GDScriptUtils.VALUE_KEY]] = value_value[GDScriptUtils.VALUE_KEY]\n"
-                content += f"{indent}\t\t\t\tpos += value_value[GDScriptUtils.SIZE_KEY]\n"
+                content += f"{indent}\t\t\t\tvar map_length = GDScriptUtils.decode_varint(data, pos)\n"
+                content += f"{indent}\t\t\t\tpos += map_length[GDScriptUtils.SIZE_KEY]\n"
+                content += f"{indent}\t\t\t\tvar tag_key = GDScriptUtils.decode_tag(data, pos)\n"
+                content += f"{indent}\t\t\t\tpos += tag_key[GDScriptUtils.SIZE_KEY]\n"
+
+                content += base_field_content_info(f"{indent}\t\t\t\t", map_info.get(key_field_name), "key_value", "var m_key")
+
+                content += f"{indent}\t\t\t\tvar tag_value = GDScriptUtils.decode_tag(data, pos)\n"
+                content += f"{indent}\t\t\t\tpos += tag_value[GDScriptUtils.SIZE_KEY]\n"
+
+                content += base_field_content_info(f"{indent}\t\t\t\t", map_info.get(value_field_name), "value_value", "var m_value")
+
+                content += f"{indent}\t\t\t\t{field_name}[m_key] = m_value\n"
         else:
+            content += base_field_content_info(f"{indent}\t\t\t\t", field)
+            """
             content += f"{indent}\t\t\t\tvar value = GDScriptUtils.decode_{get_field_coder(field)}(data, pos, {field_msg(field)})\n"
             content += f"{indent}\t\t\t\t{field_name} = value[GDScriptUtils.VALUE_KEY]\n"
             content += f"{indent}\t\t\t\tpos += value[GDScriptUtils.SIZE_KEY]\n"
+            """
 
     content += f"{indent}\t\t\t_:\n"
     content += f"{indent}\t\t\t\tpass\n\n"
@@ -551,6 +573,11 @@ def generate_parse_from_string_methods(message_type, indent):
 
 def generate_serialize_to_string_methods(message_type, indent):
     """Generate serialize methods for a message type."""
+    base_field_content_info = lambda f_indent, f, v="", b="buffer": (
+        f"{f_indent}GDScriptUtils.encode_tag({b}, {f.number}, {f.type})\n"
+        f"{f_indent}GDScriptUtils.encode_{get_field_coder(f)}({b}, {v if v else f.name})\n"
+    )
+
     content = ""
     content += f"{indent}func SerializeToBytes(buffer: PackedByteArray = PackedByteArray()) -> PackedByteArray:\n"
 
@@ -563,20 +590,31 @@ def generate_serialize_to_string_methods(message_type, indent):
         if map_field:
             content += f"{indent}\tfor key in {field_name}:\n"
             content += f"{indent}\t\tGDScriptUtils.encode_tag(buffer, {field_number}, {field.type})\n"
-            content += f"{indent}\t\tGDScriptUtils.encode_{get_field_coder(map_field.get('key_field'))}(buffer, key)\n"
-            content += f"{indent}\t\tGDScriptUtils.encode_{get_field_coder(map_field.get('value_field'))}(buffer, {field_name}[key])\n"
+            content += f"{indent}\t\tvar map_buffer = PackedByteArray()\n"
+#            content += base_field_content_info(f"{indent}\t\t", map_field.get({key_field_name}), "key", "map_buffer")
+            content += base_field_content_info(f"{indent}\t\t", map_field.get(key_field_name), "key", "map_buffer")
+            content += base_field_content_info(f"{indent}\t\t", map_field.get(value_field_name), f"{field_name}[key]", "map_buffer")
+            content += "\n"
+            content += f"{indent}\t\tGDScriptUtils.encode_varint(buffer, map_buffer.size())\n"
+            content += f"{indent}\t\tbuffer.append_array(map_buffer)\n"
+#            content += f"{indent}\t\tGDScriptUtils.encode_tag(buffer, {field_number}, {field.type})\n"
+#            content += f"{indent}\t\tGDScriptUtils.encode_{get_field_coder(map_field.get('key_field'))}(map_buffer, key)\n"
+#            content += f"{indent}\t\tGDScriptUtils.encode_{get_field_coder(map_field.get('value_field'))}(map_buffer, {field_name}[key])\n"
         elif field.label == FieldDescriptorProto.LABEL_REPEATED:
             content += f"{indent}\tfor item in {field_name}:\n"
-            content += f"{indent}\t\tGDScriptUtils.encode_tag(buffer, {field_number}, {field.type})\n"
-            content += f"{indent}\t\tGDScriptUtils.encode_{get_field_coder(field)}(buffer, item)\n"
+#            content += f"{indent}\t\tGDScriptUtils.encode_tag(buffer, {field_number}, {field.type})\n"
+#            content += f"{indent}\t\tGDScriptUtils.encode_{get_field_coder(field)}(buffer, item)\n"
+            content += base_field_content_info(f"{indent}\t\t", field)
         elif field.type == FieldDescriptorProto.TYPE_MESSAGE:
             content += f"{indent}\tif {field_name} != null:\n"
-            content += f"{indent}\t\tGDScriptUtils.encode_tag(buffer, {field_number}, {field.type})\n"
-            content += f"{indent}\t\tGDScriptUtils.encode_{get_field_coder(field)}(buffer, {field_name})\n"
+#            content += f"{indent}\t\tGDScriptUtils.encode_tag(buffer, {field_number}, {field.type})\n"
+#            content += f"{indent}\t\tGDScriptUtils.encode_{get_field_coder(field)}(buffer, {field_name})\n"
+            content += base_field_content_info(f"{indent}\t\t", field)
         else:
             content += f"{indent}\tif {field_name} != {get_default_value(field)}:\n"
-            content += f"{indent}\t\tGDScriptUtils.encode_tag(buffer, {field_number}, {field.type})\n"
-            content += f"{indent}\t\tGDScriptUtils.encode_{get_field_coder(field)}(buffer, {field_name})\n"
+#            content += f"{indent}\t\tGDScriptUtils.encode_tag(buffer, {field_number}, {field.type})\n"
+#            content += f"{indent}\t\tGDScriptUtils.encode_{get_field_coder(field)}(buffer, {field_name})\n"
+            content += base_field_content_info(f"{indent}\t\t", field)
 
         content += " \n"
 
