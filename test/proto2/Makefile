@@ -25,9 +25,9 @@ all: test
 test: clean
 	$(MKDIR) $(OUT_DIR)
 ifeq ($(OS),Windows_NT)
-	@for /f "tokens=*" %%i in ('$(FIND)') do @( \
-		$(PROTOC) --gdscript_out=$(OUT_DIR) -I. "%%i" \
-	)
+	@powershell -Command "foreach ($proto in $(FIND)) { \
+		$(PROTOC) --gdscript_out=$(OUT_DIR) -I. $proto \
+	}"
 else
 	@for proto in $$($(FIND)); do \
 		$(PROTOC) --gdscript_out=$(OUT_DIR) -I. $$proto; \
