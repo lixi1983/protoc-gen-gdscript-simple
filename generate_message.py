@@ -147,7 +147,7 @@ def get_class_name(name, package_name=None):
 def get_file_name(name, package_name=None):
     """Get the file name with proper package prefix."""
     class_name = get_class_name(name, package_name)
-    return f"{class_name}.gd"
+    return f"{class_name}.proto.gd"
 
 def get_message_type(message_type, package_name=None):
     """Get the message type name with package prefix."""
@@ -180,8 +180,8 @@ def get_import_path(proto_file_path: str, import_path: str) -> str:
     # 计算导入文件的绝对路径
     import_abs_path = os.path.normpath(os.path.join(proto_dir, import_path))
     
-    # 将 .proto 扩展名替换为 .gd
-    import_gd_path = os.path.splitext(import_abs_path)[0] + ".gd"
+    # 将 .proto 扩展名替换为 .proto.gd
+    import_gd_path = os.path.splitext(import_abs_path)[0] + ".proto.gd"
     
     # 获取相对于当前文件的路径
     rel_path = os.path.relpath(import_gd_path, proto_dir)
@@ -228,7 +228,7 @@ def generate_gdscript(request: plugin_pb2.CodeGeneratorRequest) -> plugin_pb2.Co
         # Get the package name and create one file per proto file
         package_name = proto_file.package
         proto_file_name = os.path.splitext(os.path.basename(proto_file.name))[0]
-        file_name = f"{proto_file_name}.gd"
+        file_name = f"{proto_file_name}.proto.gd"
         file = response.file.add()
         file.name = file_name
         
