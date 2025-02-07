@@ -645,7 +645,19 @@ def generate_serialize_to_dictionary_methods(message_type, indent):
     
     # 分别处理每个字段
     for field in message_type.field:
-        if field.label == FieldDescriptorProto.LABEL_REPEATED:
+        map_info = get_field_map_info(message_type, field.number)
+        if map_info is not None:
+            value_field = map_info.get(value_field_name)
+            is_value_message = value_field.type == FieldDescriptorProto.TYPE_MESSAGE
+            content += f"{indent}\tif not {field.name}.is_empty():\n"
+            content += f"{indent}\t\tvar map_dict = {{}}\n"
+            content += f"{indent}\t\tfor key in {field.name}:\n"
+            if is_value_message:
+                content += f"{indent}\t\t\tmap_dict[key] = {field.name}[key].SerializeToDictionary()\n"
+            else:
+                content += f"{indent}\t\t\tmap_dict[key] = {field.name}[key]\n"
+            content += f"{indent}\t\tmap[\"{field.name}\"] = map_dict\n"
+        elif field.label == FieldDescriptorProto.LABEL_REPEATED:
             content += f"{indent}\tmap[\"{field.name}\"] = {field.name}\n"
         elif field.type == FieldDescriptorProto.TYPE_MESSAGE:
             content += f"{indent}\tif {field.name} != null:\n"
@@ -667,7 +679,21 @@ def generate_parse_from_dictionary_methods(message_type, indent):
 
     for field in message_type.field:
         field_name = field.name
-        if field.label == FieldDescriptorProto.LABEL_REPEATED:
+        map_info = get_field_map_info(message_type, field.number)
+        if map_info is not None:
+            value_field = map_info.get(value_field_name)
+            is_value_message = value_field.type == FieldDescriptorProto.TYPE_MESSAGE
+            content += f"{indent}\tif \"{field_name}\" in data:\n"
+            content += f"{indent}\t\tvar map_dict = data[\"{field_name}\"]\n"
+            content += f"{indent}\t\tif map_dict != null:\n"
+            content += f"{indent}\t\t\tfor key in map_dict:\n"
+            if is_value_message:
+                content += f"{indent}\t\t\t\tvar value = {get_field_new(value_field)}\n"
+                content += f"{indent}\t\t\t\tvalue.ParseFromDictionary(map_dict[key])\n"
+                content += f"{indent}\t\t\t\t{field_name}[key] = value\n"
+            else:
+                content += f"{indent}\t\t\t\t{field_name}[key] = map_dict[key]\n"
+        elif field.label == FieldDescriptorProto.LABEL_REPEATED:
             content += f"{indent}\tif \"{field_name}\" in data:\n"
             content += f"{indent}\t\t{field_name} = data[\"{field_name}\"]\n"
         elif field.type == FieldDescriptorProto.TYPE_MESSAGE:
@@ -687,10 +713,11 @@ def generate_serialization_methods(message_type, indent):
 
     content += generate_new_methods(message_type, indent)
     content += generate_merge_methods(message_type, indent)
- #   content += generate_clone_methods(message_type, indent)
-    content += generate_serialize_to_dictionary_methods(message_type, indent)
+
     content += generate_serialize_to_string_methods(message_type, indent)
     content += generate_parse_from_string_methods(message_type, indent)
+
+    content += generate_serialize_to_dictionary_methods(message_type, indent)
     content += generate_parse_from_dictionary_methods(message_type, indent)
 
     # 移除对 generate_message_class 的调用，避免循环依赖
