@@ -4,8 +4,16 @@
 PYTHON = python3
 VENV = venv
 BIN_DIR = bin
-PIP = $(VENV)/bin/pip
-PYINSTALLER = $(VENV)/bin/pyinstaller
+
+ifeq ($(OS),Windows_NT)
+    PIP = $(VENV)\Scripts\pip
+    PYINSTALLER = $(VENV)\Scripts\pyinstaller
+    PYTHON_CMD = $(VENV)\Scripts\python
+else
+    PIP = $(VENV)/bin/pip
+    PYINSTALLER = $(VENV)/bin/pyinstaller
+    PYTHON_CMD = $(VENV)/bin/python
+endif
 
 # 检测操作系统类型
 PLATFORM := $(shell uname -s)
