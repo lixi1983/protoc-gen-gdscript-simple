@@ -15,30 +15,27 @@ endif
 
 # 输出目录
 OUT_DIR = ./generated
+PROTO_GD = $(patsubst %.proto,%.proto.gd,$(wildcard *.proto))
 
 # 默认目标
 .PHONY: all
 all: test
 
+%.proto.gd: %.proto;
+	@$(MKDIR) $(OUT_DIR)
+	$(PROTOC) --gdscript_out=$(OUT_DIR) -I. $<
+
 # 测试目标
 .PHONY: test
-test: clean
-	$(MKDIR) $(OUT_DIR)
-ifeq ($(OS),Windows_NT)
-	@powershell -Command "foreach ($proto in $(FIND)) { \
-		$(PROTOC) --gdscript_out=$(OUT_DIR) -I. $proto \
-	}"
-else
-	@for proto in $$($(FIND)); do \
-		$(PROTOC) --gdscript_out=$(OUT_DIR) -I. $$proto; \
-	done
-endif
+test: clean proto
 
 # 清理目标
 .PHONY: clean
 clean:
 	-$(RM) $(OUT_DIR)
 	-$(SLEEP) 1
+
+proto: $(PROTO_GD)
 
 python_out:
 	$(MKDIR) python
