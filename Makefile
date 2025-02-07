@@ -66,14 +66,18 @@ endif
 dist-mac: install
 	mkdir -p $(BIN_DIR)
 	$(PYINSTALLER) --onefile protoc-gen-gdscript.py --name protoc-gen-gdscript --distpath $(BIN_DIR)
+	$(BIN_DIR)/protoc-gen-gdscript --help
 
 dist-linux: install
 	mkdir -p $(BIN_DIR)
 	$(PYINSTALLER) --onefile protoc-gen-gdscript.py --name protoc-gen-gdscript --distpath $(BIN_DIR)
+	$(BIN_DIR)/protoc-gen-gdscript --help
 
 dist-win: install
 	mkdir -p $(BIN_DIR)
 	$(PYINSTALLER) --onefile protoc-gen-gdscript.py --name protoc-gen-gdscript.exe --distpath $(BIN_DIR)
+	$(BIN_DIR)\protoc-gen-gdscript.exe --help
+
 
 # 测试目标
 test: install
