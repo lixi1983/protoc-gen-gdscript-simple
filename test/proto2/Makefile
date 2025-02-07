@@ -36,3 +36,4 @@ endif
 .PHONY: clean
 clean:
 	-@$(RM) $(OUT_DIR)
+	sleep 1

@@ -91,6 +91,7 @@ clean:
 	$(RM) $(BIN_DIR)/
 	$(RM) __pycache__/
 	$(RM) *.spec
+	sleep 3
 
 # 帮助信息
 help:
