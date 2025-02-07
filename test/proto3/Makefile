@@ -1,7 +1,7 @@
 # 检测操作系统类型
 ifeq ($(OS),Windows_NT)
     PROTOC = protoc.exe
-    MKDIR = mkdir
+    MKDIR = powershell -Command "New-Item -Force -ItemType Directory"
     RM = powershell -Command "Remove-Item -Recurse -Force -ErrorAction Ignore"
     FIND = dir /b /s *.proto
 	SLEEP = timeout
@@ -22,7 +22,7 @@ PROTO_GD = $(patsubst %.proto,%.proto.gd,$(wildcard *.proto))
 all: test
 
 %.proto.gd: %.proto;
-	@$(MKDIR) $(OUT_DIR)
+	-@$(MKDIR) $(OUT_DIR)
 	$(PROTOC) --gdscript_out=$(OUT_DIR) -I. $<
 
 # 测试目标
