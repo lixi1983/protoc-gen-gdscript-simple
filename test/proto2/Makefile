@@ -4,7 +4,7 @@ ifeq ($(OS),Windows_NT)
     MKDIR = mkdir
     RM = powershell -Command "Remove-Item -Recurse -Force -ErrorAction Ignore"
     FIND = dir /b /s *.proto
-	SLEEP = Start-Sleep -Seconds
+	SLEEP = timeout
 else
     PROTOC = protoc
     MKDIR = mkdir -p

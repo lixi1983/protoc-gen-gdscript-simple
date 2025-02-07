@@ -2,7 +2,7 @@
 ifeq ($(OS),Windows_NT)
     CD = cd
     MAKE = make
-    SLEEP = timeout /t
+    SLEEP = timeout 
 else
     CD = cd
     MAKE = make
@@ -24,7 +24,7 @@ test: $(SUBDIRS)
 # 子目录目标
 .PHONY: $(SUBDIRS)
 $(SUBDIRS):
-	@$(SLEEP) 1
+	-@$(SLEEP) 1
 	@echo "=============== Testing in $@ directory... ==============="
 	$(MAKE) -C $@ test
 
