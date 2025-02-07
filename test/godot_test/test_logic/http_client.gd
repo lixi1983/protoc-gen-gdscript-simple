@@ -110,7 +110,7 @@ func send_test_message2():
     sub1.sub_field1 = 99
     test.map_field_sub["223"] = sub1
     var sub2 = proto3Test.MsgBase.SubMsg.new()
-    test.map_field_sub["333"] = sub1
+    test.map_field_sub["333"] = sub2
 
     var test_bytes = test.SerializeToBytes()
 

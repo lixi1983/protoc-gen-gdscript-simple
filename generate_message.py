@@ -505,11 +505,14 @@ def generate_parse_from_string_methods(message_type, indent):
 
     field_msg = lambda f, v_name="": "self" if f.type != FieldDescriptorProto.TYPE_MESSAGE else v_name if v_name != "" else f.name
 
-    base_field_content_info = lambda f_indent, f, decode_value="value", f_value="", pos="pos", buffer="data": (
-        f"{f_indent}var {decode_value} = GDScriptUtils.decode_{get_field_coder(f)}({buffer}, {pos}, {field_msg(f, f_value)})\n"
-        f"{f_indent}{f.name if f_value == "" else f_value} = {decode_value}[GDScriptUtils.VALUE_KEY]\n"
-        f"{f_indent}{pos} += {decode_value}[GDScriptUtils.SIZE_KEY]\n"
-    )
+    def base_field_content_info(f_indent, f, decode_value="value", f_value="", pos="pos", buffer="data"):
+        field_value = f.name if f_value == "" else f_value
+        msg_value = field_msg(f, f_value)
+        return (
+            f"{f_indent}var {decode_value} = GDScriptUtils.decode_{get_field_coder(f)}({buffer}, {pos}, {msg_value})\n"
+            f"{f_indent}{field_value} = {decode_value}[GDScriptUtils.VALUE_KEY]\n"
+            f"{f_indent}{pos} += {decode_value}[GDScriptUtils.SIZE_KEY]\n"
+        )
 
     content =""
     # Generate ParseFromString method
