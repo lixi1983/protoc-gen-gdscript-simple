@@ -105,6 +105,12 @@ func send_test_message2():
 #    test.f_field4 = 4343.222323
 #    test.map_field5[1] = "map_1"
     test.map_field5[2] = "map_2"
+    test.map_field5[4] = "map_4"
+    var sub1 = proto3Test.MsgBase.SubMsg.new()
+    sub1.sub_field1 = 99
+    test.map_field_sub["223"] = sub1
+    var sub2 = proto3Test.MsgBase.SubMsg.new()
+    test.map_field_sub["333"] = sub1
 
     var test_bytes = test.SerializeToBytes()
 

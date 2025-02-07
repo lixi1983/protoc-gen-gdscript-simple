@@ -503,12 +503,12 @@ def generate_merge_methods(message_type, indent):
 
 def generate_parse_from_string_methods(message_type, indent):
 
-    field_msg = lambda f: "self" if f.type != FieldDescriptorProto.TYPE_MESSAGE else f.name
+    field_msg = lambda f, v_name="": "self" if f.type != FieldDescriptorProto.TYPE_MESSAGE else v_name if v_name != "" else f.name
 
-    base_field_content_info = lambda f_indent, f, decode_value="value", f_value="", p="pos", b="data": (
-        f"{f_indent}var {decode_value} = GDScriptUtils.decode_{get_field_coder(f)}({b}, pos, {field_msg(f)})\n"
+    base_field_content_info = lambda f_indent, f, decode_value="value", f_value="", pos="pos", buffer="data": (
+        f"{f_indent}var {decode_value} = GDScriptUtils.decode_{get_field_coder(f)}({buffer}, {pos}, {field_msg(f, f_value)})\n"
         f"{f_indent}{f.name if f_value == "" else f_value} = {decode_value}[GDScriptUtils.VALUE_KEY]\n"
-        f"{f_indent}{p} += {decode_value}[GDScriptUtils.SIZE_KEY]\n"
+        f"{f_indent}{pos} += {decode_value}[GDScriptUtils.SIZE_KEY]\n"
     )
 
     content =""
@@ -546,17 +546,28 @@ def generate_parse_from_string_methods(message_type, indent):
             else:
                 content += f"{indent}\t\t\t\tvar map_length = GDScriptUtils.decode_varint(data, pos)\n"
                 content += f"{indent}\t\t\t\tpos += map_length[GDScriptUtils.SIZE_KEY]\n"
-                content += f"{indent}\t\t\t\tvar tag_key = GDScriptUtils.decode_tag(data, pos)\n"
-                content += f"{indent}\t\t\t\tpos += tag_key[GDScriptUtils.SIZE_KEY]\n"
+                content += f"{indent}\t\t\t\tvar map_buff = data.slice(pos, pos+map_length[GDScriptUtils.VALUE_KEY])\n"
+                content += f"{indent}\t\t\t\tvar map_pos = 0\n"
+                key_field = map_info.get(key_field_name)
+                value_field = map_info.get(value_field_name)
+                content += f"{indent}\t\t\t\tvar map_key: {get_field_type(key_field)} = {get_default_value(key_field)}\n"
+                content += f"{indent}\t\t\t\tvar map_value: {get_field_type(value_field)} = {get_default_value(value_field)}\n"
+                content += f"{indent}\t\t\t\twhile map_pos < map_buff.size():\n"
+                content += f"{indent}\t\t\t\t\tvar m_tag = GDScriptUtils.decode_tag(map_buff, map_pos)\n"
+                content += f"{indent}\t\t\t\t\tvar m_field_number = m_tag[GDScriptUtils.VALUE_KEY]\n"
+                content += f"{indent}\t\t\t\t\tmap_pos += m_tag[GDScriptUtils.SIZE_KEY]\n"
+                content += f"{indent}\t\t\t\t\tmatch m_field_number:\n"
+                content += f"{indent}\t\t\t\t\t\t{key_field.number}:\n"
+                content += base_field_content_info(f"{indent}\t\t\t\t\t\t\t", key_field, "key_value", "map_key", "map_pos", "map_buff")
+                content += f"{indent}\t\t\t\t\t\t{value_field.number}:\n"
+                content += base_field_content_info(f"{indent}\t\t\t\t\t\t\t", value_field, "key_value", "map_value", "map_pos", "map_buff")
+                content += f"{indent}\t\t\t\t\t\t_:\n"
+                content += f"{indent}\t\t\t\t\t\t\tpass\n"
+                content += "\n"
 
-                content += base_field_content_info(f"{indent}\t\t\t\t", map_info.get(key_field_name), "key_value", "var m_key")
-
-                content += f"{indent}\t\t\t\tvar tag_value = GDScriptUtils.decode_tag(data, pos)\n"
-                content += f"{indent}\t\t\t\tpos += tag_value[GDScriptUtils.SIZE_KEY]\n"
-
-                content += base_field_content_info(f"{indent}\t\t\t\t", map_info.get(value_field_name), "value_value", "var m_value")
-
-                content += f"{indent}\t\t\t\t{field_name}[m_key] = m_value\n"
+                content += f"{indent}\t\t\t\tpos += map_pos\n"
+                content += f"{indent}\t\t\t\tif map_pos > 0:\n"
+                content += f"{indent}\t\t\t\t\t{field_name}[map_key] = map_value\n"
         else:
             content += base_field_content_info(f"{indent}\t\t\t\t", field)
             """
@@ -604,7 +615,7 @@ def generate_serialize_to_string_methods(message_type, indent):
             content += f"{indent}\tfor item in {field_name}:\n"
 #            content += f"{indent}\t\tGDScriptUtils.encode_tag(buffer, {field_number}, {field.type})\n"
 #            content += f"{indent}\t\tGDScriptUtils.encode_{get_field_coder(field)}(buffer, item)\n"
-            content += base_field_content_info(f"{indent}\t\t", field)
+            content += base_field_content_info(f"{indent}\t\t", field, "item")
         elif field.type == FieldDescriptorProto.TYPE_MESSAGE:
             content += f"{indent}\tif {field_name} != null:\n"
 #            content += f"{indent}\t\tGDScriptUtils.encode_tag(buffer, {field_number}, {field.type})\n"
