@@ -4,11 +4,13 @@ ifeq ($(OS),Windows_NT)
     MKDIR = mkdir
     RM = powershell -Command "Remove-Item -Recurse -Force -ErrorAction Ignore"
     FIND = dir /b /s *.proto
+	SLEEP = Start-Sleep -Seconds
 else
     PROTOC = protoc
     MKDIR = mkdir -p
     RM = rm -rf
     FIND = find . -name "*.proto"
+	SLEEP = sleep
 endif
 
 # 输出目录
@@ -36,7 +38,7 @@ endif
 .PHONY: clean
 clean:
 	-$(RM) $(OUT_DIR)
-	sleep 1
+	-$(SLEEP) 1
 
 python_out:
 	$(MKDIR) python

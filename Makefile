@@ -9,10 +9,12 @@ ifeq ($(OS),Windows_NT)
     PIP = $(VENV)\Scripts\pip
     PYINSTALLER = $(VENV)\Scripts\pyinstaller
     PYTHON_CMD = $(VENV)\Scripts\python
+	SLEEP = Start-Sleep -Seconds
 else
     PIP = $(VENV)/bin/pip
     PYINSTALLER = $(VENV)/bin/pyinstaller
     PYTHON_CMD = $(VENV)/bin/python
+	SLEEP = sleep
 endif
 
 # 检测操作系统类型
@@ -91,7 +93,7 @@ clean:
 	$(RM) $(BIN_DIR)/
 	$(RM) __pycache__/
 	$(RM) *.spec
-	sleep 3
+	-$(SLEEP) 3
 
 # 帮助信息
 help:
