@@ -77,7 +77,8 @@ jobs:
       run: |
         .\venv\Scripts\Activate.ps1
         mkdir -p bin
-        python -m PyInstaller --onefile protoc-gen-gdscript.py --name protoc-gen-gdscript.exe --distpath bin
+        make dist
+       # python -m PyInstaller --onefile protoc-gen-gdscript.py --name protoc-gen-gdscript.exe --distpath bin
       shell: pwsh
 
     - name: Run tests

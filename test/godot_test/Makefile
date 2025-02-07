@@ -1,6 +1,6 @@
 ifeq ($(OS),Windows_NT)
 	GODOT = Godot.exe
-	RM = rd /s /q
+	RM = -rd /s /q
 	RMFILE = del /f /q
 	LN = mklink /d
 	PROTOBUF_TARGET_PATH = ..\..\protobuf
