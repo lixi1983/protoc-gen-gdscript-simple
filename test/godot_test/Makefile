@@ -1,7 +1,7 @@
 ifeq ($(OS),Windows_NT)
 	GODOT = Godot.exe
-	RM = -rd /s /q
-	RMFILE = del /f /q
+	RM = powershell -Command "Remove-Item -Recurse -Force -ErrorAction Ignore"
+	RMFILE = powershell -Command "Remove-Item -Force -ErrorAction Ignore"
 	LN = mklink /d
 	PROTOBUF_TARGET_PATH = ..\..\protobuf
 	PROTO2_PATH = ..\proto2\generated

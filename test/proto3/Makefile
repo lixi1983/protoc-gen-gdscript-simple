@@ -2,7 +2,7 @@
 ifeq ($(OS),Windows_NT)
     PROTOC = protoc.exe
     MKDIR = mkdir
-    RM = -rmdir /s /q
+    RM = powershell -Command "Remove-Item -Recurse -Force -ErrorAction Ignore"
     FIND = dir /b /s *.proto
 else
     PROTOC = protoc

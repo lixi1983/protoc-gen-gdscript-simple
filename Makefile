@@ -20,7 +20,7 @@ PLATFORM := $(shell uname -s)
 ifeq ($(OS),Windows_NT)
     PLATFORM := Windows
     EXE_SUFFIX = .exe
-    RM = -rmdir /s /q
+    RM = powershell -Command "Remove-Item -Recurse -Force -ErrorAction Ignore"
     CD = cd
 else
     ifeq ($(PLATFORM),Darwin)
