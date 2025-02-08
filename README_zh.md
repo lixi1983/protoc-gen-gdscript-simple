@@ -19,6 +19,10 @@
 - 完全支持字段规则（required、optional、repeated）
 - 优雅处理未知字段
 
+注意 ⚠️: 
+    gdscript 4+  int和float都是8字节, 所以protobuf字段中的int32/fixed32在gdscript中是int类型, 这样在序列化的时候会将高位4字节截掉, 
+    protobuf的float字段反序列化的时候可能有单精度转双精度问题， 建议在定义protobuf字段的时候使用double
+
 ## 安装
 
 你可以通过以下两种方式之一来安装和使用 protobuf2gdscript：
