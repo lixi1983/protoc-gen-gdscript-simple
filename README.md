@@ -20,7 +20,7 @@ Note: The project cannot be entirely implemented by Windsurf AI. There might be 
 - Graceful handling of unknown fields
 
 Note ⚠️:
-    In GDScript 4+, both int and float are 8 bytes. When serializing, int32/fixed32 protobuf fields are treated as int type, which means the high 4 bytes will be truncated.
+    In GDScript 4+, both int and float are 16 bytes. When serializing, int32/fixed32 protobuf fields are treated as int type, which means the high 8 bytes will be truncated.
     Float fields in protobuf may have single-precision to double-precision conversion issues when deserializing. It's recommended to use double when defining protobuf fields.
 
 ## Installation
