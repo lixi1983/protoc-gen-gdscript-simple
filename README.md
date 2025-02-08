@@ -145,11 +145,11 @@ character.items.append("Sword")
 character.items.append("Shield")
 
 # Serialize
-var bytes = character.serialize()
+var bytes = character.SerializeToBytes()
 
 # Deserialize
 var new_character = Character.new()
-new_character.deserialize(bytes)
+new_character.ParseFromBytes(bytes)
 ```
 
 ## About

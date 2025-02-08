@@ -133,11 +133,11 @@ character.items.append("Sword")
 character.items.append("Shield")
 
 # 序列化
-var bytes = character.serialize()
+var bytes = character.SerializeToBytes()
 
 # 反序列化
 var new_character = Character.new()
-new_character.deserialize(bytes)
+new_character.ParseFromBytes(bytes)
 ```
 
 ## 环境变量
