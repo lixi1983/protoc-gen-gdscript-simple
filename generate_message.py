@@ -117,7 +117,7 @@ def get_gdscript_class_name(message_type):
 
 def get_protobuf_base_path():
     """Get the base path for protobuf files from environment variable."""
-    return os.getenv("GD_PROTOBUF_PATH", "res://protobuf")
+    return os.getenv("GD_PROTOBUF_PATH", "res://addons/protobuf")
 
 
 def get_import_path(proto_file_path: str, import_path: str) -> str:

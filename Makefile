@@ -1,7 +1,7 @@
 .PHONY: all clean install test dist dist-mac dist-linux dist-win
 
 # 基本变量
-PYTHON = python3
+PYTHON = python
 VENV = venv
 BIN_DIR = bin
 
@@ -82,6 +82,8 @@ dist-win: install
 # 测试目标
 test: install
 	@echo "Running all tests..."
+	which python
+	echo "pythonpath: $(PYTHONPATH)"
 	@$(CD) test && $(MAKE) clean test
 
 check:
@@ -120,3 +122,8 @@ py_proto:
 go_proto:
 	mkdir -p test/godot_test/ackend_http/proto3
 	protoc --go_out=test/godot_test/backend_http/proto3 -I test/proto3/ test/proto3/*.proto
+
+# 检查 Python 解释器
+check_python:
+	@echo "Using Python: $(shell which $(PYTHON))"
+	@echo "Python Version: $(shell ($(PYTHON) --version))"
