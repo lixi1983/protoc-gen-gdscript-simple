@@ -3,5 +3,14 @@ proto 生成 .gd 文件规则：
 1 一个proto文件只生产一个.gd脚本
 2 生成的.gd 没有 class_name, 只有 class,
 2 class继承自protobuf/proto/中的  Message, 由const Message = reload() 同一定义
-3 需要继承实现SerializeToString, DeserializeFromString, SerializeToDictionary,ParseFromDictionary, 
+3 需要继承实现SerializeToBytes, DeserializeFromBytes, SerializeToDictionary,ParseFromDictionary, 
     DeserializeFromDictionary, New, Merge, Copy
+
+
+ ci/cd 规则：
+    依赖protobuf, godot 
+    更具make dist 指定平台生成不同的可执行文件
+    将BIN_DIR添加到PATH中间
+    make test 来测试执行
+    制成品是将 bin目录, prootobuf目录和readme 一起打包成一个zip, 命名规范是protoc-gen-gdscript-<platform>-<tag-version>.zip
+    为windwos, mac, linux 分别创建ci/cd
