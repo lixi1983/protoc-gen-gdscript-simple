@@ -1,10 +1,12 @@
 name: macOS CI/CD
 
 on:
-  push:
-    tags:
-      - '*'
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
 
 permissions:
   actions: write  # Required for deleting workflow runs

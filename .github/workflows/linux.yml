@@ -3,10 +3,10 @@ name: Linux CI/CD
 on:
   workflow_dispatch:
   workflow_call:
-      inputs:
-        version:
-          required: true
-          type: string
+    inputs:
+      version:
+        required: true
+        type: string
 
 permissions:
   actions: write    # 允许管理 Actions
