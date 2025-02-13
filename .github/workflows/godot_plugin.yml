@@ -36,10 +36,10 @@ jobs:
         cp -r addons ${PACKAGE_NAME}/
         zip -r ${PACKAGE_NAME}.zip ${PACKAGE_NAME}
 
-    - name: Upload Artifact
+    - name: Upload Artifact 
       uses: actions/upload-artifact@v4
       with:
-        name: godot-plugin
+        name: ${{ env.PLUGIN_NAME }}-godot-plugin-${{ env.VERSION }}
         path: ${{ env.PLUGIN_NAME }}-godot-plugin-*.zip
         retention-days: 14
 
