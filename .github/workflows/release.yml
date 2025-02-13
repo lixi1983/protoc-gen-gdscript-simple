@@ -28,6 +28,7 @@ jobs:
     needs: prepare
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
       - name: Trigger Linux workflow
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -38,6 +39,7 @@ jobs:
     needs: [prepare, linux-build]
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
       - name: Trigger macOS workflow
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -48,6 +50,7 @@ jobs:
     needs: [prepare, macos-build]
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
       - name: Trigger Windows workflow
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -58,6 +61,7 @@ jobs:
     needs: [prepare, windows-build]
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
       - name: Trigger Godot Plugin workflow
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
