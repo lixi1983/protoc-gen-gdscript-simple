@@ -116,6 +116,7 @@ jobs:
         name: protoc-gen-gdscript-${{ env.PLATFORM }}-${{ env.version }}
         path: protoc-gen-gdscript-${{ env.PLATFORM }}-*.zip
         if-no-files-found: error
+        retention-days: 14
 
   release:
     needs: build
@@ -144,15 +145,15 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  cleanup:
-    needs: [build, release]
-    runs-on: ubuntu-latest
-    if: always()  # 即使其他作业失败也运行
+#  cleanup:
+#    needs: [build, release]
+#    runs-on: ubuntu-latest
+#    if: always()  # 即使其他作业失败也运行
 
-    steps:
-    - name: Delete old workflow runs
-      uses: dmvict/clean-workflow-runs@v1
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        save_period: 0
-        save_min_runs_number: 3
+#    steps:
+#    - name: Delete old workflow runs
+#      uses: dmvict/clean-workflow-runs@v1
+#      with:
+#        token: ${{ secrets.GITHUB_TOKEN }}
+#        save_period: 0
+#        save_min_runs_number: 3
