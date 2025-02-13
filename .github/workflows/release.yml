@@ -26,35 +26,43 @@ jobs:
 
   linux-build:
     needs: prepare
-    permissions:
-      contents: write
-    uses: ./.github/workflows/linux.yml
-    with:
-      version: ${{ needs.prepare.outputs.version }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Linux workflow
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh workflow run linux.yml -f version=${{ needs.prepare.outputs.version }}
 
   macos-build:
     needs: [prepare, linux-build]
-    permissions:
-      contents: write
-    uses: ./.github/workflows/macos.yml
-    with:
-      version: ${{ needs.prepare.outputs.version }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger macOS workflow
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh workflow run macos.yml -f version=${{ needs.prepare.outputs.version }}
 
   windows-build:
     needs: [prepare, macos-build]
-    permissions:
-      contents: write
-    uses: ./.github/workflows/windows.yml
-    with:
-      version: ${{ needs.prepare.outputs.version }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Windows workflow
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh workflow run windows.yml -f version=${{ needs.prepare.outputs.version }}
 
   godot-plugin:
     needs: [prepare, windows-build]
-    permissions:
-      contents: write
-    uses: ./.github/workflows/godot_plugin.yml
-    with:
-      version: ${{ needs.prepare.outputs.version }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Godot Plugin workflow
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh workflow run godot_plugin.yml -f version=${{ needs.prepare.outputs.version }}
 
   cleanup:
     needs: [godot-plugin]
