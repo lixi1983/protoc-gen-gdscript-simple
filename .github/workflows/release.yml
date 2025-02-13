@@ -27,7 +27,7 @@ jobs:
   linux-build:
     needs: prepare
     permissions:
-      contents: read
+      contents: write
     uses: ./.github/workflows/linux.yml
     with:
       version: ${{ needs.prepare.outputs.version }}
@@ -35,7 +35,7 @@ jobs:
   macos-build:
     needs: [prepare, linux-build]
     permissions:
-      contents: read
+      contents: write
     uses: ./.github/workflows/macos.yml
     with:
       version: ${{ needs.prepare.outputs.version }}
@@ -43,7 +43,7 @@ jobs:
   windows-build:
     needs: [prepare, macos-build]
     permissions:
-      contents: read
+      contents: write
     uses: ./.github/workflows/windows.yml
     with:
       version: ${{ needs.prepare.outputs.version }}
@@ -51,31 +51,22 @@ jobs:
   godot-plugin:
     needs: [prepare, windows-build]
     permissions:
-      contents: read
+      contents: write
     uses: ./.github/workflows/godot_plugin.yml
     with:
       version: ${{ needs.prepare.outputs.version }}
 
-  create-release:
-    needs: [prepare, linux-build, macos-build, windows-build, godot-plugin]
-    if: startsWith(github.ref, 'refs/tags/')
+  cleanup:
+    needs: [godot-plugin]
     runs-on: ubuntu-latest
+    if: always()  # 即使其他作业失败也运行
     permissions:
-      contents: write
+      actions: write  # 需要此权限来删除工作流运行记录
+
     steps:
-      - uses: actions/checkout@v3
-
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: artifacts/**/*
-          name: Release ${{ needs.prepare.outputs.version }}
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Delete old workflow runs
+      uses: dmvict/clean-workflow-runs@v1
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        save_period: 5  # 保留5天的构建记录
+        save_min_runs_number: 3  # 至少保留3次运行记录
