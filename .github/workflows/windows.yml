@@ -2,6 +2,11 @@ name: Windows CI/CD
 
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to build'
+        required: true
+        type: string
   workflow_call:
     inputs:
       version:
