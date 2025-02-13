@@ -8,9 +8,6 @@ on:
         required: true
         type: string
 
-permissions:
-  actions: write  # Required for deleting workflow runs
-
 env:
   BUILD_TYPE: Release
   BIN_DIR: bin
@@ -124,9 +121,6 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
-    permissions:
-      contents: write
-
     steps:
     - uses: actions/checkout@v3
 
@@ -158,4 +152,4 @@ jobs:
 #      with:
 #        token: ${{ secrets.GITHUB_TOKEN }}
 #        save_period: 0
-#j        save_min_runs_number: 3
+#        save_min_runs_number: 3

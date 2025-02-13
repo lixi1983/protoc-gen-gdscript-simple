@@ -26,24 +26,32 @@ jobs:
 
   linux-build:
     needs: prepare
+    permissions:
+      contents: read
     uses: ./.github/workflows/linux.yml
     with:
       version: ${{ needs.prepare.outputs.version }}
 
   macos-build:
     needs: [prepare, linux-build]
+    permissions:
+      contents: read
     uses: ./.github/workflows/macos.yml
     with:
       version: ${{ needs.prepare.outputs.version }}
 
   windows-build:
     needs: [prepare, macos-build]
+    permissions:
+      contents: read
     uses: ./.github/workflows/windows.yml
     with:
       version: ${{ needs.prepare.outputs.version }}
 
   godot-plugin:
     needs: [prepare, windows-build]
+    permissions:
+      contents: read
     uses: ./.github/workflows/godot_plugin.yml
     with:
       version: ${{ needs.prepare.outputs.version }}
@@ -52,6 +60,8 @@ jobs:
     needs: [prepare, linux-build, macos-build, windows-build, godot-plugin]
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v3
 
