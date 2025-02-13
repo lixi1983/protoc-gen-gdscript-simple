@@ -25,14 +25,15 @@ endif
 GODOT_PATH := $(shell which $(GODOT))
 
 link: clean
+	@echo "begin link"
 ifeq ($(OS),Windows_NT)
-	@if exist addons $(RMFILE) addons
-	@cmd /c mklink /d addons $(PROTOBUF_TARGET_PATH)
-	@cmd /c mklink /d proto2 $(PROTO2_PATH)
-	@cmd /c mklink /d proto3 $(PROTO3_PATH)
+	if exist addones $(RMFILE) addones
+	cmd /c mklink /d addones $(PROTOBUF_TARGET_PATH)
+	cmd /c mklink /d proto2 $(PROTO2_PATH)
+	cmd /c mklink /d proto3 $(PROTO3_PATH)
 else
 	$(RMFILE) protobuf
-	$(LN) $(PROTOBUF_TARGET_PATH) addons
+	$(LN) $(PROTOBUF_TARGET_PATH) addones
 	$(LN) $(PROTO2_PATH) proto2 
 	$(LN) $(PROTO3_PATH) proto3
 endif
@@ -55,13 +56,13 @@ endif
 test:
 
 clean:
-	-$(RMFILE) addons proto2 proto3
+	-$(RMFILE) addones proto2 proto3
 
 dir:
 	${GODOT} --headless --script directory.gd	
 
 check_only:
-	${GODOT} --headless --script syntax_check.gd addons
+	${GODOT} --headless --script syntax_check.gd addones
 #	${GODOT} --headless --script syntax_check.gd proto2
 	${GODOT} --headless --script syntax_check.gd proto3
 
