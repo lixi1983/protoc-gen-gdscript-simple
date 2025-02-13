@@ -37,7 +37,7 @@ jobs:
       run: |
         PACKAGE_NAME="${{ env.PLUGIN_NAME }}-godot-plugin-${VERSION}"
         mkdir -p ${PACKAGE_NAME}
-        cp -r addons/${PLUGIN_NAME} ${PACKAGE_NAME}/addons/
+        cp -r addons ${PACKAGE_NAME}/
         cp README.md README_zh.md ${PACKAGE_NAME}/
         zip -r ${PACKAGE_NAME}.zip ${PACKAGE_NAME}
 
