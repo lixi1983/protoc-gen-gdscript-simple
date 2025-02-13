@@ -27,7 +27,7 @@ GODOT_PATH := $(shell which $(GODOT))
 link: clean
 	@echo "begin link"
 ifeq ($(OS),Windows_NT)
-	if exist addones $(RMFILE) addones
+#	if exist addones $(RMFILE) addones
 	cmd /c mklink /d addones $(PROTOBUF_TARGET_PATH)
 	cmd /c mklink /d proto2 $(PROTO2_PATH)
 	cmd /c mklink /d proto3 $(PROTO3_PATH)
