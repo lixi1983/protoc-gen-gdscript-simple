@@ -1,0 +1,57 @@
+name: Godot Protobuf GDScript Plugin Package
+
+on:
+  push:
+    tags:
+      - 'v*'
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+env:
+  PLUGIN_NAME: protobuf-gdscript
+
+jobs:
+  package-plugin:
+    name: Package Godot Protobuf GDScript Plugin
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Get Version
+      id: version
+      run: |
+        if [[ $GITHUB_REF == refs/tags/* ]]; then
+          VERSION=${GITHUB_REF#refs/tags/v}
+        else
+          VERSION=$(git rev-parse --short HEAD)
+        fi
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+    - name: Create Plugin Package
+      run: |
+        PACKAGE_NAME="${{ env.PLUGIN_NAME }}-godot-plugin-${VERSION}"
+        mkdir -p ${PACKAGE_NAME}
+        cp -r addons/${PLUGIN_NAME} ${PACKAGE_NAME}/addons/
+        cp README.md README_zh.md ${PACKAGE_NAME}/
+        zip -r ${PACKAGE_NAME}.zip ${PACKAGE_NAME}
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: godot-plugin
+        path: ${{ env.PLUGIN_NAME }}-godot-plugin-*.zip
+        retention-days: 14
+
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: ${{ env.PLUGIN_NAME }}-godot-plugin-*.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

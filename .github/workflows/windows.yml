@@ -105,7 +105,7 @@ jobs:
         $PACKAGE_NAME = "protoc-gen-gdscript-${{ env.PLATFORM }}-$VERSION"
         New-Item -ItemType Directory -Path $PACKAGE_NAME
         Copy-Item -Path "${{ env.BIN_DIR }}" -Destination "$PACKAGE_NAME\" -Recurse
-        Copy-Item -Path "protobuf" -Destination "$PACKAGE_NAME\" -Recurse
+        Copy-Item -Path "addons" -Destination "$PACKAGE_NAME\" -Recurse
         Copy-Item -Path "README.md","README_zh.md" -Destination "$PACKAGE_NAME\"
         Compress-Archive -Path $PACKAGE_NAME -DestinationPath "$PACKAGE_NAME.zip"
       shell: pwsh
