@@ -26,25 +26,25 @@ jobs:
 
   linux-build:
     needs: prepare
-    uses: ./.github/workflows/linux.yml@main
+    uses: ./.github/workflows/linux.yml
     with:
       version: ${{ needs.prepare.outputs.version }}
 
   macos-build:
     needs: [prepare, linux-build]
-    uses: ./.github/workflows/macos.yml@main
+    uses: ./.github/workflows/macos.yml
     with:
       version: ${{ needs.prepare.outputs.version }}
 
   windows-build:
     needs: [prepare, macos-build]
-    uses: ./.github/workflows/windows.yml@main
+    uses: ./.github/workflows/windows.yml
     with:
       version: ${{ needs.prepare.outputs.version }}
 
   godot-plugin:
     needs: [prepare, windows-build]
-    uses: ./.github/workflows/godot_plugin.yml@main
+    uses: ./.github/workflows/godot_plugin.yml
     with:
       version: ${{ needs.prepare.outputs.version }}
 
