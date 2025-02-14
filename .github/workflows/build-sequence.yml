@@ -39,6 +39,8 @@ jobs:
     name: Build Linux
     needs: [prepare]
     runs-on: ubuntu-latest
+    outputs:
+      run_id: ${{ steps.trigger.outputs.run_id }}
     steps:
       - uses: actions/checkout@v3
       
@@ -52,6 +54,7 @@ jobs:
           && sudo apt install gh -y
 
       - name: Run Linux build
+        id: trigger
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -66,6 +69,7 @@ jobs:
           # 获取最新运行的 ID
           RUN_ID=$(gh run list --workflow=linux.yml --limit=1 --json databaseId --jq '.[0].databaseId')
           echo "Linux build run ID: ${RUN_ID}"
+          echo "run_id=${RUN_ID}" >> $GITHUB_OUTPUT
           
           # 等待工作流完成
           gh run watch ${RUN_ID}
@@ -74,6 +78,8 @@ jobs:
     name: Build macOS
     needs: [prepare, linux-build]
     runs-on: ubuntu-latest
+    outputs:
+      run_id: ${{ steps.trigger.outputs.run_id }}
     steps:
       - uses: actions/checkout@v3
       
@@ -87,6 +93,7 @@ jobs:
           && sudo apt install gh -y
 
       - name: Run macOS build
+        id: trigger
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -101,6 +108,7 @@ jobs:
           # 获取最新运行的 ID
           RUN_ID=$(gh run list --workflow=macos.yml --limit=1 --json databaseId --jq '.[0].databaseId')
           echo "macOS build run ID: ${RUN_ID}"
+          echo "run_id=${RUN_ID}" >> $GITHUB_OUTPUT
           
           # 等待工作流完成
           gh run watch ${RUN_ID}
@@ -109,6 +117,8 @@ jobs:
     name: Build Windows
     needs: [prepare, macos-build]
     runs-on: ubuntu-latest
+    outputs:
+      run_id: ${{ steps.trigger.outputs.run_id }}
     steps:
       - uses: actions/checkout@v3
       
@@ -122,6 +132,7 @@ jobs:
           && sudo apt install gh -y
 
       - name: Run Windows build
+        id: trigger
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -136,6 +147,7 @@ jobs:
           # 获取最新运行的 ID
           RUN_ID=$(gh run list --workflow=windows.yml --limit=1 --json databaseId --jq '.[0].databaseId')
           echo "Windows build run ID: ${RUN_ID}"
+          echo "run_id=${RUN_ID}" >> $GITHUB_OUTPUT
           
           # 等待工作流完成
           gh run watch ${RUN_ID}
@@ -144,6 +156,8 @@ jobs:
     name: Build Godot Plugin
     needs: [prepare, windows-build]
     runs-on: ubuntu-latest
+    outputs:
+      run_id: ${{ steps.trigger.outputs.run_id }}
     steps:
       - uses: actions/checkout@v3
       
@@ -157,6 +171,7 @@ jobs:
           && sudo apt install gh -y
 
       - name: Run Godot Plugin build
+        id: trigger
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -171,6 +186,7 @@ jobs:
           # 获取最新运行的 ID
           RUN_ID=$(gh run list --workflow=godot_plugin.yml --limit=1 --json databaseId --jq '.[0].databaseId')
           echo "Godot Plugin build run ID: ${RUN_ID}"
+          echo "run_id=${RUN_ID}" >> $GITHUB_OUTPUT
           
           # 等待工作流完成
           gh run watch ${RUN_ID}
@@ -200,17 +216,17 @@ jobs:
         run: |
           mkdir -p artifacts
           
-          # 下载 Linux 构建产物
-          gh run download --dir artifacts --pattern "protoc-gen-gdscript-linux-*"
+          echo "Downloading Linux artifacts from run ${{ needs.linux-build.outputs.run_id }}..."
+          gh run download ${{ needs.linux-build.outputs.run_id }} --dir artifacts
           
-          # 下载 macOS 构建产物
-          gh run download --dir artifacts --pattern "protoc-gen-gdscript-macos-*"
+          echo "Downloading macOS artifacts from run ${{ needs.macos-build.outputs.run_id }}..."
+          gh run download ${{ needs.macos-build.outputs.run_id }} --dir artifacts
           
-          # 下载 Windows 构建产物
-          gh run download --dir artifacts --pattern "protoc-gen-gdscript-windows-*"
+          echo "Downloading Windows artifacts from run ${{ needs.windows-build.outputs.run_id }}..."
+          gh run download ${{ needs.windows-build.outputs.run_id }} --dir artifacts
           
-          # 下载 Godot 插件
-          gh run download --dir artifacts --pattern "gdprotobuf-*"
+          echo "Downloading Godot Plugin artifacts from run ${{ needs.godot-plugin.outputs.run_id }}..."
+          gh run download ${{ needs.godot-plugin.outputs.run_id }} --dir artifacts
 
       - name: Create Release
         env:
