@@ -45,13 +45,6 @@ jobs:
         path: ${{ env.PLUGIN_NAME }}-godot-plugin-*.zip
         retention-days: 14
 
-    - name: Upload Artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: ${{ env.PLUGIN_NAME }}-godot-plugin-${{ inputs.version }}
-        path: ${{ env.PLUGIN_NAME }}-godot-plugin-${{ inputs.version }}.zip
-        if-no-files-found: error
-
     - name: Install GitHub CLI
       if: startsWith(github.ref, 'refs/tags/')
       run: |
