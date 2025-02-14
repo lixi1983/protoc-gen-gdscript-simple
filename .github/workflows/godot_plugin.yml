@@ -57,10 +57,28 @@ jobs:
 
     - name: Create Release
       if: startsWith(github.ref, 'refs/tags/')
+      id: create_release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: godot-${{ env.PLUGIN_NAME }}-plugin-*.zip
+        name: Release ${{ github.ref_name }}
+        draft: false
+        prerelease: false
+        generate_release_notes: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        gh release create ${{ inputs.version }} \
-          --title "Release ${{ inputs.version }}" \
-          --notes "Release ${{ inputs.version }}" \
-          godot-${{ env.PLUGIN_NAME }}-plugin-${{ inputs.version }}.zip
+
+#    - name: Create Release
+#      if: startsWith(github.ref, 'refs/tags/')
+#      env:
+#        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#      run: |
+#        # 尝试创建发布，如果已存在则上传资源
+#        if ! gh release create ${{ inputs.version }} \
+#          --title "Release ${{ inputs.version }}" \
+#          --notes "Release ${{ inputs.version }}" \
+#          godot-${{ env.PLUGIN_NAME }}-plugin-${{ inputs.version }}.zip; then
+#          echo "Release already exists, uploading assets..."
+#          gh release upload ${{ inputs.version }} \
+#            godot-${{ env.PLUGIN_NAME }}-plugin-${{ inputs.version }}.zip --clobber
+#        fi
