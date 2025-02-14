@@ -7,8 +7,8 @@ on:
   workflow_dispatch:
 
 permissions:
-  actions: write
-  contents: write
+  contents: write  # 允许创建和修改发布
+  actions: write   # 允许触发其他工作流
 
 jobs:
   prepare:

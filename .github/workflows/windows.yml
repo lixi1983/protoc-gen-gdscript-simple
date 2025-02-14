@@ -14,7 +14,8 @@ on:
         type: string
 
 permissions:
-  contents: read
+  contents: write
+  actions: read
 
 env:
   BUILD_TYPE: Release

@@ -13,6 +13,10 @@ on:
         required: true
         type: string
 
+permissions:
+  contents: write  # 允许创建和修改发布
+  actions: read    # 允许读取工作流
+
 env:
   BUILD_TYPE: Release
   BIN_DIR: bin
