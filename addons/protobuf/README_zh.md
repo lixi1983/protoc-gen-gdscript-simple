@@ -29,15 +29,79 @@
 
 ## 使用方法
 
-```gdscript
-# 使用示例
-const Message = preload("res://addons/protobuf/proto/Message.gd")
-const GDScriptUtils = preload("res://addons/protobuf/proto/GDScriptUtils.gd")
+安装完成后，你可以使用 protoc 来生成 GDScript 代码：
 
-# 创建并编码消息
-var message = Message.new()
-# ... 使用 protocol buffer 工具
+```bash
+# 从 .proto 文件生成 GDScript 代码
+protoc --gdscript_out=. your_file.proto
+
+# 生成到指定的输出目录
+protoc --gdscript_out=./output your_file.proto
+
+# 从多个 .proto 文件生成
+protoc --gdscript_out=. file1.proto file2.proto
+
+# 从指定目录的 .proto 文件生成
+protoc --gdscript_out=. -I=proto_dir1 -I=proto_dir2 your_file.proto
 ```
+
+示例 `.proto` 文件：
+
+```protobuf
+syntax = "proto2";  // 或 "proto3"
+
+package example;
+
+message Character {
+    required string name = 1;
+    optional int32 level = 2 [default = 1];
+    repeated string items = 3;
+    
+    message Inventory {
+        optional int32 slots = 1 [default = 10];
+        repeated string items = 2;
+    }
+    
+    optional Inventory inventory = 4;
+}
+```
+
+使用生成的 GDScript 代码：
+
+```gdscript
+var character = Character.new()
+character.name = "Hero"
+character.level = 5
+character.items.append("Sword")
+character.items.append("Shield")
+
+# 序列化
+var bytes = character.SerializeToBytes()
+
+# 反序列化
+var new_character = Character.new()
+new_character.ParseFromBytes(bytes)
+```
+
+### 环境变量
+
+- `PROTOC_GEN_GDSCRIPT_PREFIX`: 设置生成的 GDScript 文件的导入路径前缀。默认值是 `res://protobuf/`。例如：
+
+```bash
+# 默认前缀是 "res://protobuf/"，你可以覆盖它：
+PROTOC_GEN_GDSCRIPT_PREFIX="res://custom_path/" protoc --gdscript_out=. your_file.proto
+
+# 生成的代码会在 preload 语句中使用指定的前缀：
+const Message = preload("res://custom_path/Message.gd")
+```
+
+### 注意事项 ⚠️
+
+在 GDScript 4+ 中：
+- int 和 float 都是 16 字节
+- 序列化时，int32/fixed32 protobuf 字段会被当作 int 类型处理，这意味着高 8 字节会被截断
+- protobuf 中的 float 字段在反序列化时可能会有单精度到双精度的转换问题
+- 建议在定义 protobuf 字段时使用 double
 
 ## 许可证
 
