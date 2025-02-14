@@ -11,12 +11,12 @@ permissions:
   contents: write
 
 jobs:
-  build-sequence:
-    name: Build All Platforms
+  prepare:
+    name: Prepare Build
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
     steps:
-      - uses: actions/checkout@v3
-
       - name: Get version
         id: get_version
         run: |
@@ -30,7 +30,15 @@ jobs:
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "Using version: ${VERSION}"
 
+  setup-gh:
+    name: Setup GitHub CLI
+    needs: prepare
+    runs-on: ubuntu-latest
+    outputs:
+      gh_path: ${{ steps.gh_install.outputs.gh_path }}
+    steps:
       - name: Install GitHub CLI
+        id: gh_install
         run: |
           type -p curl >/dev/null || (sudo apt update && sudo apt install curl -y)
           curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
@@ -38,13 +46,19 @@ jobs:
           && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
           && sudo apt update \
           && sudo apt install gh -y
+          echo "gh_path=$(which gh)" >> $GITHUB_OUTPUT
 
+  linux-build:
+    name: Build Linux
+    needs: [prepare, setup-gh]
+    runs-on: ubuntu-latest
+    steps:
       - name: Run Linux build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Starting Linux build..."
-          gh workflow run linux.yml -f version=${{ steps.get_version.outputs.version }}
+          gh workflow run linux.yml -f version=${{ needs.prepare.outputs.version }}
           
           # 等待工作流启动
           sleep 5
@@ -56,12 +70,17 @@ jobs:
           # 等待工作流完成
           gh run watch ${RUN_ID}
 
+  macos-build:
+    name: Build macOS
+    needs: [prepare, setup-gh, linux-build]
+    runs-on: ubuntu-latest
+    steps:
       - name: Run macOS build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Starting macOS build..."
-          gh workflow run macos.yml -f version=${{ steps.get_version.outputs.version }}
+          gh workflow run macos.yml -f version=${{ needs.prepare.outputs.version }}
           
           # 等待工作流启动
           sleep 5
@@ -73,12 +92,17 @@ jobs:
           # 等待工作流完成
           gh run watch ${RUN_ID}
 
+  windows-build:
+    name: Build Windows
+    needs: [prepare, setup-gh, macos-build]
+    runs-on: ubuntu-latest
+    steps:
       - name: Run Windows build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Starting Windows build..."
-          gh workflow run windows.yml -f version=${{ steps.get_version.outputs.version }}
+          gh workflow run windows.yml -f version=${{ needs.prepare.outputs.version }}
           
           # 等待工作流启动
           sleep 5
@@ -90,12 +114,17 @@ jobs:
           # 等待工作流完成
           gh run watch ${RUN_ID}
 
+  godot-plugin:
+    name: Build Godot Plugin
+    needs: [prepare, setup-gh, windows-build]
+    runs-on: ubuntu-latest
+    steps:
       - name: Run Godot Plugin build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Starting Godot Plugin build..."
-          gh workflow run godot_plugin.yml -f version=${{ steps.get_version.outputs.version }}
+          gh workflow run godot_plugin.yml -f version=${{ needs.prepare.outputs.version }}
           
           # 等待工作流启动
           sleep 5
@@ -108,24 +137,17 @@ jobs:
           gh run watch ${RUN_ID}
 
   cleanup:
-#    needs: [godot-plugin]
-    name: cleanup
-    needs: [build-sequence]
+    name: Cleanup
+    needs: [godot-plugin]
     runs-on: ubuntu-latest
     if: always()  # 即使其他作业失败也运行
     permissions:
       actions: write  # 需要此权限来删除工作流运行记录        
 
     steps:
-      - name: Cleanup old workflow runs
-        if: always()
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh api \
-            --method DELETE \
-            -H "Accept: application/vnd.github+json" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            /repos/${{ github.repository }}/actions/runs \
-            -f per_page=100 \
-            -f created=">$(date -d '5 days ago' '+%Y-%m-%d')"
+     - name: Delete old workflow runs
+       uses: dmvict/clean-workflow-runs@v1
+       with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        save_period: 5  # 保留5天的构建记录
+        save_min_runs_number: 3  # 至少保留3次运行记录
