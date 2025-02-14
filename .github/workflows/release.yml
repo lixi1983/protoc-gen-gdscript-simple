@@ -31,70 +31,258 @@ jobs:
   linux-build:
     needs: prepare
     runs-on: ubuntu-latest
+    outputs:
+      run_id: ${{ steps.trigger.outputs.run_id }}
     steps:
-      - uses: actions/checkout@v3
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
       - name: Trigger Linux workflow
+        id: trigger
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          curl -L \
+          RESPONSE=$(curl -L \
             -X POST \
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
             https://api.github.com/repos/${{ github.repository }}/actions/workflows/linux.yml/dispatches \
-            -d '{"ref":"${{ github.ref }}","inputs":{"version":"${{ needs.prepare.outputs.version }}"}}'
+            -d '{"ref":"${{ github.ref }}","inputs":{"version":"${{ needs.prepare.outputs.version }}"}}')
+          
+          # 获取最新的运行 ID
+          sleep 5  # 等待工作流启动
+          RUN_ID=$(curl -L \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/workflows/linux.yml/runs?per_page=1" \
+            | jq -r '.workflow_runs[0].id')
+          echo "run_id=${RUN_ID}" >> $GITHUB_OUTPUT
+
+      - name: Wait for Linux workflow
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          while true; do
+            STATUS=$(curl -L \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ steps.trigger.outputs.run_id }}" \
+              | jq -r '.status')
+            
+            echo "Workflow status: ${STATUS}"
+            if [ "${STATUS}" = "completed" ]; then
+              CONCLUSION=$(curl -L \
+                -H "Accept: application/vnd.github+json" \
+                -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+                -H "X-GitHub-Api-Version: 2022-11-28" \
+                "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ steps.trigger.outputs.run_id }}" \
+                | jq -r '.conclusion')
+              
+              if [ "${CONCLUSION}" = "success" ]; then
+                echo "Workflow completed successfully"
+                break
+              else
+                echo "Workflow failed with conclusion: ${CONCLUSION}"
+                exit 1
+              fi
+            fi
+            sleep 10
+          done
 
   macos-build:
     needs: [prepare, linux-build]
     runs-on: ubuntu-latest
+    outputs:
+      run_id: ${{ steps.trigger.outputs.run_id }}
     steps:
-      - uses: actions/checkout@v3
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
       - name: Trigger macOS workflow
+        id: trigger
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          curl -L \
+          RESPONSE=$(curl -L \
             -X POST \
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
             https://api.github.com/repos/${{ github.repository }}/actions/workflows/macos.yml/dispatches \
-            -d '{"ref":"${{ github.ref }}","inputs":{"version":"${{ needs.prepare.outputs.version }}"}}'
+            -d '{"ref":"${{ github.ref }}","inputs":{"version":"${{ needs.prepare.outputs.version }}"}}')
+          
+          # 获取最新的运行 ID
+          sleep 5  # 等待工作流启动
+          RUN_ID=$(curl -L \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/workflows/macos.yml/runs?per_page=1" \
+            | jq -r '.workflow_runs[0].id')
+          echo "run_id=${RUN_ID}" >> $GITHUB_OUTPUT
+
+      - name: Wait for macOS workflow
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          while true; do
+            STATUS=$(curl -L \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ steps.trigger.outputs.run_id }}" \
+              | jq -r '.status')
+            
+            echo "Workflow status: ${STATUS}"
+            if [ "${STATUS}" = "completed" ]; then
+              CONCLUSION=$(curl -L \
+                -H "Accept: application/vnd.github+json" \
+                -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+                -H "X-GitHub-Api-Version: 2022-11-28" \
+                "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ steps.trigger.outputs.run_id }}" \
+                | jq -r '.conclusion')
+              
+              if [ "${CONCLUSION}" = "success" ]; then
+                echo "Workflow completed successfully"
+                break
+              else
+                echo "Workflow failed with conclusion: ${CONCLUSION}"
+                exit 1
+              fi
+            fi
+            sleep 10
+          done
 
   windows-build:
     needs: [prepare, macos-build]
     runs-on: ubuntu-latest
+    outputs:
+      run_id: ${{ steps.trigger.outputs.run_id }}
     steps:
-      - uses: actions/checkout@v3
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
       - name: Trigger Windows workflow
+        id: trigger
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          curl -L \
+          RESPONSE=$(curl -L \
             -X POST \
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
             https://api.github.com/repos/${{ github.repository }}/actions/workflows/windows.yml/dispatches \
-            -d '{"ref":"${{ github.ref }}","inputs":{"version":"${{ needs.prepare.outputs.version }}"}}'
+            -d '{"ref":"${{ github.ref }}","inputs":{"version":"${{ needs.prepare.outputs.version }}"}}')
+          
+          # 获取最新的运行 ID
+          sleep 5  # 等待工作流启动
+          RUN_ID=$(curl -L \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/workflows/windows.yml/runs?per_page=1" \
+            | jq -r '.workflow_runs[0].id')
+          echo "run_id=${RUN_ID}" >> $GITHUB_OUTPUT
+
+      - name: Wait for Windows workflow
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          while true; do
+            STATUS=$(curl -L \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ steps.trigger.outputs.run_id }}" \
+              | jq -r '.status')
+            
+            echo "Workflow status: ${STATUS}"
+            if [ "${STATUS}" = "completed" ]; then
+              CONCLUSION=$(curl -L \
+                -H "Accept: application/vnd.github+json" \
+                -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+                -H "X-GitHub-Api-Version: 2022-11-28" \
+                "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ steps.trigger.outputs.run_id }}" \
+                | jq -r '.conclusion')
+              
+              if [ "${CONCLUSION}" = "success" ]; then
+                echo "Workflow completed successfully"
+                break
+              else
+                echo "Workflow failed with conclusion: ${CONCLUSION}"
+                exit 1
+              fi
+            fi
+            sleep 10
+          done
 
   godot-plugin:
     needs: [prepare, windows-build]
     runs-on: ubuntu-latest
+    outputs:
+      run_id: ${{ steps.trigger.outputs.run_id }}
     steps:
-      - uses: actions/checkout@v3
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
       - name: Trigger Godot Plugin workflow
+        id: trigger
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          curl -L \
+          RESPONSE=$(curl -L \
             -X POST \
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
             https://api.github.com/repos/${{ github.repository }}/actions/workflows/godot_plugin.yml/dispatches \
-            -d '{"ref":"${{ github.ref }}","inputs":{"version":"${{ needs.prepare.outputs.version }}"}}'
+            -d '{"ref":"${{ github.ref }}","inputs":{"version":"${{ needs.prepare.outputs.version }}"}}')
+          
+          # 获取最新的运行 ID
+          sleep 5  # 等待工作流启动
+          RUN_ID=$(curl -L \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/workflows/godot_plugin.yml/runs?per_page=1" \
+            | jq -r '.workflow_runs[0].id')
+          echo "run_id=${RUN_ID}" >> $GITHUB_OUTPUT
+
+      - name: Wait for Godot Plugin workflow
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          while true; do
+            STATUS=$(curl -L \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ steps.trigger.outputs.run_id }}" \
+              | jq -r '.status')
+            
+            echo "Workflow status: ${STATUS}"
+            if [ "${STATUS}" = "completed" ]; then
+              CONCLUSION=$(curl -L \
+                -H "Accept: application/vnd.github+json" \
+                -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+                -H "X-GitHub-Api-Version: 2022-11-28" \
+                "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ steps.trigger.outputs.run_id }}" \
+                | jq -r '.conclusion')
+              
+              if [ "${CONCLUSION}" = "success" ]; then
+                echo "Workflow completed successfully"
+                break
+              else
+                echo "Workflow failed with conclusion: ${CONCLUSION}"
+                exit 1
+              fi
+            fi
+            sleep 10
+          done
 
   cleanup:
     needs: [godot-plugin]
