@@ -15,7 +15,7 @@ jobs:
     name: Prepare Build
     runs-on: ubuntu-latest
     outputs:
-      version: ${{ steps.get_version.outputs.version }}
+      version: ${{ steps.get_ref.outputs.version }}
       ref: ${{ steps.get_ref.outputs.ref }}
     steps:
       - uses: actions/checkout@v3
@@ -61,7 +61,7 @@ jobs:
           echo "Starting Linux build..."
           gh workflow run linux.yml \
             --ref ${{ needs.prepare.outputs.ref }} \
-            -f version=${{ needs.prepare.outputs.version }}
+            --raw-field version=${{ needs.prepare.outputs.version }}
           
           # 等待工作流启动
           sleep 5
@@ -100,7 +100,7 @@ jobs:
           echo "Starting macOS build..."
           gh workflow run macos.yml \
             --ref ${{ needs.prepare.outputs.ref }} \
-            -f version=${{ needs.prepare.outputs.version }}
+            --raw-field version=${{ needs.prepare.outputs.version }}
           
           # 等待工作流启动
           sleep 5
@@ -139,7 +139,7 @@ jobs:
           echo "Starting Windows build..."
           gh workflow run windows.yml \
             --ref ${{ needs.prepare.outputs.ref }} \
-            -f version=${{ needs.prepare.outputs.version }}
+            --raw-field version=${{ needs.prepare.outputs.version }}
           
           # 等待工作流启动
           sleep 5
@@ -178,7 +178,7 @@ jobs:
           echo "Starting Godot Plugin build..."
           gh workflow run godot_plugin.yml \
             --ref ${{ needs.prepare.outputs.ref }} \
-            -f version=${{ needs.prepare.outputs.version }}
+            --raw-field version=${{ needs.prepare.outputs.version }}
           
           # 等待工作流启动
           sleep 5
