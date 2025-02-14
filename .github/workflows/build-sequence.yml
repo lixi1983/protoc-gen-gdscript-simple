@@ -191,58 +191,9 @@ jobs:
           # 等待工作流完成
           gh run watch ${RUN_ID}
 
-  create-release:
-    name: Create Release
-    needs: [prepare, godot-plugin]
-    runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/')
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-
-      - name: Install GitHub CLI
-        run: |
-          type -p curl >/dev/null || (sudo apt update && sudo apt install curl -y)
-          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
-          && sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
-          && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
-          && sudo apt update \
-          && sudo apt install gh -y
-
-      - name: Download artifacts
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          mkdir -p artifacts
-          
-          echo "Downloading Linux artifacts from run ${{ needs.linux-build.outputs.run_id }}..."
-          gh run download ${{ needs.linux-build.outputs.run_id }} --dir artifacts
-          
-          echo "Downloading macOS artifacts from run ${{ needs.macos-build.outputs.run_id }}..."
-          gh run download ${{ needs.macos-build.outputs.run_id }} --dir artifacts
-          
-          echo "Downloading Windows artifacts from run ${{ needs.windows-build.outputs.run_id }}..."
-          gh run download ${{ needs.windows-build.outputs.run_id }} --dir artifacts
-          
-          echo "Downloading Godot Plugin artifacts from run ${{ needs.godot-plugin.outputs.run_id }}..."
-          gh run download ${{ needs.godot-plugin.outputs.run_id }} --dir artifacts
-
-      - name: Create Release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          VERSION=${{ needs.prepare.outputs.version }}
-          
-          # 创建 release
-          gh release create ${VERSION} \
-            --title "Release ${VERSION}" \
-            --notes "Release ${VERSION}" \
-            ./artifacts/*
-
   cleanup:
     name: Cleanup
-    needs: [godot-plugin, create-release]
+    needs: [godot-plugin]  # 移除对 create-release 的依赖
     runs-on: ubuntu-latest
     if: always()  # 即使其他作业失败也运行
     permissions:
