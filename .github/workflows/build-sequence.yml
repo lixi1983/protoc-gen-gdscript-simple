@@ -16,32 +16,24 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.get_version.outputs.version }}
+      ref: ${{ steps.get_ref.outputs.ref }}
     steps:
       - uses: actions/checkout@v3
       
-      - name: Get version
-        id: get_version
+      - name: Get version and ref
+        id: get_ref
         run: |
           if [[ $GITHUB_REF == refs/tags/* ]]; then
             VERSION=${GITHUB_REF#refs/tags/}
-          elif [[ "${{ github.event.inputs.version }}" != "" ]]; then
-            VERSION=${{ github.event.inputs.version }}
+            REF=$GITHUB_REF
           else
             VERSION="main"
+            REF="refs/heads/main"
           fi
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "ref=${REF}" >> $GITHUB_OUTPUT
           echo "Using version: ${VERSION}"
-
- #     - name: Install GitHub CLI
- #       id: gh_install
- #       run: |
- #         type -p curl >/dev/null || (sudo apt update && sudo apt install curl -y)
- #         curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
- #         && sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
- #         && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
- #         && sudo apt update \
- #         && sudo apt install gh -y
- #         echo "gh_path=$(which gh)" >> $GITHUB_OUTPUT
+          echo "Using ref: ${REF}"
 
   linux-build:
     name: Build Linux
@@ -64,7 +56,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Starting Linux build..."
-          gh workflow run linux.yml -f version=${{ needs.prepare.outputs.version }}
+          gh workflow run linux.yml \
+            --ref ${{ needs.prepare.outputs.ref }} \
+            -f version=${{ needs.prepare.outputs.version }}
           
           # 等待工作流启动
           sleep 5
@@ -97,7 +91,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Starting macOS build..."
-          gh workflow run macos.yml -f version=${{ needs.prepare.outputs.version }}
+          gh workflow run macos.yml \
+            --ref ${{ needs.prepare.outputs.ref }} \
+            -f version=${{ needs.prepare.outputs.version }}
           
           # 等待工作流启动
           sleep 5
@@ -130,7 +126,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Starting Windows build..."
-          gh workflow run windows.yml -f version=${{ needs.prepare.outputs.version }}
+          gh workflow run windows.yml \
+            --ref ${{ needs.prepare.outputs.ref }} \
+            -f version=${{ needs.prepare.outputs.version }}
           
           # 等待工作流启动
           sleep 5
@@ -163,7 +161,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Starting Godot Plugin build..."
-          gh workflow run godot_plugin.yml -f version=${{ needs.prepare.outputs.version }}
+          gh workflow run godot_plugin.yml \
+            --ref ${{ needs.prepare.outputs.ref }} \
+            -f version=${{ needs.prepare.outputs.version }}
           
           # 等待工作流启动
           sleep 5
