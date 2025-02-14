@@ -13,6 +13,9 @@ on:
         required: true
         type: string
 
+permissions:
+  contents: read
+
 env:
   BUILD_TYPE: Release
   BIN_DIR: bin
@@ -50,11 +53,18 @@ jobs:
         Copy-Item "protoc\bin\protoc.exe" -Destination "C:\Windows\System32\"
       shell: pwsh
 
+    - name: Install GitHub CLI
+      run: |
+        choco install gh
+      shell: pwsh
+
     - name: Download and setup Godot
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         $ProgressPreference = 'SilentlyContinue'
-        Invoke-WebRequest -Uri "https://github.com/godotengine/godot/releases/download/${{ env.GODOT_RELEASE_NAME }}/Godot_v${{ env.GODOT_VERSION }}-stable_win64.exe.zip" -OutFile "godot.zip"
-        Expand-Archive -Path "godot.zip" -DestinationPath "."
+        gh release download ${{ env.GODOT_RELEASE_NAME }} -R godotengine/godot -p "Godot_v${{ env.GODOT_VERSION }}-stable_win64.exe.zip"
+        Expand-Archive -Path "Godot_v${{ env.GODOT_VERSION }}-stable_win64.exe.zip" -DestinationPath "."
         Move-Item -Path "Godot_v${{ env.GODOT_VERSION }}-stable_win64.exe" -Destination "C:\Windows\System32\Godot.exe"
       shell: pwsh
 
