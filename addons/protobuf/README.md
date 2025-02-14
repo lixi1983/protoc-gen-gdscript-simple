@@ -6,7 +6,6 @@ A Protocol Buffer implementation for Godot 4+. This plugin provides utilities fo
 
 - Support for basic Protocol Buffer data types
 - Encoding and decoding of messages
-- Wire format handling
 - Support for nested messages
 
 ## Installation

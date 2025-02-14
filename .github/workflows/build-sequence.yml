@@ -175,9 +175,58 @@ jobs:
           # 等待工作流完成
           gh run watch ${RUN_ID}
 
+  create-release:
+    name: Create Release
+    needs: [prepare, godot-plugin]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Install GitHub CLI
+        run: |
+          type -p curl >/dev/null || (sudo apt update && sudo apt install curl -y)
+          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
+          && sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
+          && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+          && sudo apt update \
+          && sudo apt install gh -y
+
+      - name: Download artifacts
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p artifacts
+          
+          # 下载 Linux 构建产物
+          gh run download --dir artifacts --pattern "protoc-gen-gdscript-linux-*"
+          
+          # 下载 macOS 构建产物
+          gh run download --dir artifacts --pattern "protoc-gen-gdscript-macos-*"
+          
+          # 下载 Windows 构建产物
+          gh run download --dir artifacts --pattern "protoc-gen-gdscript-windows-*"
+          
+          # 下载 Godot 插件
+          gh run download --dir artifacts --pattern "gdprotobuf-*"
+
+      - name: Create Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=${{ needs.prepare.outputs.version }}
+          
+          # 创建 release
+          gh release create ${VERSION} \
+            --title "Release ${VERSION}" \
+            --notes "Release ${VERSION}" \
+            ./artifacts/*
+
   cleanup:
     name: Cleanup
-    needs: [godot-plugin]
+    needs: [godot-plugin, create-release]
     runs-on: ubuntu-latest
     if: always()  # 即使其他作业失败也运行
     permissions:
