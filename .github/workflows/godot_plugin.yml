@@ -33,7 +33,7 @@ jobs:
     - name: Create Plugin Package
       run: |
         VERSION="${{ inputs.version }}"
-        PACKAGE_NAME="${{ env.PLUGIN_NAME }}-godot-plugin-${VERSION}"
+        PACKAGE_NAME="godot-${{ env.PLUGIN_NAME }}-plugin-${VERSION}"
         mkdir -p ${PACKAGE_NAME}
         cp -r addons ${PACKAGE_NAME}/
         zip -r ${PACKAGE_NAME}.zip ${PACKAGE_NAME}
@@ -41,8 +41,8 @@ jobs:
     - name: Upload Artifact 
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ env.PLUGIN_NAME }}-godot-plugin-${{ inputs.version }}
-        path: ${{ env.PLUGIN_NAME }}-godot-plugin-*.zip
+        name: godot-${{ env.PLUGIN_NAME }}-plugin-${{ inputs.version }}
+        path: godot-${{ env.PLUGIN_NAME }}-plugin-*.zip
         retention-days: 14
 
     - name: Install GitHub CLI
@@ -63,4 +63,4 @@ jobs:
         gh release create ${{ inputs.version }} \
           --title "Release ${{ inputs.version }}" \
           --notes "Release ${{ inputs.version }}" \
-          ${{ env.PLUGIN_NAME }}-godot-plugin-${{ inputs.version }}.zip
+          godot-${{ env.PLUGIN_NAME }}-plugin-${{ inputs.version }}.zip
