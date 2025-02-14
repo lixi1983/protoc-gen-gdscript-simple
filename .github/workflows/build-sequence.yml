@@ -61,7 +61,7 @@ jobs:
           echo "Starting Linux build..."
           gh workflow run linux.yml \
             --ref ${{ needs.prepare.outputs.ref }} \
-            --raw-field version=${{ needs.prepare.outputs.version }}
+            -f "version=${{ needs.prepare.outputs.version }}"
           
           # 等待工作流启动
           sleep 5
