@@ -10,9 +10,22 @@ A Protocol Buffer implementation for Godot 4+. This plugin provides utilities fo
 
 ## Installation
 
-1. Download or clone this repository
-2. Copy the `protobuf` folder to your Godot project's `addons` directory
-3. Enable the plugin in Project Settings -> Plugins
+1. **Download protoc-gen-gdscript executable**:
+   - Visit the [protoc-gen-gdscript-simple](https://github.com/lixi1983/protoc-gen-gdscript-simple/releases) project's Releases page
+   - Download the executable corresponding to your operating system:
+     - Windows: `protoc-gen-gdscript-windows-*.zip`
+     - macOS: `protoc-gen-gdscript-macos-*.zip`
+     - Linux: `protoc-gen-gdscript-linux-*.zip`
+   - Place the executable in your system's PATH directory
+
+2. **Install Godot plugin**:
+   - Download `godot-protobuf-gdscript-plugin-*.zip` from the same Releases page
+   - Unzip to your Godot project directory
+   - Enable the plugin in Godot editor
+
+3. Download or clone this repository
+4. Copy the `protobuf` folder to your Godot project's `addons` directory
+5. Enable the plugin in Project Settings -> Plugins
 
 ## Usage
 
