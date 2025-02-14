@@ -30,13 +30,6 @@ jobs:
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "Using version: ${VERSION}"
 
-  setup-gh:
-    name: Setup GitHub CLI
-    needs: prepare
-    runs-on: ubuntu-latest
-    outputs:
-      gh_path: ${{ steps.gh_install.outputs.gh_path }}
-    steps:
       - name: Install GitHub CLI
         id: gh_install
         run: |
@@ -50,9 +43,18 @@ jobs:
 
   linux-build:
     name: Build Linux
-    needs: [prepare, setup-gh]
+    needs: [prepare]
     runs-on: ubuntu-latest
     steps:
+      - name: Install GitHub CLI
+        run: |
+          type -p curl >/dev/null || (sudo apt update && sudo apt install curl -y)
+          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
+          && sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
+          && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+          && sudo apt update \
+          && sudo apt install gh -y
+
       - name: Run Linux build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -72,9 +74,18 @@ jobs:
 
   macos-build:
     name: Build macOS
-    needs: [prepare, setup-gh, linux-build]
+    needs: [prepare, linux-build]
     runs-on: ubuntu-latest
     steps:
+      - name: Install GitHub CLI
+        run: |
+          type -p curl >/dev/null || (sudo apt update && sudo apt install curl -y)
+          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
+          && sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
+          && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+          && sudo apt update \
+          && sudo apt install gh -y
+
       - name: Run macOS build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -94,9 +105,18 @@ jobs:
 
   windows-build:
     name: Build Windows
-    needs: [prepare, setup-gh, macos-build]
+    needs: [prepare, macos-build]
     runs-on: ubuntu-latest
     steps:
+      - name: Install GitHub CLI
+        run: |
+          type -p curl >/dev/null || (sudo apt update && sudo apt install curl -y)
+          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
+          && sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
+          && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+          && sudo apt update \
+          && sudo apt install gh -y
+
       - name: Run Windows build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -116,9 +136,18 @@ jobs:
 
   godot-plugin:
     name: Build Godot Plugin
-    needs: [prepare, setup-gh, windows-build]
+    needs: [prepare, windows-build]
     runs-on: ubuntu-latest
     steps:
+      - name: Install GitHub CLI
+        run: |
+          type -p curl >/dev/null || (sudo apt update && sudo apt install curl -y)
+          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
+          && sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
+          && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+          && sudo apt update \
+          && sudo apt install gh -y
+
       - name: Run Godot Plugin build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -145,9 +174,9 @@ jobs:
       actions: write  # 需要此权限来删除工作流运行记录        
 
     steps:
-     - name: Delete old workflow runs
-       uses: dmvict/clean-workflow-runs@v1
-       with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        save_period: 5  # 保留5天的构建记录
-        save_min_runs_number: 3  # 至少保留3次运行记录
+      - name: Delete old workflow runs
+        uses: dmvict/clean-workflow-runs@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          save_period: 5  # 保留5天的构建记录
+          save_min_runs_number: 3  # 至少保留3次运行记录
