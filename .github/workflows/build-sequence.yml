@@ -107,6 +107,16 @@ jobs:
           # 等待工作流完成
           gh run watch ${RUN_ID}
 
+  cleanup:
+#    needs: [godot-plugin]
+    name: cleanup
+    needs: [build-sequence]
+    runs-on: ubuntu-latest
+    if: always()  # 即使其他作业失败也运行
+    permissions:
+      actions: write  # 需要此权限来删除工作流运行记录        
+
+    steps:
       - name: Cleanup old workflow runs
         if: always()
         env:
