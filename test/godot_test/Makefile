@@ -65,9 +65,10 @@ dir:
 	${GODOT} --headless --script directory.gd	
 
 check_only:
-	${GODOT} --headless --script syntax_check.gd addons
+#	${GODOT} --headless --script syntax_check.gd addons
 #	${GODOT} --headless --script syntax_check.gd proto2
-	${GODOT} --headless --script syntax_check.gd proto3
+#	echo "proto3 ==========="
+#	${GODOT} --headless --script syntax_check.gd proto3
 
 serialize:
 	${GODOT} --headless --script test_logic/proto_serialize.gd

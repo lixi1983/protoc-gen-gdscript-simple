@@ -10,7 +10,7 @@ else
 endif
 
 # 子目录
-SUBDIRS = ../addons/protobuf/example/proto2 ../addons/protobuf/example/proto3 #godot_test
+SUBDIRS = proto2 proto3 #godot_test
 clean_dirs=$(addprefix _clean_,$(SUBDIRS))
 
 # 默认目标

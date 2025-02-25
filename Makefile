@@ -6,11 +6,17 @@ VENV = venv
 BIN_DIR = bin
 
 ifeq ($(OS),Windows_NT)
+	GODOT = Godot.exe
     PIP = $(VENV)\Scripts\pip
     PYINSTALLER = $(VENV)\Scripts\pyinstaller
     PYTHON_CMD = $(VENV)\Scripts\python
 	SLEEP = Start-Sleep -Seconds
 else
+	ifeq ($(UNAME_S),Linux)
+		GODOT = godot
+	else
+		GODOT = Godot
+	endif
     PIP = $(VENV)/bin/pip
     PYINSTALLER = $(VENV)/bin/pyinstaller
     PYTHON_CMD = $(VENV)/bin/python
@@ -82,12 +88,14 @@ dist-win: install
 # 测试目标
 test: install
 	@echo "Running all tests..."
-	which python
-	echo "pythonpath: $(PYTHONPATH)"
 	@$(CD) test && $(MAKE) clean test
 
 check:
-	@$(CD) test/godot_test && $(MAKE) link check_only
+	@echo "Running all tests..."
+	${GODOT} --headless --script addons/protobuf/example/syntax_check.gd addons
+	@echo "Running all tests end ......"
+
+#	@$(CD) test/godot_test && $(MAKE) link check_only
 
 # 清理目标
 clean:
@@ -114,10 +122,7 @@ help:
 	@echo "  install    - Install dependencies"
 	@echo "  help       - Show this help message"
 
-proto: py_proto go_proto test
-
-py_proto:
-	cd test/proto3; make python_out
+proto: go_proto test
 
 go_proto:
 	mkdir -p test/godot_test/ackend_http/proto3
@@ -127,3 +132,8 @@ go_proto:
 check_python:
 	@echo "Using Python: $(shell which $(PYTHON))"
 	@echo "Python Version: $(shell ($(PYTHON) --version))"
+
+serialize:	proto3_serialize
+
+proto3_serialize:
+	${GODOT} --headless --script addons/protobuf/test/proto3/test_logic/proto_serialize.gd

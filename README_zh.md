@@ -45,7 +45,7 @@ make dist-win
 make dist
 
 # 运行测试
-make test
+make example
 
 # 清理构建文件
 make clean

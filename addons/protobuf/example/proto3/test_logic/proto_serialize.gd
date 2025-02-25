@@ -1,9 +1,13 @@
 extends SceneTree
 
-const proto3Test = preload("res://proto3/test.proto.gd")
-const common = preload("res://proto3/common.proto.gd")
+const proto3Test = preload("res://addons/protobuf/example/proto3/generated/test.proto.gd")
+const common = preload("res://addons/protobuf/example/proto3/generated/common.proto.gd")
 
-func _init():
+# Called when the node enters the scene tree for the first time.
+func _ready() -> void:
+    pass # Replace with function body.
+
+func _init() -> void:
     print("proto serialize!")
     test_proto3_serialize()
     test_proto3_merge()
@@ -12,8 +16,6 @@ func _init():
     test_float()
     quit(0)
 
-func _read():
-    pass
 
 func test_proto3_serialize():
     print("========= begin proto3/test.proto serialize ==============")
@@ -91,17 +93,17 @@ func test_float():
     print("========= begin proto3/test.proto float ==============")
     var a = 1234.53233
     print("Original float: ", a)
-    
+
     print("\n1. 使用 StreamPeerBuffer 和 slice 方法:")
     var writer = StreamPeerBuffer.new()
     writer.put_float(a)
     var source_bytes = writer.data_array
     print("Source bytes: ", source_bytes.hex_encode())
-    
+
     # 方法1: 使用 slice
     var bytes1 = source_bytes.slice(0, 4)
     print("Method 1 (slice): ", bytes1.hex_encode())
-    
+
     print("\n2. 使用 resize 和循环赋值:")
     # 方法2: 使用 resize 和循环
     var bytes2 = PackedByteArray()
@@ -109,40 +111,40 @@ func test_float():
     for i in range(4):
         bytes2[i] = source_bytes[i]
     print("Method 2 (loop copy): ", bytes2.hex_encode())
-    
+
     print("\n3. 使用 append_array:")
     # 方法3: 使用 append_array
     var bytes3 = PackedByteArray()
     bytes3.append_array(source_bytes.slice(0, 4))
     print("Method 3 (append_array): ", bytes3.hex_encode())
-    
+
     # 验证所有方法的结果
     var reader1 = StreamPeerBuffer.new()
     reader1.data_array = bytes1
     var float1 = reader1.get_float()
-    
+
     var reader2 = StreamPeerBuffer.new()
     reader2.data_array = bytes2
     var float2 = reader2.get_float()
-    
+
     var reader3 = StreamPeerBuffer.new()
     reader3.data_array = bytes3
     var float3 = reader3.get_float()
-    
+
     print("\n结果验证:")
     print("Original float: ", a)
     print("Method 1 result: ", float1, " (差异: ", abs(a - float1), ")")
     print("Method 2 result: ", float2, " (差异: ", abs(a - float2), ")")
     print("Method 3 result: ", float3, " (差异: ", abs(a - float3), ")")
-    
+
     print("\n字节对比:")
     print("Method 1 bytes: ", bytes1.hex_encode())
     print("Method 2 bytes: ", bytes2.hex_encode())
     print("Method 3 bytes: ", bytes3.hex_encode())
-    
+
     print("\n单个字节内容:")
     for i in range(4):
-        print("byte[", i, "]:", 
+        print("byte[", i, "]:",
             " Method1: ", bytes1[i],
             " Method2: ", bytes2[i],
             " Method3: ", bytes3[i])

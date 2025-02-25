@@ -1,11 +1,17 @@
 # 检测操作系统类型
 ifeq ($(OS),Windows_NT)
+	GODOT = Godot.exe
     PROTOC = protoc.exe
     MKDIR = powershell -Command "New-Item -Force -ItemType Directory"
     RM = powershell -Command "Remove-Item -Recurse -Force -ErrorAction Ignore"
     FIND = dir /b /s *.proto
 	SLEEP = timeout
 else
+	ifeq ($(UNAME_S),Linux)
+		GODOT = godot
+	else
+		GODOT = Godot
+	endif
     PROTOC = protoc
     MKDIR = mkdir -p
     RM = rm -rf
@@ -37,6 +43,3 @@ clean:
 
 proto: $(PROTO_GD)
 
-python_out:
-	$(MKDIR) python
-	$(PROTOC) --python_out=./python -I. test.proto

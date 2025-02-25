@@ -5,6 +5,9 @@ extends RefCounted
 ## 提供序列化和反序列化的基本接口
 
 func _init() -> void:
+	Init()
+
+func Init() -> void:
 	pass
 
 ## 将消息序列化为二进制字符串

@@ -92,18 +92,18 @@ func process_websocket():
 
 func send_test_message2():
     var test = proto3Test.MsgBase.new()
-#    test.common_msg.common_field2 = "test"
-#    test.common_msg.common_field1 = 42
-#    test.common_msg.common_sint32 = 22222333
-#    test.common_msg.common_sfixed32 = 3333333
-#    test.common_msg.common_sfixed64 = 4444444444
-#    test.common_msg.common_sint64 = 55555555
-#    test.double_field = 123.456223
-#    test.msg_field32 = 13232323232323
-#    test.fixed_field32 = 1234567890
-#    test.fixed_field64 = 1234567890123456789
-#    test.f_field4 = 4343.222323
-#    test.map_field5[1] = "map_1"
+#    example.common_msg.common_field2 = "example"
+#    example.common_msg.common_field1 = 42
+#    example.common_msg.common_sint32 = 22222333
+#    example.common_msg.common_sfixed32 = 3333333
+#    example.common_msg.common_sfixed64 = 4444444444
+#    example.common_msg.common_sint64 = 55555555
+#    example.double_field = 123.456223
+#    example.msg_field32 = 13232323232323
+#    example.fixed_field32 = 1234567890
+#    example.fixed_field64 = 1234567890123456789
+#    example.f_field4 = 4343.222323
+#    example.map_field5[1] = "map_1"
     test.map_field5[2] = "map_2"
     test.map_field5[4] = "map_4"
     var sub1 = proto3Test.MsgBase.SubMsg.new()

@@ -19,7 +19,7 @@
 ## 生成Protobuf代码
 
 ```bash
-cd test/godot_test/backend_http
+cd example/godot_test/backend_http
 protoc --go_out=. --go_opt=paths=source_relative ../../proto3/*.proto
 ```
 

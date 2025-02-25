@@ -45,7 +45,7 @@ make dist-win
 make dist
 
 # Run tests
-make test
+make example
 
 # Clean build files
 make clean

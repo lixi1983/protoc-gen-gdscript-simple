@@ -1,4 +1,3 @@
-import string
 from typing import List, Optional
 
 from google.protobuf.descriptor import FieldDescriptor as FieldDescriptorProto, EnumDescriptor, FieldDescriptor
@@ -20,30 +19,56 @@ def get_field_new(field, proto_file=None):
             
         # Handle nested types
         parts = type_name.split(".")
-        return f"{parts[-1]}.new()"
+        if len(parts) > 1:
+            # If it's a nested type in the current file, use the class name directly
+            if proto_file and type_name.startswith(proto_file.package + "."):
+                return f"{parts[-1]}.new()"
+            # Otherwise use the full namespace
+            return f"{parts[0]}.{parts[-1]}.new()"
+        else:
+            return f"{type_name}.new()"
     else:
         return get_default_value(field, proto_file)
 
 def get_field_type(field, proto_file=None):
     """Get the GDScript type for a field."""
-
     if field.type == FieldDescriptorProto.TYPE_MESSAGE:
-        field_type_name = real_type_name(field.type_name)
-        return field_type_name
-#        type_name = field.type_name
-#        if type_name.startswith("."):
-#            type_name = type_name[1:]
-#        return type_name
-#        parts = type_name.split(".")
-#        return parts[-1]
-    elif field.type == FieldDescriptorProto.TYPE_ENUM:
-        field_type_name = real_type_name(field.type_name)
-        return field_type_name
-#        type_name = field.type_name
-
- #       if type_name.startswith("."):
- #           type_name = type_name[1:]
- #       return type_name
+        type_name = field.type_name
+        if type_name.startswith("."):
+            type_name = type_name[1:]
+        parts = type_name.split(".")
+        if len(parts) > 1:
+            # If it's a nested type in the current file, use the class name directly
+            if proto_file and type_name.startswith(proto_file.package + "."):
+                return parts[-1]
+            # Otherwise use the full namespace
+            return f"{parts[0]}.{parts[-1]}"
+        return type_name
+    
+    if field.type == FieldDescriptorProto.TYPE_ENUM:
+        type_name = field.type_name
+        if type_name.startswith("."):
+            type_name = type_name[1:]
+        parts = type_name.split(".")
+        
+        # If it's a nested enum in the current file, use the enum name directly
+        if proto_file and type_name.startswith(proto_file.package + "."):
+            # If enum has a parent message, include parent name in the enum name
+            if len(parts) > 2:  # package.parent.enum
+                parent_name = parts[-2]
+                return f"{parent_name}_{parts[-1]}"
+            return parts[-1]
+        # If it's from another file, use the full namespace
+        elif len(parts) > 1:
+            # If enum has a parent message, include parent name in the enum name
+            if len(parts) > 2:  # package.parent.enum
+                parent_name = parts[-2]
+                enum_name = f"{parent_name}_{parts[-1]}"
+                return f"{parts[0]}.{enum_name}"
+            return f"{parts[0]}.{parts[-1]}"
+        # If it's a top-level enum
+        return parts[-1]
+    
     elif field.type == FieldDescriptorProto.TYPE_STRING:
         return "String"
     elif field.type in [FieldDescriptorProto.TYPE_INT32, FieldDescriptorProto.TYPE_INT64,
@@ -54,57 +79,27 @@ def get_field_type(field, proto_file=None):
         return "int"
     elif field.type == FieldDescriptorProto.TYPE_BOOL:
         return "bool"
-    elif field.type == FieldDescriptorProto.TYPE_DOUBLE:
+    elif field.type == FieldDescriptorProto.TYPE_DOUBLE or field.type == FieldDescriptorProto.TYPE_FLOAT:
         return "float"
-    elif field.type == FieldDescriptorProto.TYPE_FLOAT:
-        return "float"
-    elif field.type == FieldDescriptorProto.TYPE_BYTES:
-        return "PackedByteArray"
     else:
-        return "var"
-
-def get_field_coder(field):
-    """Get the encoder name for a field."""
-    if field.type == FieldDescriptorProto.TYPE_STRING:
-        return "string"
-    elif field.type in [FieldDescriptorProto.TYPE_INT32, FieldDescriptorProto.TYPE_INT64,
-                       FieldDescriptorProto.TYPE_UINT32, FieldDescriptorProto.TYPE_UINT64,
-#                       FieldDescriptorProto.TYPE_SINT32, FieldDescriptorProto.TYPE_SINT64,
-                       FieldDescriptorProto.TYPE_ENUM]:
-        return "varint"
-    elif field.type in [FieldDescriptorProto.TYPE_FIXED32, FieldDescriptorProto.TYPE_SFIXED32]:
-        return "int32"
-    elif field.type in [FieldDescriptorProto.TYPE_FIXED64, FieldDescriptorProto.TYPE_SFIXED64]:
-        return "int64"
-    elif field.type == FieldDescriptorProto.TYPE_SINT32:
-        return "zigzag32"
-    elif field.type == FieldDescriptorProto.TYPE_SINT64:
-        return "zigzag64"
-    elif field.type == FieldDescriptorProto.TYPE_FLOAT:
-        return "float"
-    elif field.type ==  FieldDescriptorProto.TYPE_DOUBLE:
-        return "double"
-    elif field.type == FieldDescriptorProto.TYPE_BOOL:
-        return "bool"
-    elif field.type == FieldDescriptorProto.TYPE_BYTES:
-        return "bytes"
-    elif field.type == FieldDescriptorProto.TYPE_MESSAGE:
-        return "message"
-    else:
-        return "varint"
+        return "Variant"
 
 def get_class_name(name, package_name=None):
-    """Get the class name without package prefix."""
+    """Get the class name with proper package prefix."""
+    if package_name:
+        return f"{package_name}_{name}".replace(".", "_")
     return name.replace(".", "_")
 
 def get_file_name(name, package_name=None):
-    """Get the file name without package prefix."""
-    class_name = get_class_name(name)
+    """Get the file name with proper package prefix."""
+    class_name = get_class_name(name, package_name)
     return f"{class_name}.proto.gd"
 
 def get_message_type(message_type, package_name=None):
-    """Get the message type name without package prefix."""
-    return message_type.name
+    """Get the message type name with package prefix."""
+    if package_name:
+        return f"{package_name}_{message_type.name}"
+    return f"{message_type.name}"
 
 def get_gdscript_class_name(message_type):
     """Get the GDScript class name for a message type."""
@@ -168,44 +163,23 @@ def generate_imports(proto_file) -> str:
     
     return content
 
-package_name = ""
-def real_type_name(type_full_name):
-    if len(type_full_name) <= 0:
-        return type_full_name
-
-    if type_full_name[0] == '.':
-        type_full_name = type_full_name[1:]
-
-    if len(package_name) <= 0:
-        return type_full_name
-
-    # 去除包名
-    return type_full_name.replace(package_name + ".", "")
-
 def generate_gdscript(request: plugin_pb2.CodeGeneratorRequest) -> plugin_pb2.CodeGeneratorResponse:
     """Generate GDScript code from the request."""
     response = plugin_pb2.CodeGeneratorResponse()
-    
-    # Process each proto file
+
     for proto_file in request.proto_file:
-        # Skip google/protobuf files
         if proto_file.name not in request.file_to_generate:
             continue
             
         # Get the package name and create one file per proto file
-        global package_name
         package_name = proto_file.package
-
         proto_file_name = os.path.splitext(os.path.basename(proto_file.name))[0]
         file_name = f"{proto_file_name}.proto.gd"
         file = response.file.add()
         file.name = file_name
         
-        # Initialize content with package name
-        file.content = f"# Package: {package_name}\n\n"
-        
-        # Add imports
-        file.content += generate_imports(proto_file)
+        # Initialize an empty content
+        file.content = generate_imports(proto_file)
         
         # Generate enums at file level
         for enum_type in proto_file.enum_type:
@@ -218,7 +192,7 @@ def generate_gdscript(request: plugin_pb2.CodeGeneratorRequest) -> plugin_pb2.Co
                 continue
                 
             # Generate message class line by line
-            file.content += generate_message_class(message_type)
+            file.content += generate_message_class(message_type, proto_file=proto_file)
             # Add separator between message types
             file.content += "# =========================================\n\n"
             
@@ -226,7 +200,7 @@ def generate_gdscript(request: plugin_pb2.CodeGeneratorRequest) -> plugin_pb2.Co
 
 
 def generate_message_class(message_type: MessageType, parent_name: Optional[str] = None,
-                           indent_level: int = 0) -> str:
+                           indent_level: int = 0, proto_file=None) -> str:
     """Generate a message class."""
     content = ""
     indent = "\t" * indent_level
@@ -237,14 +211,17 @@ def generate_message_class(message_type: MessageType, parent_name: Optional[str]
     for enum_type in message_type.enum_type:
         content += generate_enum_type(enum_type, message_type.name, indent_level + 1)
 
-    content += generate_fields(message_type, message_type.field, indent_level + 1)
+    content += generate_fields(message_type, message_type.field, indent_level + 1, proto_file)
+
+    # Add Init method
+    content += generate_init_method(message_type, indent + "\t", proto_file)
 
     # Generate nested types
     for nested_type in message_type.nested_type:
         if nested_type.options.map_entry:
             # This is a map field
             continue
-        content += generate_message_class(nested_type, message_type.name, indent_level + 1)
+        content += generate_message_class(nested_type, message_type.name, indent_level + 1, proto_file)
 
     # Generate serialization methods
     content += generate_serialization_methods(message_type, indent + "\t")
@@ -288,57 +265,42 @@ def is_map_field(message_type, field_number):
 def generate_fields(
         message_type: MessageType,
         fields, ## : Any, # List[FieldDescriptor],
-        indent_level: int = 0
-):
+        indent_level: int = 0,
+        proto_file=None
+) -> str:
     """Generate field declarations for a message type."""
     content = ""
     indent = "\t" * indent_level
-    
-    # 创建当前消息类型的 map 字段信息
+
+    # 存储当前消息类型的 map 字段信息
     message_maps = {}
 
+    # First declare all variables with types
     for field in fields:
         field_name = field.name
-        if field.type == FieldDescriptorProto.TYPE_MESSAGE and field.type_name:
-            type_name = field.type_name
-            if type_name.startswith("."):
-                type_name = type_name[1:]
-            parts = type_name.split(".")
-            if len(parts) > 1 and parts[-1].endswith("Entry"):
-                # 这是一个 map 字段，获取 key 和 value 的类型
-                # 在 proto3 中，map 字段会被转换为一个包含 key 和 value 字段的消息类型
-                # 我们需要在消息类型的嵌套类型中找到它
-                map_type = None
-                for nested_type in message_type.nested_type:
-                    if nested_type.name == parts[-1]:
-                        map_type = nested_type
-                        break
-                
-                if map_type and len(map_type.field) >= 2:
-                    key_field = map_type.field[0]   # key 是第一个字段
-                    value_field = map_type.field[1] # value 是第二个字段
-                    
-                    # 存储 map 字段信息到当前消息的缓存中
-                    message_maps[field.number] = {
-                        'field_name': field_name,
-                        'key_field': key_field,
-                        'value_field': value_field
-                    }
-                
+
+        # 处理 map 字段
+        if is_map_field(message_type, field.number):
+            map_info = get_field_map_info(message_type, field.number)
+            if map_info:
+                key_field = map_info['key_field']
+                value_field = map_info['value_field']
+
+                # 存储 map 字段信息
+                message_maps[field.number] = {
+                    'field_name': field_name,
+                    'key_field': key_field,
+                    'value_field': value_field
+                }
+
                 # 生成字典字段声明
-                content += f"{indent}var {field_name}: Dictionary = {{}}\n"
+                content += f"{indent}@export var {field_name}: Dictionary\n"
                 continue
 
-        default_value = get_default_value(field)
-
         if field.label == FieldDescriptorProto.LABEL_REPEATED:
-#            content += f"{indent}var {field_name}: Array[{get_field_type(field)}] = []\n"
-            content += f"{indent}var {field_name} = {default_value}\n"
+            content += f"{indent}@export var {field_name}: Array[{get_field_type(field, proto_file)}]\n"
         else:
-            content += f"{indent}var {field_name}: {get_field_type(field)} = {default_value}\n"
-
-    if len(content) > 0:
-        content += "\n"
+            content += f"{indent}@export var {field_name}: {get_field_type(field, proto_file)}\n"
 
     # 将当前消息类型的 map 字段信息存储到全局缓存中
     if message_maps:
@@ -351,31 +313,36 @@ def generate_enum_type(enum_type: EnumDescriptor, parent_name: Optional[str] = N
     content = ""
     indent = "\t" * indent_level
 
-    content += f"{indent}enum {enum_type.name} {{\n"
+    # If enum has a parent, include parent name in the enum name
+    enum_name = enum_type.name
+    if parent_name:
+        enum_name = f"{parent_name}_{enum_type.name}"
 
-    # Generate enum values as class constants
+    content += f"{indent}enum {enum_name} {{\n"
+
+    # Generate enum values as class constants with proper scoping
     for value in enum_type.value:
+        # Add enum name prefix to value to ensure proper scoping
         content += f"{indent}\t{value.name} = {value.number},\n"
 
     content += f"{indent}}} \n \n"  # Add empty line at end
     return content
 
+
 def get_default_value(field, proto_file=None):
     """Get the default value for a field."""
-    type_name = field.type_name
-    if type_name.startswith("."):
-        type_name = type_name[1:]
-    type_parts = type_name
-
-    type_parts = real_type_name(field.type_name)
-#    parts = type_name.split(".")
-#    type_parts = parts[-1]
-
     if field.label == FieldDescriptorProto.LABEL_REPEATED:
         return '[]'
     elif field.type == FieldDescriptorProto.TYPE_MESSAGE:
-        return f"{type_parts}.new()"
-    
+        type_name = field.type_name
+        if type_name.startswith("."):
+            type_name = type_name[1:]
+        parts = type_name.split(".")
+        if len(parts) > 1:
+            # 如果是导入的类型，使用完整的命名空间
+            return f"{parts[0]}.{parts[-1]}.new()"
+        return f"{parts[-1]}.new()"
+
     # Check if field has a default value set
     if hasattr(field, 'default_value') and field.default_value:
         if field.type == FieldDescriptorProto.TYPE_STRING:
@@ -387,9 +354,9 @@ def get_default_value(field, proto_file=None):
         elif field.type in [FieldDescriptorProto.TYPE_FLOAT, FieldDescriptorProto.TYPE_DOUBLE]:
             return str(field.default_value)
         elif field.type == FieldDescriptorProto.TYPE_ENUM:
-            return type_parts + '.' + field.default_value
+            return field.default_value
         elif field.type in [FieldDescriptorProto.TYPE_UINT32, FieldDescriptorProto.TYPE_UINT64,
-                         FieldDescriptorProto.TYPE_FIXED32, FieldDescriptorProto.TYPE_FIXED64]:
+                            FieldDescriptorProto.TYPE_FIXED32, FieldDescriptorProto.TYPE_FIXED64]:
             # GDScript的整数是64位有符号整数，范围是-2^63到2^63-1
             max_value = 9223372036854775807  # 2^63-1
             try:
@@ -399,17 +366,17 @@ def get_default_value(field, proto_file=None):
                 return '0'
         else:
             return str(field.default_value)
-    
+
     # Return type-specific default values if no default value is set
     if field.type == FieldDescriptorProto.TYPE_ENUM:
         return "0"  # Use 0 as default for now
     elif field.type == FieldDescriptorProto.TYPE_BOOL:
         return "false"
     elif field.type in [FieldDescriptorProto.TYPE_INT32, FieldDescriptorProto.TYPE_INT64,
-                       FieldDescriptorProto.TYPE_UINT32, FieldDescriptorProto.TYPE_UINT64,
-                       FieldDescriptorProto.TYPE_SINT32, FieldDescriptorProto.TYPE_SINT64,
-                       FieldDescriptorProto.TYPE_FIXED32, FieldDescriptorProto.TYPE_FIXED64,
-                       FieldDescriptorProto.TYPE_SFIXED32, FieldDescriptorProto.TYPE_SFIXED64]:
+                        FieldDescriptorProto.TYPE_UINT32, FieldDescriptorProto.TYPE_UINT64,
+                        FieldDescriptorProto.TYPE_SINT32, FieldDescriptorProto.TYPE_SINT64,
+                        FieldDescriptorProto.TYPE_FIXED32, FieldDescriptorProto.TYPE_FIXED64,
+                        FieldDescriptorProto.TYPE_SFIXED32, FieldDescriptorProto.TYPE_SFIXED64]:
         return "0"
     elif field.type in [FieldDescriptorProto.TYPE_FLOAT, FieldDescriptorProto.TYPE_DOUBLE]:
         return "0.0"
@@ -419,6 +386,129 @@ def get_default_value(field, proto_file=None):
         return "PackedByteArray()"
     else:
         return "null"
+
+"""
+def get_default_value(field, proto_file=None):
+    if field.type == FieldDescriptorProto.TYPE_MESSAGE:
+        type_name = field.type_name
+        if type_name.startswith("."):
+            type_name = type_name[1:]
+        parts = type_name.split(".")
+        if len(parts) > 1:
+            # If it's a nested type in the current file, use the class name directly
+            if proto_file and type_name.startswith(proto_file.package + "."):
+                return f"null"  # Initialize message types as null by default
+            # Otherwise use the full namespace
+            return f"null"  # Initialize message types as null by default
+        return f"null"  # Initialize message types as null by default
+    
+    if field.type == FieldDescriptorProto.TYPE_ENUM:
+        # Get enum type name
+        type_name = field.type_name
+        if type_name.startswith("."):
+            type_name = type_name[1:]
+        parts = type_name.split(".")
+
+        # Get default enum value - always use 0 as default for enums
+        enum_value = "0"
+        
+        # If it's a nested enum in the current file, use the enum name directly
+        if proto_file and type_name.startswith(proto_file.package + "."):
+            # If enum has a parent message, include parent name in the enum name
+            if len(parts) > 2:  # package.parent.enum
+                parent_name = parts[-2]
+                enum_name = f"{parent_name}_{parts[-1]}"
+                return f"{enum_name}.{enum_value}"
+            return f"{parts[-1]}.{enum_value}"
+        # If it's from another file, use the full namespace
+        elif len(parts) > 1:
+            # If enum has a parent message, include parent name in the enum name
+            if len(parts) > 2:  # package.parent.enum
+                parent_name = parts[-2]
+                enum_name = f"{parent_name}_{parts[-1]}"
+                return f"{parts[0]}.{enum_name}.{enum_value}"
+            return f"{parts[0]}.{parts[-1]}.{enum_value}"
+        # If it's a top-level enum
+        else:
+            return f"{parts[-1]}.{enum_value}"
+    
+    elif field.type == FieldDescriptorProto.TYPE_STRING:
+        if hasattr(field, 'default_value') and field.default_value:
+            return f'"{field.default_value}"'
+        return '""'
+    elif field.type in [FieldDescriptorProto.TYPE_INT32, FieldDescriptorProto.TYPE_INT64,
+                       FieldDescriptorProto.TYPE_UINT32, FieldDescriptorProto.TYPE_UINT64,
+                       FieldDescriptorProto.TYPE_SINT32, FieldDescriptorProto.TYPE_SINT64,
+                       FieldDescriptorProto.TYPE_FIXED32, FieldDescriptorProto.TYPE_FIXED64,
+                       FieldDescriptorProto.TYPE_SFIXED32, FieldDescriptorProto.TYPE_SFIXED64]:
+        if hasattr(field, 'default_value') and field.default_value is not None:
+            return str(field.default_value)
+        return "0"
+    elif field.type == FieldDescriptorProto.TYPE_BOOL:
+        if hasattr(field, 'default_value') and field.default_value is not None:
+            return str(field.default_value).lower()
+        return "false"
+    elif field.type == FieldDescriptorProto.TYPE_DOUBLE or field.type == FieldDescriptorProto.TYPE_FLOAT:
+        if hasattr(field, 'default_value') and field.default_value is not None:
+            return str(field.default_value)
+        return "0.0"
+    else:
+        return "null"
+"""
+
+def get_field_coder(field):
+    """Get the encoder name for a field."""
+    if field.type == FieldDescriptorProto.TYPE_STRING:
+        return "string"
+    elif field.type in [FieldDescriptorProto.TYPE_INT32, FieldDescriptorProto.TYPE_INT64,
+                       FieldDescriptorProto.TYPE_UINT32, FieldDescriptorProto.TYPE_UINT64,
+#                       FieldDescriptorProto.TYPE_SINT32, FieldDescriptorProto.TYPE_SINT64,
+                       FieldDescriptorProto.TYPE_ENUM]:
+        return "varint"
+    elif field.type in [FieldDescriptorProto.TYPE_FIXED32, FieldDescriptorProto.TYPE_SFIXED32]:
+        return "int32"
+    elif field.type in [FieldDescriptorProto.TYPE_FIXED64, FieldDescriptorProto.TYPE_SFIXED64]:
+        return "int64"
+    elif field.type == FieldDescriptorProto.TYPE_SINT32:
+        return "zigzag32"
+    elif field.type == FieldDescriptorProto.TYPE_SINT64:
+        return "zigzag64"
+    elif field.type == FieldDescriptorProto.TYPE_FLOAT:
+        return "float"
+    elif field.type ==  FieldDescriptorProto.TYPE_DOUBLE:
+        return "double"
+    elif field.type == FieldDescriptorProto.TYPE_BOOL:
+        return "bool"
+    elif field.type == FieldDescriptorProto.TYPE_BYTES:
+        return "bytes"
+    elif field.type == FieldDescriptorProto.TYPE_MESSAGE:
+        return "message"
+    else:
+        return "varint"
+
+def generate_init_method(message_type: MessageType, indent: str, proto_file=None) -> str:
+    """Generate Init method for a message type."""
+    content = ""
+    content += f"{indent}func Init() -> void:\n"
+
+    # Initialize all fields
+    for field in message_type.field:
+        field_name = field.name
+
+        # 处理 map 字段
+        if is_map_field(message_type, field.number):
+            content += f"{indent}\t{field_name} = {{}}\n"
+            continue
+
+        default_value = get_default_value(field, proto_file)
+
+        if field.label == FieldDescriptorProto.LABEL_REPEATED:
+            content += f"{indent}\t{field_name} = []\n"
+        else:
+            content += f"{indent}\t{field_name} = {default_value}\n"
+
+    content += "\n"
+    return content
 
 def generate_new_methods(message_type, indent):
     """Generate new instance methods for a message type."""
@@ -460,7 +550,7 @@ def generate_merge_methods(message_type, indent):
             if is_map_field(message_type, field.number):
                 content += f"{indent}\t\t{field_name}.merge(other.{field_name})\n"
             elif field.label == FieldDescriptorProto.LABEL_REPEATED:
-                content += f"{indent}\t\t{field_name}.append_array(other.{field_name})\n"
+                content += f"{indent}\t\t{field_name}.append_array(other.{field_name}.duplicate(true))\n"
             elif field.type == FieldDescriptorProto.TYPE_MESSAGE:
                 content += f"{indent}\t\t{field_name}.MergeFrom(other.{field_name})\n"
             elif field.type in [FieldDescriptorProto.TYPE_ENUM, FieldDescriptorProto.TYPE_BOOL]:
