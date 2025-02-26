@@ -26,15 +26,15 @@ class Character extends Message:
  
 		func MergeFrom(other : Message) -> void:
 			if other is Inventory:
-				slots += other.slots
-				items.append_array(other.items)
+				self.slots += other.slots
+				self.items.append_array(other.items)
  
 		func SerializeToBytes(buffer: PackedByteArray = PackedByteArray()) -> PackedByteArray:
-			if slots != 10:
+			if self.slots != 10:
 				GDScriptUtils.encode_tag(buffer, 1, 5)
-				GDScriptUtils.encode_varint(buffer, slots)
+				GDScriptUtils.encode_varint(buffer, self.slots)
  
-			for item in items:
+			for item in self.items:
 				GDScriptUtils.encode_tag(buffer, 2, 11)
 				GDScriptUtils.encode_message(buffer, item)
  
@@ -51,12 +51,12 @@ class Character extends Message:
  
 				match field_number:
 					1:
-						var value = GDScriptUtils.decode_varint(data, pos, self)
-						slots = value[GDScriptUtils.VALUE_KEY]
-						pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_varint(data, pos, self)
+					self.slots = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 					2:
 						var value = GDScriptUtils.decode_message(data, pos)
-						items.append_array([value[GDScriptUtils.VALUE_KEY]])
+						self.items.append_array([value[GDScriptUtils.VALUE_KEY]])
 						pos += value[GDScriptUtils.SIZE_KEY]
 					_:
 						pass
@@ -64,19 +64,19 @@ class Character extends Message:
 			return pos
 
 		func SerializeToDictionary() -> Dictionary:
-			var map = {}
-			map["slots"] = slots
-			map["items"] = items
-			return map
+			var _tmap = {}
+			_tmap["slots"] = self.slots
+			_tmap["items"] = self.items
+			return _tmap
 
-		func ParseFromDictionary(data: Dictionary) -> void:
-			if data == null:
+		func ParseFromDictionary(_fmap: Dictionary) -> void:
+			if _fmap == null:
 				return
 
-			if "slots" in data:
-				slots = data["slots"]
-			if "items" in data:
-				items = data["items"]
+			if "slots" in _fmap:
+				self.slots = _fmap["slots"]
+			if "items" in _fmap:
+				self.items = _fmap["items"]
 
 	class Item extends Message:
 		var id: String = ""
@@ -88,22 +88,22 @@ class Character extends Message:
  
 		func MergeFrom(other : Message) -> void:
 			if other is Item:
-				id += other.id
-				name += other.name
-				quantity += other.quantity
+				self.id += other.id
+				self.name += other.name
+				self.quantity += other.quantity
  
 		func SerializeToBytes(buffer: PackedByteArray = PackedByteArray()) -> PackedByteArray:
-			if id != "":
+			if self.id != "":
 				GDScriptUtils.encode_tag(buffer, 1, 9)
-				GDScriptUtils.encode_string(buffer, id)
+				GDScriptUtils.encode_string(buffer, self.id)
  
-			if name != "":
+			if self.name != "":
 				GDScriptUtils.encode_tag(buffer, 2, 9)
-				GDScriptUtils.encode_string(buffer, name)
+				GDScriptUtils.encode_string(buffer, self.name)
  
-			if quantity != 1:
+			if self.quantity != 1:
 				GDScriptUtils.encode_tag(buffer, 3, 5)
-				GDScriptUtils.encode_varint(buffer, quantity)
+				GDScriptUtils.encode_varint(buffer, self.quantity)
  
 			return buffer
  
@@ -118,76 +118,76 @@ class Character extends Message:
  
 				match field_number:
 					1:
-						var value = GDScriptUtils.decode_string(data, pos, self)
-						id = value[GDScriptUtils.VALUE_KEY]
-						pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_string(data, pos, self)
+					self.id = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 					2:
-						var value = GDScriptUtils.decode_string(data, pos, self)
-						name = value[GDScriptUtils.VALUE_KEY]
-						pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_string(data, pos, self)
+					self.name = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 					3:
-						var value = GDScriptUtils.decode_varint(data, pos, self)
-						quantity = value[GDScriptUtils.VALUE_KEY]
-						pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_varint(data, pos, self)
+					self.quantity = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 					_:
 						pass
 
 			return pos
 
 		func SerializeToDictionary() -> Dictionary:
-			var map = {}
-			map["id"] = id
-			map["name"] = name
-			map["quantity"] = quantity
-			return map
+			var _tmap = {}
+			_tmap["id"] = self.id
+			_tmap["name"] = self.name
+			_tmap["quantity"] = self.quantity
+			return _tmap
 
-		func ParseFromDictionary(data: Dictionary) -> void:
-			if data == null:
+		func ParseFromDictionary(_fmap: Dictionary) -> void:
+			if _fmap == null:
 				return
 
-			if "id" in data:
-				id = data["id"]
-			if "name" in data:
-				name = data["name"]
-			if "quantity" in data:
-				quantity = data["quantity"]
+			if "id" in _fmap:
+				self.id = _fmap["id"]
+			if "name" in _fmap:
+				self.name = _fmap["name"]
+			if "quantity" in _fmap:
+				self.quantity = _fmap["quantity"]
 
 	func New() -> Message:
 		return Character.new()
  
 	func MergeFrom(other : Message) -> void:
 		if other is Character:
-			name += other.name
-			level += other.level
-			health += other.health
-			character = other.character
-			skills.append_array(other.skills)
-			inventory.MergeFrom(other.inventory)
+			self.name += other.name
+			self.level += other.level
+			self.health += other.health
+			self.character = other.character
+			self.skills.append_array(other.skills)
+			self.inventory.MergeFrom(other.inventory)
  
 	func SerializeToBytes(buffer: PackedByteArray = PackedByteArray()) -> PackedByteArray:
-		if name != "":
+		if self.name != "":
 			GDScriptUtils.encode_tag(buffer, 1, 9)
-			GDScriptUtils.encode_string(buffer, name)
+			GDScriptUtils.encode_string(buffer, self.name)
  
-		if level != 1:
+		if self.level != 1:
 			GDScriptUtils.encode_tag(buffer, 2, 5)
-			GDScriptUtils.encode_varint(buffer, level)
+			GDScriptUtils.encode_varint(buffer, self.level)
  
-		if health != 100:
+		if self.health != 100:
 			GDScriptUtils.encode_tag(buffer, 3, 2)
-			GDScriptUtils.encode_float(buffer, health)
+			GDScriptUtils.encode_float(buffer, self.health)
  
-		if character != Character.CharacterClass.WARRIOR:
+		if self.character != Character.CharacterClass.WARRIOR:
 			GDScriptUtils.encode_tag(buffer, 4, 14)
-			GDScriptUtils.encode_varint(buffer, character)
+			GDScriptUtils.encode_varint(buffer, self.character)
  
-		for item in skills:
+		for item in self.skills:
 			GDScriptUtils.encode_tag(buffer, 5, 9)
 			GDScriptUtils.encode_string(buffer, item)
  
-		if inventory != null:
+		if self.inventory != null:
 			GDScriptUtils.encode_tag(buffer, 6, 11)
-			GDScriptUtils.encode_message(buffer, inventory)
+			GDScriptUtils.encode_message(buffer, self.inventory)
  
 		return buffer
  
@@ -202,62 +202,62 @@ class Character extends Message:
  
 			match field_number:
 				1:
-					var value = GDScriptUtils.decode_string(data, pos, self)
-					name = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_string(data, pos, self)
+				self.name = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				2:
-					var value = GDScriptUtils.decode_varint(data, pos, self)
-					level = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_varint(data, pos, self)
+				self.level = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				3:
-					var value = GDScriptUtils.decode_float(data, pos, self)
-					health = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_float(data, pos, self)
+				self.health = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				4:
-					var value = GDScriptUtils.decode_varint(data, pos, self)
-					character = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_varint(data, pos, self)
+				self.character = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				5:
 					var value = GDScriptUtils.decode_string(data, pos)
-					skills.append_array([value[GDScriptUtils.VALUE_KEY]])
+					self.skills.append_array([value[GDScriptUtils.VALUE_KEY]])
 					pos += value[GDScriptUtils.SIZE_KEY]
 				6:
-					var value = GDScriptUtils.decode_message(data, pos, inventory)
-					inventory = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_message(data, pos, inventory)
+				self.inventory = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				_:
 					pass
 
 		return pos
 
 	func SerializeToDictionary() -> Dictionary:
-		var map = {}
-		map["name"] = name
-		map["level"] = level
-		map["health"] = health
-		map["character"] = character
-		map["skills"] = skills
-		if inventory != null:
-			map["inventory"] = inventory.SerializeToDictionary()
-		return map
+		var _tmap = {}
+		_tmap["name"] = self.name
+		_tmap["level"] = self.level
+		_tmap["health"] = self.health
+		_tmap["character"] = self.character
+		_tmap["skills"] = self.skills
+		if self.inventory != null:
+			_tmap["inventory"] = self.inventory.SerializeToDictionary()
+		return _tmap
 
-	func ParseFromDictionary(data: Dictionary) -> void:
-		if data == null:
+	func ParseFromDictionary(_fmap: Dictionary) -> void:
+		if _fmap == null:
 			return
 
-		if "name" in data:
-			name = data["name"]
-		if "level" in data:
-			level = data["level"]
-		if "health" in data:
-			health = data["health"]
-		if "character" in data:
-			character = data["character"]
-		if "skills" in data:
-			skills = data["skills"]
-		if "inventory" in data:
-			if data["inventory"] != null:
-				inventory.ParseFromDictionary(data["inventory"])
+		if "name" in _fmap:
+			self.name = _fmap["name"]
+		if "level" in _fmap:
+			self.level = _fmap["level"]
+		if "health" in _fmap:
+			self.health = _fmap["health"]
+		if "character" in _fmap:
+			self.character = _fmap["character"]
+		if "skills" in _fmap:
+			self.skills = _fmap["skills"]
+		if "inventory" in _fmap:
+			if _fmap["inventory"] != null:
+				self.inventory.ParseFromDictionary(_fmap["inventory"])
 
 # =========================================
 
@@ -279,32 +279,32 @@ class GameSession extends Message:
  
 	func MergeFrom(other : Message) -> void:
 		if other is GameSession:
-			session_id += other.session_id
-			start_time += other.start_time
-			end_time += other.end_time
-			players.append_array(other.players)
-			state = other.state
+			self.session_id += other.session_id
+			self.start_time += other.start_time
+			self.end_time += other.end_time
+			self.players.append_array(other.players)
+			self.state = other.state
  
 	func SerializeToBytes(buffer: PackedByteArray = PackedByteArray()) -> PackedByteArray:
-		if session_id != "":
+		if self.session_id != "":
 			GDScriptUtils.encode_tag(buffer, 1, 9)
-			GDScriptUtils.encode_string(buffer, session_id)
+			GDScriptUtils.encode_string(buffer, self.session_id)
  
-		if start_time != 0:
+		if self.start_time != 0:
 			GDScriptUtils.encode_tag(buffer, 2, 3)
-			GDScriptUtils.encode_varint(buffer, start_time)
+			GDScriptUtils.encode_varint(buffer, self.start_time)
  
-		if end_time != 0:
+		if self.end_time != 0:
 			GDScriptUtils.encode_tag(buffer, 3, 3)
-			GDScriptUtils.encode_varint(buffer, end_time)
+			GDScriptUtils.encode_varint(buffer, self.end_time)
  
-		for item in players:
+		for item in self.players:
 			GDScriptUtils.encode_tag(buffer, 4, 11)
 			GDScriptUtils.encode_message(buffer, item)
  
-		if state != GameSession.GameState.WAITING:
+		if self.state != GameSession.GameState.WAITING:
 			GDScriptUtils.encode_tag(buffer, 5, 14)
-			GDScriptUtils.encode_varint(buffer, state)
+			GDScriptUtils.encode_varint(buffer, self.state)
  
 		return buffer
  
@@ -319,53 +319,53 @@ class GameSession extends Message:
  
 			match field_number:
 				1:
-					var value = GDScriptUtils.decode_string(data, pos, self)
-					session_id = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_string(data, pos, self)
+				self.session_id = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				2:
-					var value = GDScriptUtils.decode_varint(data, pos, self)
-					start_time = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_varint(data, pos, self)
+				self.start_time = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				3:
-					var value = GDScriptUtils.decode_varint(data, pos, self)
-					end_time = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_varint(data, pos, self)
+				self.end_time = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				4:
 					var value = GDScriptUtils.decode_message(data, pos)
-					players.append_array([value[GDScriptUtils.VALUE_KEY]])
+					self.players.append_array([value[GDScriptUtils.VALUE_KEY]])
 					pos += value[GDScriptUtils.SIZE_KEY]
 				5:
-					var value = GDScriptUtils.decode_varint(data, pos, self)
-					state = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_varint(data, pos, self)
+				self.state = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				_:
 					pass
 
 		return pos
 
 	func SerializeToDictionary() -> Dictionary:
-		var map = {}
-		map["session_id"] = session_id
-		map["start_time"] = start_time
-		map["end_time"] = end_time
-		map["players"] = players
-		map["state"] = state
-		return map
+		var _tmap = {}
+		_tmap["session_id"] = self.session_id
+		_tmap["start_time"] = self.start_time
+		_tmap["end_time"] = self.end_time
+		_tmap["players"] = self.players
+		_tmap["state"] = self.state
+		return _tmap
 
-	func ParseFromDictionary(data: Dictionary) -> void:
-		if data == null:
+	func ParseFromDictionary(_fmap: Dictionary) -> void:
+		if _fmap == null:
 			return
 
-		if "session_id" in data:
-			session_id = data["session_id"]
-		if "start_time" in data:
-			start_time = data["start_time"]
-		if "end_time" in data:
-			end_time = data["end_time"]
-		if "players" in data:
-			players = data["players"]
-		if "state" in data:
-			state = data["state"]
+		if "session_id" in _fmap:
+			self.session_id = _fmap["session_id"]
+		if "start_time" in _fmap:
+			self.start_time = _fmap["start_time"]
+		if "end_time" in _fmap:
+			self.end_time = _fmap["end_time"]
+		if "players" in _fmap:
+			self.players = _fmap["players"]
+		if "state" in _fmap:
+			self.state = _fmap["state"]
 
 # =========================================
 

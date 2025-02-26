@@ -10,10 +10,10 @@ config_version=5
 
 [application]
 
-config/name="ProtobufTest"
-run/main_scene="res://addons/protobuf/example/proto2/test/test_simple_message.tscn"
-config/features=PackedStringArray("4.2")
-config/icon="res://icon.png"
+config/name="GodotProtoBuff"
+run/main_scene="res://addons/protobuf/example/main.tscn"
+config/features=PackedStringArray("4.3")
+;config/icon="res://icon.png"
 
 [editor_plugins]
 

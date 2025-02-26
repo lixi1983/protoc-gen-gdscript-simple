@@ -38,15 +38,15 @@ class ComplexMessage extends Message:
  
 			func MergeFrom(other : Message) -> void:
 				if other is DeepNested:
-					data += other.data
-					numbers.append_array(other.numbers)
+					self.data += other.data
+					self.numbers.append_array(other.numbers)
  
 			func SerializeToBytes(buffer: PackedByteArray = PackedByteArray()) -> PackedByteArray:
-				if data != "":
+				if self.data != "":
 					GDScriptUtils.encode_tag(buffer, 1, 9)
-					GDScriptUtils.encode_string(buffer, data)
+					GDScriptUtils.encode_string(buffer, self.data)
  
-				for item in numbers:
+				for item in self.numbers:
 					GDScriptUtils.encode_tag(buffer, 2, 5)
 					GDScriptUtils.encode_varint(buffer, item)
  
@@ -63,12 +63,12 @@ class ComplexMessage extends Message:
  
 					match field_number:
 						1:
-							var value = GDScriptUtils.decode_string(data, pos, self)
-							self.data = value[GDScriptUtils.VALUE_KEY]
-							pos += value[GDScriptUtils.SIZE_KEY]
+						var value = GDScriptUtils.decode_string(data, pos, self)
+						self.data = value[GDScriptUtils.VALUE_KEY]
+						pos += value[GDScriptUtils.SIZE_KEY]
 						2:
 							var value = GDScriptUtils.decode_varint(data, pos)
-							numbers.append(value[GDScriptUtils.VALUE_KEY])
+							self.numbers.append_array([value[GDScriptUtils.VALUE_KEY]])
 							pos += value[GDScriptUtils.SIZE_KEY]
 						_:
 							pass
@@ -76,41 +76,41 @@ class ComplexMessage extends Message:
 				return pos
 
 			func SerializeToDictionary() -> Dictionary:
-				var map = {}
-				map["data"] = data
-				map["numbers"] = numbers
-				return map
+				var _tmap = {}
+				_tmap["data"] = self.data
+				_tmap["numbers"] = self.numbers
+				return _tmap
 
-			func ParseFromDictionary(data: Dictionary) -> void:
-				if data == null:
+			func ParseFromDictionary(_fmap: Dictionary) -> void:
+				if _fmap == null:
 					return
 
-				if "data" in data:
-					self.data = data["data"]
-				if "numbers" in data:
-					numbers = data["numbers"]
+				if "data" in _fmap:
+					self.data = _fmap["data"]
+				if "numbers" in _fmap:
+					self.numbers = _fmap["numbers"]
 
 		func New() -> Message:
 			return NestedMessage.new()
  
 		func MergeFrom(other : Message) -> void:
 			if other is NestedMessage:
-				id += other.id
-				value += other.value
-				deep.MergeFrom(other.deep)
+				self.id += other.id
+				self.value += other.value
+				self.deep.MergeFrom(other.deep)
  
 		func SerializeToBytes(buffer: PackedByteArray = PackedByteArray()) -> PackedByteArray:
-			if id != "":
+			if self.id != "":
 				GDScriptUtils.encode_tag(buffer, 1, 9)
-				GDScriptUtils.encode_string(buffer, id)
+				GDScriptUtils.encode_string(buffer, self.id)
  
-			if value != 0:
+			if self.value != 0:
 				GDScriptUtils.encode_tag(buffer, 2, 5)
-				GDScriptUtils.encode_varint(buffer, value)
+				GDScriptUtils.encode_varint(buffer, self.value)
  
-			if deep != null:
+			if self.deep != null:
 				GDScriptUtils.encode_tag(buffer, 3, 11)
-				GDScriptUtils.encode_message(buffer, deep)
+				GDScriptUtils.encode_message(buffer, self.deep)
  
 			return buffer
  
@@ -125,107 +125,106 @@ class ComplexMessage extends Message:
  
 				match field_number:
 					1:
-						var value = GDScriptUtils.decode_string(data, pos, self)
-						id = value[GDScriptUtils.VALUE_KEY]
-						pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_string(data, pos, self)
+					self.id = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 					2:
-						var value = GDScriptUtils.decode_varint(data, pos, self)
-						self.value = value[GDScriptUtils.VALUE_KEY]
-						pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_varint(data, pos, self)
+					self.value = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 					3:
-						var value = GDScriptUtils.decode_message(data, pos, deep)
-						deep = value[GDScriptUtils.VALUE_KEY]
-						pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_message(data, pos, deep)
+					self.deep = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 					_:
 						pass
 
 			return pos
 
 		func SerializeToDictionary() -> Dictionary:
-			var map = {}
-			map["id"] = id
-			map["value"] = value
-			if deep != null:
-				map["deep"] = deep.SerializeToDictionary()
-			return map
+			var _tmap = {}
+			_tmap["id"] = self.id
+			_tmap["value"] = self.value
+			if self.deep != null:
+				_tmap["deep"] = self.deep.SerializeToDictionary()
+			return _tmap
 
-		func ParseFromDictionary(data: Dictionary) -> void:
-			if data == null:
+		func ParseFromDictionary(_fmap: Dictionary) -> void:
+			if _fmap == null:
 				return
 
-			if "id" in data:
-				id = data["id"]
-			if "value" in data:
-				value = data["value"]
-			if "deep" in data:
-				if data["deep"] != null:
-					deep.ParseFromDictionary(data["deep"])
+			if "id" in _fmap:
+				self.id = _fmap["id"]
+			if "value" in _fmap:
+				self.value = _fmap["value"]
+			if "deep" in _fmap:
+				if _fmap["deep"] != null:
+					self.deep.ParseFromDictionary(_fmap["deep"])
 
 	func New() -> Message:
 		return ComplexMessage.new()
  
 	func MergeFrom(other : Message) -> void:
 		if other is ComplexMessage:
-			int_field += other.int_field
-			long_field += other.long_field
-			bool_field = other.bool_field
-			float_field += other.float_field
-			string_field += other.string_field
-			bytes_field.append_array(other.bytes_field)
-			status = other.status
-			nested_messages.append_array(other.nested_messages)
-			name += other.name
-			id += other.id
-			message.MergeFrom(other.message)
-			status_list.append_array(other.status_list)
+			self.int_field += other.int_field
+			self.long_field += other.long_field
+			self.bool_field = other.bool_field
+			self.float_field += other.float_field
+			self.string_field += other.string_field
+			self.bytes_field.append_array(other.bytes_field)
+			self.status = other.status
+			self.nested_messages.append_array(other.nested_messages)
+			self.name += other.name
+			self.id += other.id
+			self.message.MergeFrom(other.message)
+			self.status_list.append_array(other.status_list)
  
 	func SerializeToBytes(buffer: PackedByteArray = PackedByteArray()) -> PackedByteArray:
-		if int_field != 0:
+		if self.int_field != 0:
 			GDScriptUtils.encode_tag(buffer, 1, 5)
-			GDScriptUtils.encode_varint(buffer, int_field)
+			GDScriptUtils.encode_varint(buffer, self.int_field)
  
-		if long_field != 1000000:
+		if self.long_field != 1000000:
 			GDScriptUtils.encode_tag(buffer, 2, 3)
-			GDScriptUtils.encode_varint(buffer, long_field)
+			GDScriptUtils.encode_varint(buffer, self.long_field)
  
-		if bool_field != true:
+		if self.bool_field != true:
 			GDScriptUtils.encode_tag(buffer, 3, 8)
-			GDScriptUtils.encode_bool(buffer, bool_field)
+			GDScriptUtils.encode_bool(buffer, self.bool_field)
  
-		if float_field != 3.14:
+		if self.float_field != 3.14:
 			GDScriptUtils.encode_tag(buffer, 4, 2)
-			GDScriptUtils.encode_float(buffer, float_field)
+			GDScriptUtils.encode_float(buffer, self.float_field)
  
-		if string_field != "hello":
+		if self.string_field != "hello":
 			GDScriptUtils.encode_tag(buffer, 5, 9)
-			GDScriptUtils.encode_string(buffer, string_field)
+			GDScriptUtils.encode_string(buffer, self.string_field)
  
-		if bytes_field != PackedByteArray():
-			GDScriptUtils.encode_tag(buffer, 6, 2)
-			GDScriptUtils.encode_bytes(buffer, bytes_field)
+		if self.bytes_field != PackedByteArray():
+			GDScriptUtils.encode_tag(buffer, 6, 12)
+			GDScriptUtils.encode_bytes(buffer, self.bytes_field)
  
-		if status != ComplexMessage.Status.UNKNOWN:
+		if self.status != ComplexMessage.Status.UNKNOWN:
 			GDScriptUtils.encode_tag(buffer, 7, 14)
-			GDScriptUtils.encode_varint(buffer, status)
+			GDScriptUtils.encode_varint(buffer, self.status)
  
-		for item in nested_messages:
-			if item != null:
-				GDScriptUtils.encode_tag(buffer, 8, 11)
-				GDScriptUtils.encode_message(buffer, item)
+		for item in self.nested_messages:
+			GDScriptUtils.encode_tag(buffer, 8, 11)
+			GDScriptUtils.encode_message(buffer, item)
  
-		if name != "":
+		if self.name != "":
 			GDScriptUtils.encode_tag(buffer, 11, 9)
-			GDScriptUtils.encode_string(buffer, name)
+			GDScriptUtils.encode_string(buffer, self.name)
  
-		if id != 0:
+		if self.id != 0:
 			GDScriptUtils.encode_tag(buffer, 12, 5)
-			GDScriptUtils.encode_varint(buffer, id)
+			GDScriptUtils.encode_varint(buffer, self.id)
  
-		if message != null:
+		if self.message != null:
 			GDScriptUtils.encode_tag(buffer, 13, 11)
-			GDScriptUtils.encode_message(buffer, message)
+			GDScriptUtils.encode_message(buffer, self.message)
  
-		for item in status_list:
+		for item in self.status_list:
 			GDScriptUtils.encode_tag(buffer, 14, 14)
 			GDScriptUtils.encode_varint(buffer, item)
  
@@ -242,53 +241,52 @@ class ComplexMessage extends Message:
  
 			match field_number:
 				1:
-					var value = GDScriptUtils.decode_varint(data, pos, self)
-					int_field = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_varint(data, pos, self)
+				self.int_field = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				2:
-					var value = GDScriptUtils.decode_varint(data, pos, self)
-					long_field = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_varint(data, pos, self)
+				self.long_field = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				3:
-					var value = GDScriptUtils.decode_bool(data, pos, self)
-					bool_field = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_bool(data, pos, self)
+				self.bool_field = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				4:
-					var value = GDScriptUtils.decode_float(data, pos, self)
-					float_field = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_float(data, pos, self)
+				self.float_field = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				5:
-					var value = GDScriptUtils.decode_string(data, pos, self)
-					string_field = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_string(data, pos, self)
+				self.string_field = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				6:
-					var value = GDScriptUtils.decode_bytes(data, pos, self)
-					bytes_field = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_bytes(data, pos, self)
+				self.bytes_field = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				7:
-					var value = GDScriptUtils.decode_varint(data, pos, self)
-					status = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_varint(data, pos, self)
+				self.status = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				8:
-					var nested = ComplexMessage.NestedMessage.new()
-					var value = GDScriptUtils.decode_message(data, pos, nested)
-					nested_messages.append(value[GDScriptUtils.VALUE_KEY])
+					var value = GDScriptUtils.decode_message(data, pos)
+					self.nested_messages.append_array([value[GDScriptUtils.VALUE_KEY]])
 					pos += value[GDScriptUtils.SIZE_KEY]
 				11:
-					var value = GDScriptUtils.decode_string(data, pos, self)
-					name = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_string(data, pos, self)
+				self.name = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				12:
-					var value = GDScriptUtils.decode_varint(data, pos, self)
-					id = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_varint(data, pos, self)
+				self.id = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				13:
-					var value = GDScriptUtils.decode_message(data, pos, message)
-					message = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_message(data, pos, message)
+				self.message = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				14:
 					var value = GDScriptUtils.decode_varint(data, pos)
-					status_list.append(value[GDScriptUtils.VALUE_KEY])
+					self.status_list.append_array([value[GDScriptUtils.VALUE_KEY]])
 					pos += value[GDScriptUtils.SIZE_KEY]
 				_:
 					pass
@@ -296,75 +294,80 @@ class ComplexMessage extends Message:
 		return pos
 
 	func SerializeToDictionary() -> Dictionary:
-		var map = {}
-		map["int_field"] = int_field
-		map["long_field"] = long_field
-		map["bool_field"] = bool_field
-		map["float_field"] = float_field
-		map["string_field"] = string_field
-		map["bytes_field"] = bytes_field
-		map["status"] = status
-		map["nested_messages"] = nested_messages
-		map["name"] = name
-		map["id"] = id
-		if message != null:
-			map["message"] = message.SerializeToDictionary()
-		map["status_list"] = status_list
-		return map
+		var _tmap = {}
+		_tmap["int_field"] = self.int_field
+		_tmap["long_field"] = self.long_field
+		_tmap["bool_field"] = self.bool_field
+		_tmap["float_field"] = self.float_field
+		_tmap["string_field"] = self.string_field
+		_tmap["bytes_field"] = self.bytes_field
+		_tmap["status"] = self.status
+		_tmap["nested_messages"] = self.nested_messages
+		_tmap["name"] = self.name
+		_tmap["id"] = self.id
+		if self.message != null:
+			_tmap["message"] = self.message.SerializeToDictionary()
+		_tmap["status_list"] = self.status_list
+		return _tmap
 
-	func ParseFromDictionary(data: Dictionary) -> void:
-		if data == null:
+	func ParseFromDictionary(_fmap: Dictionary) -> void:
+		if _fmap == null:
 			return
 
-		if "int_field" in data:
-			int_field = data["int_field"]
-		if "long_field" in data:
-			long_field = data["long_field"]
-		if "bool_field" in data:
-			bool_field = data["bool_field"]
-		if "float_field" in data:
-			float_field = data["float_field"]
-		if "string_field" in data:
-			string_field = data["string_field"]
-		if "bytes_field" in data:
-			bytes_field = data["bytes_field"]
-		if "status" in data:
-			status = data["status"]
-		if "nested_messages" in data:
-			nested_messages = data["nested_messages"]
-		if "name" in data:
-			name = data["name"]
-		if "id" in data:
-			id = data["id"]
-		if "message" in data:
-			if data["message"] != null:
-				message.ParseFromDictionary(data["message"])
-		if "status_list" in data:
-			status_list = data["status_list"]
+		if "int_field" in _fmap:
+			self.int_field = _fmap["int_field"]
+		if "long_field" in _fmap:
+			self.long_field = _fmap["long_field"]
+		if "bool_field" in _fmap:
+			self.bool_field = _fmap["bool_field"]
+		if "float_field" in _fmap:
+			self.float_field = _fmap["float_field"]
+		if "string_field" in _fmap:
+			self.string_field = _fmap["string_field"]
+		if "bytes_field" in _fmap:
+			self.bytes_field = _fmap["bytes_field"]
+		if "status" in _fmap:
+			self.status = _fmap["status"]
+		if "nested_messages" in _fmap:
+			self.nested_messages = _fmap["nested_messages"]
+		if "name" in _fmap:
+			self.name = _fmap["name"]
+		if "id" in _fmap:
+			self.id = _fmap["id"]
+		if "message" in _fmap:
+			if _fmap["message"] != null:
+				self.message.ParseFromDictionary(_fmap["message"])
+		if "status_list" in _fmap:
+			self.status_list = _fmap["status_list"]
 
 # =========================================
 
 class TreeNode extends Message:
 	var value: String = ""
 	var children = []
+	var parent: TreeNode = TreeNode.new()
 
 	func New() -> Message:
 		return TreeNode.new()
  
 	func MergeFrom(other : Message) -> void:
 		if other is TreeNode:
-			value += other.value
-			children.append_array(other.children)
+			self.value += other.value
+			self.children.append_array(other.children)
+			self.parent.MergeFrom(other.parent)
  
 	func SerializeToBytes(buffer: PackedByteArray = PackedByteArray()) -> PackedByteArray:
-		if value != "":
+		if self.value != "":
 			GDScriptUtils.encode_tag(buffer, 1, 9)
-			GDScriptUtils.encode_string(buffer, value)
+			GDScriptUtils.encode_string(buffer, self.value)
  
-		for child in children:
-			if child != null:
-				GDScriptUtils.encode_tag(buffer, 2, 11)
-				GDScriptUtils.encode_message(buffer, child)
+		for item in self.children:
+			GDScriptUtils.encode_tag(buffer, 2, 11)
+			GDScriptUtils.encode_message(buffer, item)
+ 
+		if self.parent != null:
+			GDScriptUtils.encode_tag(buffer, 3, 11)
+			GDScriptUtils.encode_message(buffer, self.parent)
  
 		return buffer
  
@@ -379,42 +382,41 @@ class TreeNode extends Message:
  
 			match field_number:
 				1:
-					var value_data = GDScriptUtils.decode_string(data, pos, self)
-					value = value_data[GDScriptUtils.VALUE_KEY]
-					pos += value_data[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_string(data, pos, self)
+				self.value = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				2:
-					var child = TreeNode.new()
-					var child_data = GDScriptUtils.decode_message(data, pos, child)
-					children.append(child_data[GDScriptUtils.VALUE_KEY])
-					pos += child_data[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_message(data, pos)
+					self.children.append_array([value[GDScriptUtils.VALUE_KEY]])
+					pos += value[GDScriptUtils.SIZE_KEY]
+				3:
+				var value = GDScriptUtils.decode_message(data, pos, parent)
+				self.parent = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				_:
 					pass
- 
+
 		return pos
 
 	func SerializeToDictionary() -> Dictionary:
-		var map = {}
-		map["value"] = value
-		var children_array = []
-		for child in children:
-			if child != null:
-				children_array.append(child.SerializeToDictionary())
-		map["children"] = children_array
-		return map
+		var _tmap = {}
+		_tmap["value"] = self.value
+		_tmap["children"] = self.children
+		if self.parent != null:
+			_tmap["parent"] = self.parent.SerializeToDictionary()
+		return _tmap
 
-	func ParseFromDictionary(data: Dictionary) -> void:
-		if data == null:
+	func ParseFromDictionary(_fmap: Dictionary) -> void:
+		if _fmap == null:
 			return
 
-		if "value" in data:
-			value = data["value"]
-		if "children" in data:
-			children.clear()
-			for child_data in data["children"]:
-				if child_data != null:
-					var child = TreeNode.new()
-					child.ParseFromDictionary(child_data)
-					children.append(child)
+		if "value" in _fmap:
+			self.value = _fmap["value"]
+		if "children" in _fmap:
+			self.children = _fmap["children"]
+		if "parent" in _fmap:
+			if _fmap["parent"] != null:
+				self.parent.ParseFromDictionary(_fmap["parent"])
 
 # =========================================
 
@@ -437,67 +439,67 @@ class NumberTypes extends Message:
  
 	func MergeFrom(other : Message) -> void:
 		if other is NumberTypes:
-			int32_field += other.int32_field
-			int64_field += other.int64_field
-			uint32_field += other.uint32_field
-			uint64_field += other.uint64_field
-			sint32_field += other.sint32_field
-			sint64_field += other.sint64_field
-			fixed32_field += other.fixed32_field
-			fixed64_field += other.fixed64_field
-			sfixed32_field += other.sfixed32_field
-			sfixed64_field += other.sfixed64_field
-			float_field += other.float_field
-			double_field += other.double_field
+			self.int32_field += other.int32_field
+			self.int64_field += other.int64_field
+			self.uint32_field += other.uint32_field
+			self.uint64_field += other.uint64_field
+			self.sint32_field += other.sint32_field
+			self.sint64_field += other.sint64_field
+			self.fixed32_field += other.fixed32_field
+			self.fixed64_field += other.fixed64_field
+			self.sfixed32_field += other.sfixed32_field
+			self.sfixed64_field += other.sfixed64_field
+			self.float_field += other.float_field
+			self.double_field += other.double_field
  
 	func SerializeToBytes(buffer: PackedByteArray = PackedByteArray()) -> PackedByteArray:
-		if int32_field != -42:
+		if self.int32_field != -42:
 			GDScriptUtils.encode_tag(buffer, 1, 5)
-			GDScriptUtils.encode_varint(buffer, int32_field)
+			GDScriptUtils.encode_varint(buffer, self.int32_field)
  
-		if int64_field != -9223372036854775808:
+		if self.int64_field != -9223372036854775808:
 			GDScriptUtils.encode_tag(buffer, 2, 3)
-			GDScriptUtils.encode_varint(buffer, int64_field)
+			GDScriptUtils.encode_varint(buffer, self.int64_field)
  
-		if uint32_field != 4294967295:
+		if self.uint32_field != 4294967295:
 			GDScriptUtils.encode_tag(buffer, 3, 13)
-			GDScriptUtils.encode_varint(buffer, uint32_field)
+			GDScriptUtils.encode_varint(buffer, self.uint32_field)
  
-		if uint64_field != 9223372036854775807:
+		if self.uint64_field != 9223372036854775807:
 			GDScriptUtils.encode_tag(buffer, 4, 4)
-			GDScriptUtils.encode_varint(buffer, uint64_field)
+			GDScriptUtils.encode_varint(buffer, self.uint64_field)
  
-		if sint32_field != -2147483648:
+		if self.sint32_field != -2147483648:
 			GDScriptUtils.encode_tag(buffer, 5, 17)
-			GDScriptUtils.encode_zigzag32(buffer, sint32_field)
+			GDScriptUtils.encode_zigzag32(buffer, self.sint32_field)
  
-		if sint64_field != -9223372036854775808:
+		if self.sint64_field != -9223372036854775808:
 			GDScriptUtils.encode_tag(buffer, 6, 18)
-			GDScriptUtils.encode_zigzag64(buffer, sint64_field)
+			GDScriptUtils.encode_zigzag64(buffer, self.sint64_field)
  
-		if fixed32_field != 4294967295:
+		if self.fixed32_field != 4294967295:
 			GDScriptUtils.encode_tag(buffer, 7, 7)
-			GDScriptUtils.encode_int32(buffer, fixed32_field)
+			GDScriptUtils.encode_int32(buffer, self.fixed32_field)
  
-		if fixed64_field != 9223372036854775807:
+		if self.fixed64_field != 9223372036854775807:
 			GDScriptUtils.encode_tag(buffer, 8, 6)
-			GDScriptUtils.encode_int64(buffer, fixed64_field)
+			GDScriptUtils.encode_int64(buffer, self.fixed64_field)
  
-		if sfixed32_field != -2147483648:
+		if self.sfixed32_field != -2147483648:
 			GDScriptUtils.encode_tag(buffer, 9, 15)
-			GDScriptUtils.encode_int32(buffer, sfixed32_field)
+			GDScriptUtils.encode_int32(buffer, self.sfixed32_field)
  
-		if sfixed64_field != -9223372036854775808:
+		if self.sfixed64_field != -9223372036854775808:
 			GDScriptUtils.encode_tag(buffer, 10, 16)
-			GDScriptUtils.encode_int64(buffer, sfixed64_field)
+			GDScriptUtils.encode_int64(buffer, self.sfixed64_field)
  
-		if float_field != 3.40282347e+38:
+		if self.float_field != 3.40282347e+38:
 			GDScriptUtils.encode_tag(buffer, 11, 2)
-			GDScriptUtils.encode_float(buffer, float_field)
+			GDScriptUtils.encode_float(buffer, self.float_field)
  
-		if double_field != 2.2250738585072014e-308:
+		if self.double_field != 2.2250738585072014e-308:
 			GDScriptUtils.encode_tag(buffer, 12, 1)
-			GDScriptUtils.encode_double(buffer, double_field)
+			GDScriptUtils.encode_double(buffer, self.double_field)
  
 		return buffer
  
@@ -512,102 +514,102 @@ class NumberTypes extends Message:
  
 			match field_number:
 				1:
-					var value = GDScriptUtils.decode_varint(data, pos, self)
-					int32_field = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_varint(data, pos, self)
+				self.int32_field = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				2:
-					var value = GDScriptUtils.decode_varint(data, pos, self)
-					int64_field = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_varint(data, pos, self)
+				self.int64_field = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				3:
-					var value = GDScriptUtils.decode_varint(data, pos, self)
-					uint32_field = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_varint(data, pos, self)
+				self.uint32_field = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				4:
-					var value = GDScriptUtils.decode_varint(data, pos, self)
-					uint64_field = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_varint(data, pos, self)
+				self.uint64_field = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				5:
-					var value = GDScriptUtils.decode_zigzag32(data, pos, self)
-					sint32_field = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_zigzag32(data, pos, self)
+				self.sint32_field = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				6:
-					var value = GDScriptUtils.decode_zigzag64(data, pos, self)
-					sint64_field = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_zigzag64(data, pos, self)
+				self.sint64_field = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				7:
-					var value = GDScriptUtils.decode_int32(data, pos, self)
-					fixed32_field = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_int32(data, pos, self)
+				self.fixed32_field = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				8:
-					var value = GDScriptUtils.decode_int64(data, pos, self)
-					fixed64_field = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_int64(data, pos, self)
+				self.fixed64_field = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				9:
-					var value = GDScriptUtils.decode_int32(data, pos, self)
-					sfixed32_field = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_int32(data, pos, self)
+				self.sfixed32_field = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				10:
-					var value = GDScriptUtils.decode_int64(data, pos, self)
-					sfixed64_field = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_int64(data, pos, self)
+				self.sfixed64_field = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				11:
-					var value = GDScriptUtils.decode_float(data, pos, self)
-					float_field = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_float(data, pos, self)
+				self.float_field = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				12:
-					var value = GDScriptUtils.decode_double(data, pos, self)
-					double_field = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_double(data, pos, self)
+				self.double_field = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				_:
 					pass
 
 		return pos
 
 	func SerializeToDictionary() -> Dictionary:
-		var map = {}
-		map["int32_field"] = int32_field
-		map["int64_field"] = int64_field
-		map["uint32_field"] = uint32_field
-		map["uint64_field"] = uint64_field
-		map["sint32_field"] = sint32_field
-		map["sint64_field"] = sint64_field
-		map["fixed32_field"] = fixed32_field
-		map["fixed64_field"] = fixed64_field
-		map["sfixed32_field"] = sfixed32_field
-		map["sfixed64_field"] = sfixed64_field
-		map["float_field"] = float_field
-		map["double_field"] = double_field
-		return map
+		var _tmap = {}
+		_tmap["int32_field"] = self.int32_field
+		_tmap["int64_field"] = self.int64_field
+		_tmap["uint32_field"] = self.uint32_field
+		_tmap["uint64_field"] = self.uint64_field
+		_tmap["sint32_field"] = self.sint32_field
+		_tmap["sint64_field"] = self.sint64_field
+		_tmap["fixed32_field"] = self.fixed32_field
+		_tmap["fixed64_field"] = self.fixed64_field
+		_tmap["sfixed32_field"] = self.sfixed32_field
+		_tmap["sfixed64_field"] = self.sfixed64_field
+		_tmap["float_field"] = self.float_field
+		_tmap["double_field"] = self.double_field
+		return _tmap
 
-	func ParseFromDictionary(data: Dictionary) -> void:
-		if data == null:
+	func ParseFromDictionary(_fmap: Dictionary) -> void:
+		if _fmap == null:
 			return
 
-		if "int32_field" in data:
-			int32_field = data["int32_field"]
-		if "int64_field" in data:
-			int64_field = data["int64_field"]
-		if "uint32_field" in data:
-			uint32_field = data["uint32_field"]
-		if "uint64_field" in data:
-			uint64_field = data["uint64_field"]
-		if "sint32_field" in data:
-			sint32_field = data["sint32_field"]
-		if "sint64_field" in data:
-			sint64_field = data["sint64_field"]
-		if "fixed32_field" in data:
-			fixed32_field = data["fixed32_field"]
-		if "fixed64_field" in data:
-			fixed64_field = data["fixed64_field"]
-		if "sfixed32_field" in data:
-			sfixed32_field = data["sfixed32_field"]
-		if "sfixed64_field" in data:
-			sfixed64_field = data["sfixed64_field"]
-		if "float_field" in data:
-			float_field = data["float_field"]
-		if "double_field" in data:
-			double_field = data["double_field"]
+		if "int32_field" in _fmap:
+			self.int32_field = _fmap["int32_field"]
+		if "int64_field" in _fmap:
+			self.int64_field = _fmap["int64_field"]
+		if "uint32_field" in _fmap:
+			self.uint32_field = _fmap["uint32_field"]
+		if "uint64_field" in _fmap:
+			self.uint64_field = _fmap["uint64_field"]
+		if "sint32_field" in _fmap:
+			self.sint32_field = _fmap["sint32_field"]
+		if "sint64_field" in _fmap:
+			self.sint64_field = _fmap["sint64_field"]
+		if "fixed32_field" in _fmap:
+			self.fixed32_field = _fmap["fixed32_field"]
+		if "fixed64_field" in _fmap:
+			self.fixed64_field = _fmap["fixed64_field"]
+		if "sfixed32_field" in _fmap:
+			self.sfixed32_field = _fmap["sfixed32_field"]
+		if "sfixed64_field" in _fmap:
+			self.sfixed64_field = _fmap["sfixed64_field"]
+		if "float_field" in _fmap:
+			self.float_field = _fmap["float_field"]
+		if "double_field" in _fmap:
+			self.double_field = _fmap["double_field"]
 
 # =========================================
 
@@ -624,37 +626,37 @@ class DefaultValues extends Message:
  
 	func MergeFrom(other : Message) -> void:
 		if other is DefaultValues:
-			int_with_default += other.int_with_default
-			string_with_default += other.string_with_default
-			bytes_with_default.append_array(other.bytes_with_default)
-			bool_with_default = other.bool_with_default
-			float_with_default += other.float_with_default
-			enum_with_default = other.enum_with_default
+			self.int_with_default += other.int_with_default
+			self.string_with_default += other.string_with_default
+			self.bytes_with_default.append_array(other.bytes_with_default)
+			self.bool_with_default = other.bool_with_default
+			self.float_with_default += other.float_with_default
+			self.enum_with_default = other.enum_with_default
  
 	func SerializeToBytes(buffer: PackedByteArray = PackedByteArray()) -> PackedByteArray:
-		if int_with_default != 42:
+		if self.int_with_default != 42:
 			GDScriptUtils.encode_tag(buffer, 1, 5)
-			GDScriptUtils.encode_varint(buffer, int_with_default)
+			GDScriptUtils.encode_varint(buffer, self.int_with_default)
  
-		if string_with_default != "default string":
+		if self.string_with_default != "default string":
 			GDScriptUtils.encode_tag(buffer, 2, 9)
-			GDScriptUtils.encode_string(buffer, string_with_default)
+			GDScriptUtils.encode_string(buffer, self.string_with_default)
  
-		if bytes_with_default != PackedByteArray("default bytes".to_utf8_buffer()):
+		if self.bytes_with_default != PackedByteArray("default bytes".to_utf8_buffer()):
 			GDScriptUtils.encode_tag(buffer, 3, 12)
-			GDScriptUtils.encode_bytes(buffer, bytes_with_default)
+			GDScriptUtils.encode_bytes(buffer, self.bytes_with_default)
  
-		if bool_with_default != true:
+		if self.bool_with_default != true:
 			GDScriptUtils.encode_tag(buffer, 4, 8)
-			GDScriptUtils.encode_bool(buffer, bool_with_default)
+			GDScriptUtils.encode_bool(buffer, self.bool_with_default)
  
-		if float_with_default != 3.14159:
+		if self.float_with_default != 3.14159:
 			GDScriptUtils.encode_tag(buffer, 5, 2)
-			GDScriptUtils.encode_float(buffer, float_with_default)
+			GDScriptUtils.encode_float(buffer, self.float_with_default)
  
-		if enum_with_default != ComplexMessage.Status.ACTIVE:
+		if self.enum_with_default != ComplexMessage.Status.ACTIVE:
 			GDScriptUtils.encode_tag(buffer, 6, 14)
-			GDScriptUtils.encode_varint(buffer, enum_with_default)
+			GDScriptUtils.encode_varint(buffer, self.enum_with_default)
  
 		return buffer
  
@@ -669,60 +671,60 @@ class DefaultValues extends Message:
  
 			match field_number:
 				1:
-					var value = GDScriptUtils.decode_varint(data, pos, self)
-					int_with_default = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_varint(data, pos, self)
+				self.int_with_default = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				2:
-					var value = GDScriptUtils.decode_string(data, pos, self)
-					string_with_default = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_string(data, pos, self)
+				self.string_with_default = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				3:
-					var value = GDScriptUtils.decode_bytes(data, pos, self)
-					bytes_with_default = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_bytes(data, pos, self)
+				self.bytes_with_default = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				4:
-					var value = GDScriptUtils.decode_bool(data, pos, self)
-					bool_with_default = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_bool(data, pos, self)
+				self.bool_with_default = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				5:
-					var value = GDScriptUtils.decode_float(data, pos, self)
-					float_with_default = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_float(data, pos, self)
+				self.float_with_default = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				6:
-					var value = GDScriptUtils.decode_varint(data, pos, self)
-					enum_with_default = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_varint(data, pos, self)
+				self.enum_with_default = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				_:
 					pass
 
 		return pos
 
 	func SerializeToDictionary() -> Dictionary:
-		var map = {}
-		map["int_with_default"] = int_with_default
-		map["string_with_default"] = string_with_default
-		map["bytes_with_default"] = bytes_with_default
-		map["bool_with_default"] = bool_with_default
-		map["float_with_default"] = float_with_default
-		map["enum_with_default"] = enum_with_default
-		return map
+		var _tmap = {}
+		_tmap["int_with_default"] = self.int_with_default
+		_tmap["string_with_default"] = self.string_with_default
+		_tmap["bytes_with_default"] = self.bytes_with_default
+		_tmap["bool_with_default"] = self.bool_with_default
+		_tmap["float_with_default"] = self.float_with_default
+		_tmap["enum_with_default"] = self.enum_with_default
+		return _tmap
 
-	func ParseFromDictionary(data: Dictionary) -> void:
-		if data == null:
+	func ParseFromDictionary(_fmap: Dictionary) -> void:
+		if _fmap == null:
 			return
 
-		if "int_with_default" in data:
-			int_with_default = data["int_with_default"]
-		if "string_with_default" in data:
-			string_with_default = data["string_with_default"]
-		if "bytes_with_default" in data:
-			bytes_with_default = data["bytes_with_default"]
-		if "bool_with_default" in data:
-			bool_with_default = data["bool_with_default"]
-		if "float_with_default" in data:
-			float_with_default = data["float_with_default"]
-		if "enum_with_default" in data:
-			enum_with_default = data["enum_with_default"]
+		if "int_with_default" in _fmap:
+			self.int_with_default = _fmap["int_with_default"]
+		if "string_with_default" in _fmap:
+			self.string_with_default = _fmap["string_with_default"]
+		if "bytes_with_default" in _fmap:
+			self.bytes_with_default = _fmap["bytes_with_default"]
+		if "bool_with_default" in _fmap:
+			self.bool_with_default = _fmap["bool_with_default"]
+		if "float_with_default" in _fmap:
+			self.float_with_default = _fmap["float_with_default"]
+		if "enum_with_default" in _fmap:
+			self.enum_with_default = _fmap["enum_with_default"]
 
 # =========================================
 
@@ -739,35 +741,35 @@ class FieldRules extends Message:
  
 	func MergeFrom(other : Message) -> void:
 		if other is FieldRules:
-			required_field += other.required_field
-			optional_field += other.optional_field
-			repeated_field.append_array(other.repeated_field)
-			required_message.MergeFrom(other.required_message)
-			optional_message.MergeFrom(other.optional_message)
-			repeated_message.append_array(other.repeated_message)
+			self.required_field += other.required_field
+			self.optional_field += other.optional_field
+			self.repeated_field.append_array(other.repeated_field)
+			self.required_message.MergeFrom(other.required_message)
+			self.optional_message.MergeFrom(other.optional_message)
+			self.repeated_message.append_array(other.repeated_message)
  
 	func SerializeToBytes(buffer: PackedByteArray = PackedByteArray()) -> PackedByteArray:
-		if required_field != "":
+		if self.required_field != "":
 			GDScriptUtils.encode_tag(buffer, 1, 9)
-			GDScriptUtils.encode_string(buffer, required_field)
+			GDScriptUtils.encode_string(buffer, self.required_field)
  
-		if optional_field != "":
+		if self.optional_field != "":
 			GDScriptUtils.encode_tag(buffer, 2, 9)
-			GDScriptUtils.encode_string(buffer, optional_field)
+			GDScriptUtils.encode_string(buffer, self.optional_field)
  
-		for item in repeated_field:
+		for item in self.repeated_field:
 			GDScriptUtils.encode_tag(buffer, 3, 9)
 			GDScriptUtils.encode_string(buffer, item)
  
-		if required_message != null:
+		if self.required_message != null:
 			GDScriptUtils.encode_tag(buffer, 4, 11)
-			GDScriptUtils.encode_message(buffer, required_message)
+			GDScriptUtils.encode_message(buffer, self.required_message)
  
-		if optional_message != null:
+		if self.optional_message != null:
 			GDScriptUtils.encode_tag(buffer, 5, 11)
-			GDScriptUtils.encode_message(buffer, optional_message)
+			GDScriptUtils.encode_message(buffer, self.optional_message)
  
-		for item in repeated_message:
+		for item in self.repeated_message:
 			GDScriptUtils.encode_tag(buffer, 6, 11)
 			GDScriptUtils.encode_message(buffer, item)
  
@@ -784,28 +786,28 @@ class FieldRules extends Message:
  
 			match field_number:
 				1:
-					var value = GDScriptUtils.decode_string(data, pos, self)
-					required_field = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_string(data, pos, self)
+				self.required_field = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				2:
-					var value = GDScriptUtils.decode_string(data, pos, self)
-					optional_field = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_string(data, pos, self)
+				self.optional_field = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				3:
 					var value = GDScriptUtils.decode_string(data, pos)
-					repeated_field.append_array([value[GDScriptUtils.VALUE_KEY]])
+					self.repeated_field.append_array([value[GDScriptUtils.VALUE_KEY]])
 					pos += value[GDScriptUtils.SIZE_KEY]
 				4:
-					var value = GDScriptUtils.decode_message(data, pos, required_message)
-					required_message = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_message(data, pos, required_message)
+				self.required_message = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				5:
-					var value = GDScriptUtils.decode_message(data, pos, optional_message)
-					optional_message = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_message(data, pos, optional_message)
+				self.optional_message = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				6:
 					var value = GDScriptUtils.decode_message(data, pos)
-					repeated_message.append_array([value[GDScriptUtils.VALUE_KEY]])
+					self.repeated_message.append_array([value[GDScriptUtils.VALUE_KEY]])
 					pos += value[GDScriptUtils.SIZE_KEY]
 				_:
 					pass
@@ -813,34 +815,35 @@ class FieldRules extends Message:
 		return pos
 
 	func SerializeToDictionary() -> Dictionary:
-		var map = {}
-		map["required_field"] = required_field
-		map["optional_field"] = optional_field
-		map["repeated_field"] = repeated_field
-		if required_message != null:
-			map["required_message"] = required_message.SerializeToDictionary()
-		if optional_message != null:
-			map["optional_message"] = optional_message.SerializeToDictionary()
-		map["repeated_message"] = repeated_message
-		return map
+		var _tmap = {}
+		_tmap["required_field"] = self.required_field
+		_tmap["optional_field"] = self.optional_field
+		_tmap["repeated_field"] = self.repeated_field
+		if self.required_message != null:
+			_tmap["required_message"] = self.required_message.SerializeToDictionary()
+		if self.optional_message != null:
+			_tmap["optional_message"] = self.optional_message.SerializeToDictionary()
+		_tmap["repeated_message"] = self.repeated_message
+		return _tmap
 
-	func ParseFromDictionary(data: Dictionary) -> void:
-		if data == null:
+	func ParseFromDictionary(_fmap: Dictionary) -> void:
+		if _fmap == null:
 			return
 
-		if "required_field" in data:
-			required_field = data["required_field"]
-		if "optional_field" in data:
-			optional_field = data["optional_field"]
-		if "repeated_field" in data:
-			repeated_field = data["repeated_field"]
-		if "required_message" in data:
-			if data["required_message"] != null:
-				required_message.ParseFromDictionary(data["required_message"])
-		if "optional_message" in data:
-			if data["optional_message"] != null:
-				optional_message.ParseFromDictionary(data["optional_message"])
-		if "repeated_message" in data:
-			repeated_message = data["repeated_message"]
+		if "required_field" in _fmap:
+			self.required_field = _fmap["required_field"]
+		if "optional_field" in _fmap:
+			self.optional_field = _fmap["optional_field"]
+		if "repeated_field" in _fmap:
+			self.repeated_field = _fmap["repeated_field"]
+		if "required_message" in _fmap:
+			if _fmap["required_message"] != null:
+				self.required_message.ParseFromDictionary(_fmap["required_message"])
+		if "optional_message" in _fmap:
+			if _fmap["optional_message"] != null:
+				self.optional_message.ParseFromDictionary(_fmap["optional_message"])
+		if "repeated_message" in _fmap:
+			self.repeated_message = _fmap["repeated_message"]
 
 # =========================================
+

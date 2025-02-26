@@ -178,3 +178,4 @@ dist/protoc-gen-gdscript.exe
 server
 bin
 dist
+.godot

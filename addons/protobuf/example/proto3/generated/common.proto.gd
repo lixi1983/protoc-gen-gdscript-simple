@@ -22,37 +22,37 @@ class CommonMessage extends Message:
  
 	func MergeFrom(other : Message) -> void:
 		if other is CommonMessage:
-			common_field1 += other.common_field1
-			common_sint32 += other.common_sint32
-			common_field2 += other.common_field2
-			common_sfixed32 += other.common_sfixed32
-			common_sfixed64 += other.common_sfixed64
-			common_sint64 += other.common_sint64
+			self.common_field1 += other.common_field1
+			self.common_sint32 += other.common_sint32
+			self.common_field2 += other.common_field2
+			self.common_sfixed32 += other.common_sfixed32
+			self.common_sfixed64 += other.common_sfixed64
+			self.common_sint64 += other.common_sint64
  
 	func SerializeToBytes(buffer: PackedByteArray = PackedByteArray()) -> PackedByteArray:
-		if common_field1 != 0:
+		if self.common_field1 != 0:
 			GDScriptUtils.encode_tag(buffer, 1, 5)
-			GDScriptUtils.encode_varint(buffer, common_field1)
+			GDScriptUtils.encode_varint(buffer, self.common_field1)
  
-		if common_sint32 != 0:
+		if self.common_sint32 != 0:
 			GDScriptUtils.encode_tag(buffer, 2, 17)
-			GDScriptUtils.encode_zigzag32(buffer, common_sint32)
+			GDScriptUtils.encode_zigzag32(buffer, self.common_sint32)
  
-		if common_field2 != "":
+		if self.common_field2 != "":
 			GDScriptUtils.encode_tag(buffer, 3, 9)
-			GDScriptUtils.encode_string(buffer, common_field2)
+			GDScriptUtils.encode_string(buffer, self.common_field2)
  
-		if common_sfixed32 != 0:
+		if self.common_sfixed32 != 0:
 			GDScriptUtils.encode_tag(buffer, 4, 15)
-			GDScriptUtils.encode_int32(buffer, common_sfixed32)
+			GDScriptUtils.encode_int32(buffer, self.common_sfixed32)
  
-		if common_sfixed64 != 0:
+		if self.common_sfixed64 != 0:
 			GDScriptUtils.encode_tag(buffer, 5, 16)
-			GDScriptUtils.encode_int64(buffer, common_sfixed64)
+			GDScriptUtils.encode_int64(buffer, self.common_sfixed64)
  
-		if common_sint64 != 0:
+		if self.common_sint64 != 0:
 			GDScriptUtils.encode_tag(buffer, 6, 18)
-			GDScriptUtils.encode_zigzag64(buffer, common_sint64)
+			GDScriptUtils.encode_zigzag64(buffer, self.common_sint64)
  
 		return buffer
  
@@ -67,60 +67,60 @@ class CommonMessage extends Message:
  
 			match field_number:
 				1:
-					var value = GDScriptUtils.decode_varint(data, pos, self)
-					common_field1 = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_varint(data, pos, self)
+				self.common_field1 = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				2:
-					var value = GDScriptUtils.decode_zigzag32(data, pos, self)
-					common_sint32 = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_zigzag32(data, pos, self)
+				self.common_sint32 = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				3:
-					var value = GDScriptUtils.decode_string(data, pos, self)
-					common_field2 = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_string(data, pos, self)
+				self.common_field2 = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				4:
-					var value = GDScriptUtils.decode_int32(data, pos, self)
-					common_sfixed32 = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_int32(data, pos, self)
+				self.common_sfixed32 = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				5:
-					var value = GDScriptUtils.decode_int64(data, pos, self)
-					common_sfixed64 = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_int64(data, pos, self)
+				self.common_sfixed64 = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				6:
-					var value = GDScriptUtils.decode_zigzag64(data, pos, self)
-					common_sint64 = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_zigzag64(data, pos, self)
+				self.common_sint64 = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				_:
 					pass
 
 		return pos
 
 	func SerializeToDictionary() -> Dictionary:
-		var map = {}
-		map["common_field1"] = common_field1
-		map["common_sint32"] = common_sint32
-		map["common_field2"] = common_field2
-		map["common_sfixed32"] = common_sfixed32
-		map["common_sfixed64"] = common_sfixed64
-		map["common_sint64"] = common_sint64
-		return map
+		var _tmap = {}
+		_tmap["common_field1"] = self.common_field1
+		_tmap["common_sint32"] = self.common_sint32
+		_tmap["common_field2"] = self.common_field2
+		_tmap["common_sfixed32"] = self.common_sfixed32
+		_tmap["common_sfixed64"] = self.common_sfixed64
+		_tmap["common_sint64"] = self.common_sint64
+		return _tmap
 
-	func ParseFromDictionary(data: Dictionary) -> void:
-		if data == null:
+	func ParseFromDictionary(_fmap: Dictionary) -> void:
+		if _fmap == null:
 			return
 
-		if "common_field1" in data:
-			common_field1 = data["common_field1"]
-		if "common_sint32" in data:
-			common_sint32 = data["common_sint32"]
-		if "common_field2" in data:
-			common_field2 = data["common_field2"]
-		if "common_sfixed32" in data:
-			common_sfixed32 = data["common_sfixed32"]
-		if "common_sfixed64" in data:
-			common_sfixed64 = data["common_sfixed64"]
-		if "common_sint64" in data:
-			common_sint64 = data["common_sint64"]
+		if "common_field1" in _fmap:
+			self.common_field1 = _fmap["common_field1"]
+		if "common_sint32" in _fmap:
+			self.common_sint32 = _fmap["common_sint32"]
+		if "common_field2" in _fmap:
+			self.common_field2 = _fmap["common_field2"]
+		if "common_sfixed32" in _fmap:
+			self.common_sfixed32 = _fmap["common_sfixed32"]
+		if "common_sfixed64" in _fmap:
+			self.common_sfixed64 = _fmap["common_sfixed64"]
+		if "common_sint64" in _fmap:
+			self.common_sint64 = _fmap["common_sint64"]
 
 # =========================================
 

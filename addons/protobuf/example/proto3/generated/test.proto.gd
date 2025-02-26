@@ -35,17 +35,17 @@ class MsgBase extends Message:
  
 		func MergeFrom(other : Message) -> void:
 			if other is SubMsg:
-				sub_field1 += other.sub_field1
-				sub_field2 += other.sub_field2
+				self.sub_field1 += other.sub_field1
+				self.sub_field2 += other.sub_field2
  
 		func SerializeToBytes(buffer: PackedByteArray = PackedByteArray()) -> PackedByteArray:
-			if sub_field1 != 0:
+			if self.sub_field1 != 0:
 				GDScriptUtils.encode_tag(buffer, 1, 5)
-				GDScriptUtils.encode_varint(buffer, sub_field1)
+				GDScriptUtils.encode_varint(buffer, self.sub_field1)
  
-			if sub_field2 != "":
+			if self.sub_field2 != "":
 				GDScriptUtils.encode_tag(buffer, 2, 9)
-				GDScriptUtils.encode_string(buffer, sub_field2)
+				GDScriptUtils.encode_string(buffer, self.sub_field2)
  
 			return buffer
  
@@ -60,120 +60,120 @@ class MsgBase extends Message:
  
 				match field_number:
 					1:
-						var value = GDScriptUtils.decode_varint(data, pos, self)
-						sub_field1 = value[GDScriptUtils.VALUE_KEY]
-						pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_varint(data, pos, self)
+					self.sub_field1 = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 					2:
-						var value = GDScriptUtils.decode_string(data, pos, self)
-						sub_field2 = value[GDScriptUtils.VALUE_KEY]
-						pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_string(data, pos, self)
+					self.sub_field2 = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 					_:
 						pass
 
 			return pos
 
 		func SerializeToDictionary() -> Dictionary:
-			var map = {}
-			map["sub_field1"] = sub_field1
-			map["sub_field2"] = sub_field2
-			return map
+			var _tmap = {}
+			_tmap["sub_field1"] = self.sub_field1
+			_tmap["sub_field2"] = self.sub_field2
+			return _tmap
 
-		func ParseFromDictionary(data: Dictionary) -> void:
-			if data == null:
+		func ParseFromDictionary(_fmap: Dictionary) -> void:
+			if _fmap == null:
 				return
 
-			if "sub_field1" in data:
-				sub_field1 = data["sub_field1"]
-			if "sub_field2" in data:
-				sub_field2 = data["sub_field2"]
+			if "sub_field1" in _fmap:
+				self.sub_field1 = _fmap["sub_field1"]
+			if "sub_field2" in _fmap:
+				self.sub_field2 = _fmap["sub_field2"]
 
 	func New() -> Message:
 		return MsgBase.new()
  
 	func MergeFrom(other : Message) -> void:
 		if other is MsgBase:
-			msg_field32 += other.msg_field32
-			field64.append_array(other.field64)
-			msg_field2 += other.msg_field2
-			b_field3 = other.b_field3
-			f_field4 += other.f_field4
-			map_field5.merge(other.map_field5)
-			enum_field6 = other.enum_field6
-			sub_msg.MergeFrom(other.sub_msg)
-			common_msg.MergeFrom(other.common_msg)
-			common_enum = other.common_enum
-			fixed_field32 += other.fixed_field32
-			fixed_field64 += other.fixed_field64
-			double_field += other.double_field
-			map_field_sub.merge(other.map_field_sub)
+			self.msg_field32 += other.msg_field32
+			self.field64.append_array(other.field64)
+			self.msg_field2 += other.msg_field2
+			self.b_field3 = other.b_field3
+			self.f_field4 += other.f_field4
+			self.map_field5.merge(other.map_field5)
+			self.enum_field6 = other.enum_field6
+			self.sub_msg.MergeFrom(other.sub_msg)
+			self.common_msg.MergeFrom(other.common_msg)
+			self.common_enum = other.common_enum
+			self.fixed_field32 += other.fixed_field32
+			self.fixed_field64 += other.fixed_field64
+			self.double_field += other.double_field
+			self.map_field_sub.merge(other.map_field_sub)
  
 	func SerializeToBytes(buffer: PackedByteArray = PackedByteArray()) -> PackedByteArray:
-		if msg_field32 != 0:
+		if self.msg_field32 != 0:
 			GDScriptUtils.encode_tag(buffer, 1, 5)
-			GDScriptUtils.encode_varint(buffer, msg_field32)
+			GDScriptUtils.encode_varint(buffer, self.msg_field32)
  
-		for item in field64:
+		for item in self.field64:
 			GDScriptUtils.encode_tag(buffer, 2, 3)
 			GDScriptUtils.encode_varint(buffer, item)
  
-		if msg_field2 != "":
+		if self.msg_field2 != "":
 			GDScriptUtils.encode_tag(buffer, 3, 9)
-			GDScriptUtils.encode_string(buffer, msg_field2)
+			GDScriptUtils.encode_string(buffer, self.msg_field2)
  
-		if b_field3 != false:
+		if self.b_field3 != false:
 			GDScriptUtils.encode_tag(buffer, 4, 8)
-			GDScriptUtils.encode_bool(buffer, b_field3)
+			GDScriptUtils.encode_bool(buffer, self.b_field3)
  
-		if f_field4 != 0.0:
+		if self.f_field4 != 0.0:
 			GDScriptUtils.encode_tag(buffer, 5, 2)
-			GDScriptUtils.encode_float(buffer, f_field4)
+			GDScriptUtils.encode_float(buffer, self.f_field4)
  
-		for key in map_field5:
+		for key in self.map_field5:
 			GDScriptUtils.encode_tag(buffer, 6, 11)
 			var map_buffer = PackedByteArray()
 			GDScriptUtils.encode_tag(map_buffer, 1, 5)
 			GDScriptUtils.encode_varint(map_buffer, key)
 			GDScriptUtils.encode_tag(map_buffer, 2, 9)
-			GDScriptUtils.encode_string(map_buffer, map_field5[key])
+			GDScriptUtils.encode_string(map_buffer, self.map_field5[key])
 
 			GDScriptUtils.encode_varint(buffer, map_buffer.size())
 			buffer.append_array(map_buffer)
  
-		if enum_field6 != 0:
+		if self.enum_field6 != 0:
 			GDScriptUtils.encode_tag(buffer, 7, 14)
-			GDScriptUtils.encode_varint(buffer, enum_field6)
+			GDScriptUtils.encode_varint(buffer, self.enum_field6)
  
-		if sub_msg != null:
+		if self.sub_msg != null:
 			GDScriptUtils.encode_tag(buffer, 8, 11)
-			GDScriptUtils.encode_message(buffer, sub_msg)
+			GDScriptUtils.encode_message(buffer, self.sub_msg)
  
-		if common_msg != null:
+		if self.common_msg != null:
 			GDScriptUtils.encode_tag(buffer, 9, 11)
-			GDScriptUtils.encode_message(buffer, common_msg)
+			GDScriptUtils.encode_message(buffer, self.common_msg)
  
-		if common_enum != 0:
+		if self.common_enum != 0:
 			GDScriptUtils.encode_tag(buffer, 10, 14)
-			GDScriptUtils.encode_varint(buffer, common_enum)
+			GDScriptUtils.encode_varint(buffer, self.common_enum)
  
-		if fixed_field32 != 0:
+		if self.fixed_field32 != 0:
 			GDScriptUtils.encode_tag(buffer, 11, 7)
-			GDScriptUtils.encode_int32(buffer, fixed_field32)
+			GDScriptUtils.encode_int32(buffer, self.fixed_field32)
  
-		if fixed_field64 != 0:
+		if self.fixed_field64 != 0:
 			GDScriptUtils.encode_tag(buffer, 12, 6)
-			GDScriptUtils.encode_int64(buffer, fixed_field64)
+			GDScriptUtils.encode_int64(buffer, self.fixed_field64)
  
-		if double_field != 0.0:
+		if self.double_field != 0.0:
 			GDScriptUtils.encode_tag(buffer, 13, 1)
-			GDScriptUtils.encode_double(buffer, double_field)
+			GDScriptUtils.encode_double(buffer, self.double_field)
  
-		for key in map_field_sub:
+		for key in self.map_field_sub:
 			GDScriptUtils.encode_tag(buffer, 14, 11)
 			var map_buffer = PackedByteArray()
 			GDScriptUtils.encode_tag(map_buffer, 1, 9)
 			GDScriptUtils.encode_string(map_buffer, key)
 			GDScriptUtils.encode_tag(map_buffer, 2, 11)
-			GDScriptUtils.encode_message(map_buffer, map_field_sub[key])
+			GDScriptUtils.encode_message(map_buffer, self.map_field_sub[key])
 
 			GDScriptUtils.encode_varint(buffer, map_buffer.size())
 			buffer.append_array(map_buffer)
@@ -191,25 +191,25 @@ class MsgBase extends Message:
  
 			match field_number:
 				1:
-					var value = GDScriptUtils.decode_varint(data, pos, self)
-					msg_field32 = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_varint(data, pos, self)
+				self.msg_field32 = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				2:
 					var value = GDScriptUtils.decode_varint(data, pos)
-					field64.append_array([value[GDScriptUtils.VALUE_KEY]])
+					self.field64.append_array([value[GDScriptUtils.VALUE_KEY]])
 					pos += value[GDScriptUtils.SIZE_KEY]
 				3:
-					var value = GDScriptUtils.decode_string(data, pos, self)
-					msg_field2 = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_string(data, pos, self)
+				self.msg_field2 = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				4:
-					var value = GDScriptUtils.decode_bool(data, pos, self)
-					b_field3 = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_bool(data, pos, self)
+				self.b_field3 = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				5:
-					var value = GDScriptUtils.decode_float(data, pos, self)
-					f_field4 = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_float(data, pos, self)
+				self.f_field4 = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				6:
 					var map_length = GDScriptUtils.decode_varint(data, pos)
 					pos += map_length[GDScriptUtils.SIZE_KEY]
@@ -235,35 +235,35 @@ class MsgBase extends Message:
 
 					pos += map_pos
 					if map_pos > 0:
-						map_field5[map_key] = map_value
+						self.map_field5[map_key] = map_value
 				7:
-					var value = GDScriptUtils.decode_varint(data, pos, self)
-					enum_field6 = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_varint(data, pos, self)
+				self.enum_field6 = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				8:
-					var value = GDScriptUtils.decode_message(data, pos, sub_msg)
-					sub_msg = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_message(data, pos, sub_msg)
+				self.sub_msg = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				9:
-					var value = GDScriptUtils.decode_message(data, pos, common_msg)
-					common_msg = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_message(data, pos, common_msg)
+				self.common_msg = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				10:
-					var value = GDScriptUtils.decode_varint(data, pos, self)
-					common_enum = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_varint(data, pos, self)
+				self.common_enum = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				11:
-					var value = GDScriptUtils.decode_int32(data, pos, self)
-					fixed_field32 = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_int32(data, pos, self)
+				self.fixed_field32 = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				12:
-					var value = GDScriptUtils.decode_int64(data, pos, self)
-					fixed_field64 = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_int64(data, pos, self)
+				self.fixed_field64 = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				13:
-					var value = GDScriptUtils.decode_double(data, pos, self)
-					double_field = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_double(data, pos, self)
+				self.double_field = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				14:
 					var map_length = GDScriptUtils.decode_varint(data, pos)
 					pos += map_length[GDScriptUtils.SIZE_KEY]
@@ -289,82 +289,82 @@ class MsgBase extends Message:
 
 					pos += map_pos
 					if map_pos > 0:
-						map_field_sub[map_key] = map_value
+						self.map_field_sub[map_key] = map_value
 				_:
 					pass
 
 		return pos
 
 	func SerializeToDictionary() -> Dictionary:
-		var map = {}
-		map["msg_field32"] = msg_field32
-		map["field64"] = field64
-		map["msg_field2"] = msg_field2
-		map["b_field3"] = b_field3
-		map["f_field4"] = f_field4
-		if not map_field5.is_empty():
+		var _tmap = {}
+		_tmap["msg_field32"] = self.msg_field32
+		_tmap["field64"] = self.field64
+		_tmap["msg_field2"] = self.msg_field2
+		_tmap["b_field3"] = self.b_field3
+		_tmap["f_field4"] = self.f_field4
+		if not self.map_field5.is_empty():
 			var map_dict = {}
-			for key in map_field5:
-				map_dict[key] = map_field5[key]
-			map["map_field5"] = map_dict
-		map["enum_field6"] = enum_field6
-		if sub_msg != null:
-			map["sub_msg"] = sub_msg.SerializeToDictionary()
-		if common_msg != null:
-			map["common_msg"] = common_msg.SerializeToDictionary()
-		map["common_enum"] = common_enum
-		map["fixed_field32"] = fixed_field32
-		map["fixed_field64"] = fixed_field64
-		map["double_field"] = double_field
-		if not map_field_sub.is_empty():
+			for key in self.map_field5:
+				map_dict[key] = self.map_field5[key]
+			_tmap["map_field5"] = map_dict
+		_tmap["enum_field6"] = self.enum_field6
+		if self.sub_msg != null:
+			_tmap["sub_msg"] = self.sub_msg.SerializeToDictionary()
+		if self.common_msg != null:
+			_tmap["common_msg"] = self.common_msg.SerializeToDictionary()
+		_tmap["common_enum"] = self.common_enum
+		_tmap["fixed_field32"] = self.fixed_field32
+		_tmap["fixed_field64"] = self.fixed_field64
+		_tmap["double_field"] = self.double_field
+		if not self.map_field_sub.is_empty():
 			var map_dict = {}
-			for key in map_field_sub:
-				map_dict[key] = map_field_sub[key].SerializeToDictionary()
-			map["map_field_sub"] = map_dict
-		return map
+			for key in self.map_field_sub:
+				map_dict[key] = self.map_field_sub[key].SerializeToDictionary()
+			_tmap["map_field_sub"] = map_dict
+		return _tmap
 
-	func ParseFromDictionary(data: Dictionary) -> void:
-		if data == null:
+	func ParseFromDictionary(_fmap: Dictionary) -> void:
+		if _fmap == null:
 			return
 
-		if "msg_field32" in data:
-			msg_field32 = data["msg_field32"]
-		if "field64" in data:
-			field64 = data["field64"]
-		if "msg_field2" in data:
-			msg_field2 = data["msg_field2"]
-		if "b_field3" in data:
-			b_field3 = data["b_field3"]
-		if "f_field4" in data:
-			f_field4 = data["f_field4"]
-		if "map_field5" in data:
-			var map_dict = data["map_field5"]
+		if "msg_field32" in _fmap:
+			self.msg_field32 = _fmap["msg_field32"]
+		if "field64" in _fmap:
+			self.field64 = _fmap["field64"]
+		if "msg_field2" in _fmap:
+			self.msg_field2 = _fmap["msg_field2"]
+		if "b_field3" in _fmap:
+			self.b_field3 = _fmap["b_field3"]
+		if "f_field4" in _fmap:
+			self.f_field4 = _fmap["f_field4"]
+		if "map_field5" in _fmap:
+			var map_dict = _fmap["map_field5"]
 			if map_dict != null:
 				for key in map_dict:
-					map_field5[key] = map_dict[key]
-		if "enum_field6" in data:
-			enum_field6 = data["enum_field6"]
-		if "sub_msg" in data:
-			if data["sub_msg"] != null:
-				sub_msg.ParseFromDictionary(data["sub_msg"])
-		if "common_msg" in data:
-			if data["common_msg"] != null:
-				common_msg.ParseFromDictionary(data["common_msg"])
-		if "common_enum" in data:
-			common_enum = data["common_enum"]
-		if "fixed_field32" in data:
-			fixed_field32 = data["fixed_field32"]
-		if "fixed_field64" in data:
-			fixed_field64 = data["fixed_field64"]
-		if "double_field" in data:
-			double_field = data["double_field"]
-		if "map_field_sub" in data:
-			var map_dict = data["map_field_sub"]
+					self.map_field5[key] = map_dict[key]
+		if "enum_field6" in _fmap:
+			self.enum_field6 = _fmap["enum_field6"]
+		if "sub_msg" in _fmap:
+			if _fmap["sub_msg"] != null:
+				self.sub_msg.ParseFromDictionary(_fmap["sub_msg"])
+		if "common_msg" in _fmap:
+			if _fmap["common_msg"] != null:
+				self.common_msg.ParseFromDictionary(_fmap["common_msg"])
+		if "common_enum" in _fmap:
+			self.common_enum = _fmap["common_enum"]
+		if "fixed_field32" in _fmap:
+			self.fixed_field32 = _fmap["fixed_field32"]
+		if "fixed_field64" in _fmap:
+			self.fixed_field64 = _fmap["fixed_field64"]
+		if "double_field" in _fmap:
+			self.double_field = _fmap["double_field"]
+		if "map_field_sub" in _fmap:
+			var map_dict = _fmap["map_field_sub"]
 			if map_dict != null:
 				for key in map_dict:
 					var value = SubMsg.new()
 					value.ParseFromDictionary(map_dict[key])
-					map_field_sub[key] = value
+					self.map_field_sub[key] = value
 
 # =========================================
 
@@ -377,15 +377,15 @@ class MsgTest extends Message:
  
 	func MergeFrom(other : Message) -> void:
 		if other is MsgTest:
-			common_msg.MergeFrom(other.common_msg)
-			common_enums.append_array(other.common_enums)
+			self.common_msg.MergeFrom(other.common_msg)
+			self.common_enums.append_array(other.common_enums)
  
 	func SerializeToBytes(buffer: PackedByteArray = PackedByteArray()) -> PackedByteArray:
-		if common_msg != null:
+		if self.common_msg != null:
 			GDScriptUtils.encode_tag(buffer, 1, 11)
-			GDScriptUtils.encode_message(buffer, common_msg)
+			GDScriptUtils.encode_message(buffer, self.common_msg)
  
-		for item in common_enums:
+		for item in self.common_enums:
 			GDScriptUtils.encode_tag(buffer, 2, 14)
 			GDScriptUtils.encode_varint(buffer, item)
  
@@ -402,12 +402,12 @@ class MsgTest extends Message:
  
 			match field_number:
 				1:
-					var value = GDScriptUtils.decode_message(data, pos, common_msg)
-					common_msg = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_message(data, pos, common_msg)
+				self.common_msg = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				2:
 					var value = GDScriptUtils.decode_varint(data, pos)
-					common_enums.append_array([value[GDScriptUtils.VALUE_KEY]])
+					self.common_enums.append_array([value[GDScriptUtils.VALUE_KEY]])
 					pos += value[GDScriptUtils.SIZE_KEY]
 				_:
 					pass
@@ -415,21 +415,21 @@ class MsgTest extends Message:
 		return pos
 
 	func SerializeToDictionary() -> Dictionary:
-		var map = {}
-		if common_msg != null:
-			map["common_msg"] = common_msg.SerializeToDictionary()
-		map["common_enums"] = common_enums
-		return map
+		var _tmap = {}
+		if self.common_msg != null:
+			_tmap["common_msg"] = self.common_msg.SerializeToDictionary()
+		_tmap["common_enums"] = self.common_enums
+		return _tmap
 
-	func ParseFromDictionary(data: Dictionary) -> void:
-		if data == null:
+	func ParseFromDictionary(_fmap: Dictionary) -> void:
+		if _fmap == null:
 			return
 
-		if "common_msg" in data:
-			if data["common_msg"] != null:
-				common_msg.ParseFromDictionary(data["common_msg"])
-		if "common_enums" in data:
-			common_enums = data["common_enums"]
+		if "common_msg" in _fmap:
+			if _fmap["common_msg"] != null:
+				self.common_msg.ParseFromDictionary(_fmap["common_msg"])
+		if "common_enums" in _fmap:
+			self.common_enums = _fmap["common_enums"]
 
 # =========================================
 

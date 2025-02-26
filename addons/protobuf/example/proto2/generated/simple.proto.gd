@@ -21,32 +21,32 @@ class SimpleMessage extends Message:
  
 	func MergeFrom(other : Message) -> void:
 		if other is SimpleMessage:
-			name += other.name
-			value += other.value
-			tags.append_array(other.tags)
-			active = other.active
-			score += other.score
+			self.name += other.name
+			self.value += other.value
+			self.tags.append_array(other.tags)
+			self.active = other.active
+			self.score += other.score
  
 	func SerializeToBytes(buffer: PackedByteArray = PackedByteArray()) -> PackedByteArray:
-		if name != "simple_demo":
+		if self.name != "simple_demo":
 			GDScriptUtils.encode_tag(buffer, 1, 9)
-			GDScriptUtils.encode_string(buffer, name)
+			GDScriptUtils.encode_string(buffer, self.name)
  
-		if value != 100:
+		if self.value != 100:
 			GDScriptUtils.encode_tag(buffer, 2, 5)
-			GDScriptUtils.encode_varint(buffer, value)
+			GDScriptUtils.encode_varint(buffer, self.value)
  
-		for item in tags:
+		for item in self.tags:
 			GDScriptUtils.encode_tag(buffer, 3, 9)
 			GDScriptUtils.encode_string(buffer, item)
  
-		if active != false:
+		if self.active != false:
 			GDScriptUtils.encode_tag(buffer, 4, 8)
-			GDScriptUtils.encode_bool(buffer, active)
+			GDScriptUtils.encode_bool(buffer, self.active)
  
-		if score != 0.5:
+		if self.score != 0.5:
 			GDScriptUtils.encode_tag(buffer, 5, 1)
-			GDScriptUtils.encode_double(buffer, score)
+			GDScriptUtils.encode_double(buffer, self.score)
  
 		return buffer
  
@@ -61,55 +61,53 @@ class SimpleMessage extends Message:
  
 			match field_number:
 				1:
-					var value = GDScriptUtils.decode_string(data, pos, self)
-					name = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_string(data, pos, self)
+				self.name = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				2:
-					var decoded = GDScriptUtils.decode_varint(data, pos, self)
-					self.value = decoded[GDScriptUtils.VALUE_KEY]
-					pos += decoded[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_varint(data, pos, self)
+				self.value = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				3:
 					var value = GDScriptUtils.decode_string(data, pos)
-					tags.append_array([value[GDScriptUtils.VALUE_KEY]])
+					self.tags.append_array([value[GDScriptUtils.VALUE_KEY]])
 					pos += value[GDScriptUtils.SIZE_KEY]
 				4:
-					var value = GDScriptUtils.decode_bool(data, pos, self)
-					active = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_bool(data, pos, self)
+				self.active = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				5:
-					var value = GDScriptUtils.decode_double(data, pos, self)
-					score = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+				var value = GDScriptUtils.decode_double(data, pos, self)
+				self.score = value[GDScriptUtils.VALUE_KEY]
+				pos += value[GDScriptUtils.SIZE_KEY]
 				_:
 					pass
 
 		return pos
 
 	func SerializeToDictionary() -> Dictionary:
-		var map = {}
-		map["name"] = name
-		map["value"] = value
-		map["tags"] = tags
-		map["active"] = active
-		map["score"] = score
-		return map
+		var _tmap = {}
+		_tmap["name"] = self.name
+		_tmap["value"] = self.value
+		_tmap["tags"] = self.tags
+		_tmap["active"] = self.active
+		_tmap["score"] = self.score
+		return _tmap
 
-	func ParseFromDictionary(data: Dictionary) -> void:
-		if data == null:
+	func ParseFromDictionary(_fmap: Dictionary) -> void:
+		if _fmap == null:
 			return
 
-		if "name" in data:
-			name = data["name"]
-		if "value" in data:
-			value = data["value"]
-		if "tags" in data:
-			tags = data["tags"]
-		if "active" in data:
-			active = data["active"]
-		if "score" in data:
-			score = data["score"]
-
-#	func _to_string() -> String:
-#		return "SimpleMessage{name='%s', value=%d, tags=%s, active=%s, score=%f}" % [name, value, tags, active, score]
+		if "name" in _fmap:
+			self.name = _fmap["name"]
+		if "value" in _fmap:
+			self.value = _fmap["value"]
+		if "tags" in _fmap:
+			self.tags = _fmap["tags"]
+		if "active" in _fmap:
+			self.active = _fmap["active"]
+		if "score" in _fmap:
+			self.score = _fmap["score"]
 
 # =========================================
+

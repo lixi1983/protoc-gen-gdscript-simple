@@ -17,9 +17,9 @@ static var SIZE_KEY = "size"    # Key for storing the size in bytes of the decod
 ## @param bytes The target byte array to encode into
 ## @param value The boolean value to encode
 static func encode_bool(bytes: PackedByteArray, value: bool)  :
-    var s = bytes.size()
-    bytes.resize(s + 1)
-    bytes.encode_u8(s, 1 if value else 0)
+	var s = bytes.size()
+	bytes.resize(s + 1)
+	bytes.encode_u8(s, 1 if value else 0)
 
 ## Decodes a boolean value from a byte array.
 ## @param bytes The source byte array
@@ -27,18 +27,18 @@ static func encode_bool(bytes: PackedByteArray, value: bool)  :
 ## @param msg Optional message instance (unused for bool)
 ## @return Dictionary containing the decoded value and its size in bytes
 static func decode_bool(bytes: PackedByteArray, offset: int, msg: Message = null) -> Dictionary:
-    var value = bytes.decode_u8(offset)
-    return {VALUE_KEY: true if value == 1 else false, SIZE_KEY: 1}
+	var value = bytes.decode_u8(offset)
+	return {VALUE_KEY: true if value == 1 else false, SIZE_KEY: 1}
 
 ## Encodes a 32-bit integer into a byte array.
 ## Note: In GDScript 4+, integers are 64-bit, so the high 32 bits will be truncated.
 ## @param bytes The target byte array to encode into
 ## @param value The integer value to encode
 static func encode_int32(bytes: PackedByteArray, value: int) :
-    var s = bytes.size()
-    bytes.resize(s + 4)
-    bytes.encode_s32(s, value)
-    return bytes
+	var s = bytes.size()
+	bytes.resize(s + 4)
+	bytes.encode_s32(s, value)
+	return bytes
 
 ## Decodes a 32-bit integer from a byte array.
 ## @param bytes The source byte array
@@ -46,18 +46,18 @@ static func encode_int32(bytes: PackedByteArray, value: int) :
 ## @param msg Optional message instance (unused for int32)
 ## @return Dictionary containing the decoded value and its size in bytes
 static func decode_int32(bytes: PackedByteArray, offset: int, msg: Message = null) -> Dictionary:
-    var value = bytes.decode_s32(offset)
-    return {VALUE_KEY: value, SIZE_KEY: 4}
+	var value = bytes.decode_s32(offset)
+	return {VALUE_KEY: value, SIZE_KEY: 4}
 
 static func encode_int64(bytes: PackedByteArray, value: int) :
-    var s = bytes.size()
-    bytes.resize(s + 8)
-    bytes.encode_s64(s, value)
-    return bytes
+	var s = bytes.size()
+	bytes.resize(s + 8)
+	bytes.encode_s64(s, value)
+	return bytes
 
 static func decode_int64(bytes: PackedByteArray, offset: int, msg: Message = null) -> Dictionary:
-    var value = bytes.decode_s64(offset)
-    return {VALUE_KEY: value, SIZE_KEY: 8}
+	var value = bytes.decode_s64(offset)
+	return {VALUE_KEY: value, SIZE_KEY: 8}
 
 ## Encodes an integer as a variable-length integer (varint).
 ## Varints are used to encode integers using one or more bytes.
@@ -65,12 +65,12 @@ static func decode_int64(bytes: PackedByteArray, offset: int, msg: Message = nul
 ## @param bytes The target byte array to encode into
 ## @param value The integer value to encode
 static func encode_varint( bytes: PackedByteArray, value: int) :
-    while value > 0x7F:
-        var b = (value & 0x7F) | 0x80
-        bytes.append(b)
-        value = value >> 7
+	while value > 0x7F:
+		var b = (value & 0x7F) | 0x80
+		bytes.append(b)
+		value = value >> 7
 
-    bytes.append(value & 0x7F)
+	bytes.append(value & 0x7F)
 
 ## Decodes a variable-length integer (varint) from a byte array.
 ## @param bytes The source byte array
@@ -78,29 +78,29 @@ static func encode_varint( bytes: PackedByteArray, value: int) :
 ## @param msg Optional message instance (unused for varint)
 ## @return Dictionary containing the decoded value and its size in bytes
 static func decode_varint(bytes: PackedByteArray, offset: int, msg: Message = null) -> Dictionary:
-    var value = 0
-    var shift = 0
-    var pos = 0
+	var value = 0
+	var shift = 0
+	var pos = 0
 
-    while ( offset + pos ) < bytes.size():
-        var byte = bytes[offset + pos]
-        value |= (byte & 0x7F) << shift
-        pos += 1
-        if (byte & 0x80) == 0:
-            break
-        shift += 7
+	while ( offset + pos ) < bytes.size():
+		var byte = bytes[offset + pos]
+		value |= (byte & 0x7F) << shift
+		pos += 1
+		if (byte & 0x80) == 0:
+			break
+		shift += 7
 
-    return {VALUE_KEY: value, SIZE_KEY: pos}
+	return {VALUE_KEY: value, SIZE_KEY: pos}
 
 static func varint_size(bytes: PackedByteArray, offset: int) -> int:
-    var size = 0
-    var pos = offset
-    while pos < bytes.size():
-        size += 1
-        if (bytes[pos] & 0x80) == 0:
-            break
-        pos += 1
-    return size
+	var size = 0
+	var pos = offset
+	while pos < bytes.size():
+		size += 1
+		if (bytes[pos] & 0x80) == 0:
+			break
+		pos += 1
+	return size
 
 
 ## Encodes a single-precision floating-point number into a byte array.
@@ -109,10 +109,10 @@ static func varint_size(bytes: PackedByteArray, offset: int) -> int:
 ## @param bytes The target byte array to encode into
 ## @param value The float value to encode
 static func encode_float(bytes: PackedByteArray, value: float) :
-    var s = bytes.size()
-    bytes.resize(s + 4)
-    bytes.encode_float(s, value)
-    return bytes
+	var s = bytes.size()
+	bytes.resize(s + 4)
+	bytes.encode_float(s, value)
+	return bytes
 
 ## Decodes a single-precision floating-point number from a byte array.
 ## @param bytes The source byte array
@@ -120,28 +120,28 @@ static func encode_float(bytes: PackedByteArray, value: float) :
 ## @param msg Optional message instance (unused for float)
 ## @return Dictionary containing the decoded value and its size in bytes
 static func decode_float(bytes: PackedByteArray, offset: int, msg: Message = null) -> Dictionary:
-    var value = bytes.decode_float(offset)
-    return {VALUE_KEY: value, SIZE_KEY: 4}
+	var value = bytes.decode_float(offset)
+	return {VALUE_KEY: value, SIZE_KEY: 4}
 
 static func encode_double(bytes: PackedByteArray, value: float) :
-    var s = bytes.size()
-    bytes.resize(s + 8)
-    bytes.encode_double(s, value)
-    return bytes
+	var s = bytes.size()
+	bytes.resize(s + 8)
+	bytes.encode_double(s, value)
+	return bytes
 
 static func decode_double(bytes: PackedByteArray, offset: int, msg: Message = null) -> Dictionary:
-    var value = bytes.decode_double(offset)
-    return {VALUE_KEY: value, SIZE_KEY: 8}
+	var value = bytes.decode_double(offset)
+	return {VALUE_KEY: value, SIZE_KEY: 8}
 
 ## Encodes a string into a byte array using UTF-8 encoding.
 ## The string is prefixed with its length as a varint.
 ## @param bytes The target byte array to encode into
 ## @param value The string value to encode
 static func encode_string(bytes: PackedByteArray, value: String):
-    var utf8_value = value.to_utf8_buffer()
-    var size = utf8_value.size()
-    encode_varint(bytes, size)
-    bytes.append_array(utf8_value)
+	var utf8_value = value.to_utf8_buffer()
+	var size = utf8_value.size()
+	encode_varint(bytes, size)
+	bytes.append_array(utf8_value)
 
 ## Decodes a string from a byte array using UTF-8 encoding.
 ## The string is prefixed with its length as a varint.
@@ -150,36 +150,44 @@ static func encode_string(bytes: PackedByteArray, value: String):
 ## @param msg Optional message instance (unused for string)
 ## @return Dictionary containing the decoded string and total size in bytes
 static func decode_string(bytes: PackedByteArray, offset: int, msg: Message = null) -> Dictionary:
-    var info = decode_varint(bytes, offset)
-    var size = info[VALUE_KEY]
-    var size_len = info[SIZE_KEY]
+	var info = decode_varint(bytes, offset)
+	if not (info is Dictionary) or not info.has(VALUE_KEY) or not info.has(SIZE_KEY):
+		push_error("Invalid varint decoding result")
+		return {VALUE_KEY: "", SIZE_KEY: 0}
+		
+	var size = info[VALUE_KEY]
+	var size_len = info[SIZE_KEY]
 
-    var str_bytes = bytes.slice(offset + size_len, offset + size_len + size)
-    var value = str_bytes.get_string_from_utf8()
+	if size < 0 or (offset + size_len + size) > bytes.size():
+#        push_error("Invalid string size or bounds")
+		return {VALUE_KEY: "", SIZE_KEY: 0}
 
-    return {VALUE_KEY: value, SIZE_KEY: size_len + size}
+	var str_bytes = bytes.slice(offset + size_len, offset + size_len + size)
+	var value = str_bytes.get_string_from_utf8()
+
+	return {VALUE_KEY: value, SIZE_KEY: size_len + size}
 
 static func encode_bytes(bytes: PackedByteArray, value: PackedByteArray):
-    var size = value.size()
-    encode_varint(bytes, size)
-    bytes.append_array(value)
+	var size = value.size()
+	encode_varint(bytes, size)
+	bytes.append_array(value)
 
 static func decode_bytes(bytes: PackedByteArray, offset: int, msg: Message = null) -> Dictionary:
-    var info = decode_varint(bytes, offset)
-    var value_len = info[VALUE_KEY]
-    var size = info[SIZE_KEY]
-    var value = bytes.slice(offset + size, offset + size + value_len)
-    return {VALUE_KEY: value, SIZE_KEY: value_len + size}
+	var info = decode_varint(bytes, offset)
+	var value_len = info[VALUE_KEY]
+	var size = info[SIZE_KEY]
+	var value = bytes.slice(offset + size, offset + size + value_len)
+	return {VALUE_KEY: value, SIZE_KEY: value_len + size}
 
 ## Encodes a nested message into a byte array.
 ## The message is first serialized, then prefixed with its length as a varint.
 ## @param bytes The target byte array to encode into
 ## @param value The Message instance to encode
 static func encode_message(bytes: PackedByteArray, value: Message):
-    var msg_bytes = value.SerializeToBytes()
-    var size = msg_bytes.size()
-    encode_varint(bytes, size)
-    bytes.append_array(msg_bytes)
+	var msg_bytes = value.SerializeToBytes()
+	var size = msg_bytes.size()
+	encode_varint(bytes, size)
+	bytes.append_array(msg_bytes)
 
 ## Decodes a nested message from a byte array.
 ## The message is prefixed with its length as a varint.
@@ -188,35 +196,35 @@ static func encode_message(bytes: PackedByteArray, value: Message):
 ## @param msg The Message instance to populate with decoded data
 ## @return Dictionary containing the decoded message and total size in bytes
 static func decode_message(bytes: PackedByteArray, offset: int, msg: Message = null) -> Dictionary:
-    if msg == null:
-        return {VALUE_KEY: null, SIZE_KEY: 0}
+	if msg == null:
+		return {VALUE_KEY: null, SIZE_KEY: 0}
 
-    var tag = decode_varint(bytes, offset)
-    var tag_size = tag[SIZE_KEY]
-    var msg_size = tag[VALUE_KEY]
+	var tag = decode_varint(bytes, offset)
+	var tag_size = tag[SIZE_KEY]
+	var msg_size = tag[VALUE_KEY]
 
-    if offset + tag_size + msg_size > bytes.size():
-        return {VALUE_KEY: msg, SIZE_KEY: offset + tag_size}
+	if offset + tag_size + msg_size > bytes.size():
+		return {VALUE_KEY: msg, SIZE_KEY: offset + tag_size}
 
-    var msg_bytes = bytes.slice(offset + tag_size, offset + tag_size + msg_size)
-    var pos = msg.ParseFromBytes(msg_bytes)
-    return {VALUE_KEY: msg, SIZE_KEY: pos + tag_size}
+	var msg_bytes = bytes.slice(offset + tag_size, offset + tag_size + msg_size)
+	var pos = msg.ParseFromBytes(msg_bytes)
+	return {VALUE_KEY: msg, SIZE_KEY: pos + tag_size}
 
 static func decode_tag(bytes: PackedByteArray, offset: int, msg: Message = null) -> Dictionary:
-    var value = decode_varint(bytes, offset)
-    var v = value[VALUE_KEY]
-    var tag = v >> 3
-    value[VALUE_KEY] = tag
-    return value
+	var value = decode_varint(bytes, offset)
+	var v = value[VALUE_KEY]
+	var tag = v >> 3
+	value[VALUE_KEY] = tag
+	return value
 
 ## Encodes a field tag, which consists of the field number and wire type.
 ## @param bytes The target byte array to encode into
 ## @param tag The field number
 ## @param field_type The protobuf field type (used to determine wire type)
 static func encode_tag(bytes: PackedByteArray, tag: int, field_type: int):
-    var wire_type = FieldDescriptor.get_wire_type(field_type)
-    var value = (tag << 3) | wire_type
-    encode_varint(bytes, value)
+	var wire_type = FieldDescriptor.get_wire_type(field_type)
+	var value = (tag << 3) | wire_type
+	encode_varint(bytes, value)
 
 ## Encodes a 32-bit integer using ZigZag encoding.
 ## ZigZag encoding maps signed integers to unsigned integers in a way that
@@ -224,8 +232,8 @@ static func encode_tag(bytes: PackedByteArray, tag: int, field_type: int):
 ## @param bytes The target byte array to encode into
 ## @param value The integer value to encode
 static func encode_zigzag32(bytes: PackedByteArray, value: int):
-    var zv = (value << 1) ^ (value >> 31)
-    encode_varint(bytes, zv)
+	var zv = (value << 1) ^ (value >> 31)
+	encode_varint(bytes, zv)
 
 ## Decodes a 32-bit ZigZag-encoded integer.
 ## @param bytes The source byte array
@@ -233,22 +241,22 @@ static func encode_zigzag32(bytes: PackedByteArray, value: int):
 ## @param msg Optional message instance (unused for zigzag)
 ## @return Dictionary containing the decoded value and its size in bytes
 static func decode_zigzag32(bytes: PackedByteArray, offset: int, msg: Message = null) -> Dictionary:
-    var value_d = decode_varint(bytes, offset, msg )
-    var value = value_d[VALUE_KEY]
-    value = (value >> 1) ^ -(value & 1)
-    return {VALUE_KEY: value, SIZE_KEY: value_d[SIZE_KEY]}
+	var value_d = decode_varint(bytes, offset, msg )
+	var value = value_d[VALUE_KEY]
+	value = (value >> 1) ^ -(value & 1)
+	return {VALUE_KEY: value, SIZE_KEY: value_d[SIZE_KEY]}
 
 
 static func encode_zigzag64(bytes: PackedByteArray, value: int) :
-    print("zig64 value: ", value)
-    var zv = (value << 1) ^ (value >> 63)
-    print("zv value: ", zv)
-    encode_varint(bytes, zv)
+	print("zig64 value: ", value)
+	var zv = (value << 1) ^ (value >> 63)
+	print("zv value: ", zv)
+	encode_varint(bytes, zv)
 
 static func decode_zigzag64(bytes: PackedByteArray, offset: int, msg: Message = null) -> Dictionary:
 #    return (value >> 1) ^ -(value & 1)
-    var value_d = decode_varint(bytes, offset, msg )
+	var value_d = decode_varint(bytes, offset, msg )
 #    var value_d = decode_int64(bytes, offset, msg )
-    var value = value_d[VALUE_KEY]
-    value = (value >> 1) ^ -(value & 1)
-    return {VALUE_KEY: value, SIZE_KEY: value_d[SIZE_KEY]}
+	var value = value_d[VALUE_KEY]
+	value = (value >> 1) ^ -(value & 1)
+	return {VALUE_KEY: value, SIZE_KEY: value_d[SIZE_KEY]}
