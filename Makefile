@@ -133,7 +133,14 @@ check_python:
 	@echo "Using Python: $(shell which $(PYTHON))"
 	@echo "Python Version: $(shell ($(PYTHON) --version))"
 
-serialize:	proto3_serialize
+serialize:	proto3_serialize proto2_serialize
 
 proto3_serialize:
-	${GODOT} --headless --script addons/protobuf/test/proto3/test_logic/proto_serialize.gd
+	${GODOT} --headless --script addons/protobuf/example/proto3/test/proto_serialize.gd
+
+proto2_serialize:
+	${GODOT} --headless --script addons/protobuf/example/proto2/test/test_simple_message.gd
+	${GODOT} --headless --script addons/protobuf/example/proto2/test/test_complex_message.gd
+
+http_client:
+	${GODOT} --headless --script addons/protobuf/example/http_client/http_client.gd

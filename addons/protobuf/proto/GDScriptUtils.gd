@@ -162,7 +162,6 @@ static func decode_string(bytes: PackedByteArray, offset: int, msg: Message = nu
 static func encode_bytes(bytes: PackedByteArray, value: PackedByteArray):
     var size = value.size()
     encode_varint(bytes, size)
-    bytes.resize(bytes.size() + value.size())
     bytes.append_array(value)
 
 static func decode_bytes(bytes: PackedByteArray, offset: int, msg: Message = null) -> Dictionary:
@@ -253,4 +252,3 @@ static func decode_zigzag64(bytes: PackedByteArray, offset: int, msg: Message = 
     var value = value_d[VALUE_KEY]
     value = (value >> 1) ^ -(value & 1)
     return {VALUE_KEY: value, SIZE_KEY: value_d[SIZE_KEY]}
-

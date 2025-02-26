@@ -1,9 +1,15 @@
 syntax = "proto2";
 
+enum SimpleEnum {
+  UNKNOWN = 0;
+  VALUE1 = 1;
+  VALUE2 = 2;
+}
+
 message SimpleMessage {
   optional string name = 1 [default = "simple_demo"];
   optional int32 value = 2 [default = 100];
   repeated string tags = 3;
   optional bool active = 4 [default = false];
-  optional float score = 5 [default = 0.5];
+  optional double score = 5 [default = 0.5];
 }

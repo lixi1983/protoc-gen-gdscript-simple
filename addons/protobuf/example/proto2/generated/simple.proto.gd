@@ -3,6 +3,12 @@
 const GDScriptUtils = preload("res://addons/protobuf/proto/GDScriptUtils.gd")
 const Message = preload("res://addons/protobuf/proto/Message.gd")
 
+enum SimpleEnum {
+	UNKNOWN = 0,
+	VALUE1 = 1,
+	VALUE2 = 2,
+} 
+ 
 class SimpleMessage extends Message:
 	var name: String = "simple_demo"
 	var value: int = 100
@@ -39,8 +45,8 @@ class SimpleMessage extends Message:
 			GDScriptUtils.encode_bool(buffer, active)
  
 		if score != 0.5:
-			GDScriptUtils.encode_tag(buffer, 5, 2)
-			GDScriptUtils.encode_float(buffer, score)
+			GDScriptUtils.encode_tag(buffer, 5, 1)
+			GDScriptUtils.encode_double(buffer, score)
  
 		return buffer
  
@@ -59,9 +65,9 @@ class SimpleMessage extends Message:
 					name = value[GDScriptUtils.VALUE_KEY]
 					pos += value[GDScriptUtils.SIZE_KEY]
 				2:
-					var value = GDScriptUtils.decode_varint(data, pos, self)
-					value = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+					var decoded = GDScriptUtils.decode_varint(data, pos, self)
+					self.value = decoded[GDScriptUtils.VALUE_KEY]
+					pos += decoded[GDScriptUtils.SIZE_KEY]
 				3:
 					var value = GDScriptUtils.decode_string(data, pos)
 					tags.append_array([value[GDScriptUtils.VALUE_KEY]])
@@ -71,7 +77,7 @@ class SimpleMessage extends Message:
 					active = value[GDScriptUtils.VALUE_KEY]
 					pos += value[GDScriptUtils.SIZE_KEY]
 				5:
-					var value = GDScriptUtils.decode_float(data, pos, self)
+					var value = GDScriptUtils.decode_double(data, pos, self)
 					score = value[GDScriptUtils.VALUE_KEY]
 					pos += value[GDScriptUtils.SIZE_KEY]
 				_:
@@ -103,5 +109,7 @@ class SimpleMessage extends Message:
 		if "score" in data:
 			score = data["score"]
 
-# =========================================
+#	func _to_string() -> String:
+#		return "SimpleMessage{name='%s', value=%d, tags=%s, active=%s, score=%f}" % [name, value, tags, active, score]
 
+# =========================================

@@ -64,11 +64,11 @@ class ComplexMessage extends Message:
 					match field_number:
 						1:
 							var value = GDScriptUtils.decode_string(data, pos, self)
-							data = value[GDScriptUtils.VALUE_KEY]
+							self.data = value[GDScriptUtils.VALUE_KEY]
 							pos += value[GDScriptUtils.SIZE_KEY]
 						2:
 							var value = GDScriptUtils.decode_varint(data, pos)
-							numbers.append_array([value[GDScriptUtils.VALUE_KEY]])
+							numbers.append(value[GDScriptUtils.VALUE_KEY])
 							pos += value[GDScriptUtils.SIZE_KEY]
 						_:
 							pass
@@ -86,7 +86,7 @@ class ComplexMessage extends Message:
 					return
 
 				if "data" in data:
-					data = data["data"]
+					self.data = data["data"]
 				if "numbers" in data:
 					numbers = data["numbers"]
 
@@ -130,7 +130,7 @@ class ComplexMessage extends Message:
 						pos += value[GDScriptUtils.SIZE_KEY]
 					2:
 						var value = GDScriptUtils.decode_varint(data, pos, self)
-						value = value[GDScriptUtils.VALUE_KEY]
+						self.value = value[GDScriptUtils.VALUE_KEY]
 						pos += value[GDScriptUtils.SIZE_KEY]
 					3:
 						var value = GDScriptUtils.decode_message(data, pos, deep)
@@ -201,7 +201,7 @@ class ComplexMessage extends Message:
 			GDScriptUtils.encode_string(buffer, string_field)
  
 		if bytes_field != PackedByteArray():
-			GDScriptUtils.encode_tag(buffer, 6, 12)
+			GDScriptUtils.encode_tag(buffer, 6, 2)
 			GDScriptUtils.encode_bytes(buffer, bytes_field)
  
 		if status != ComplexMessage.Status.UNKNOWN:
@@ -209,8 +209,9 @@ class ComplexMessage extends Message:
 			GDScriptUtils.encode_varint(buffer, status)
  
 		for item in nested_messages:
-			GDScriptUtils.encode_tag(buffer, 8, 11)
-			GDScriptUtils.encode_message(buffer, item)
+			if item != null:
+				GDScriptUtils.encode_tag(buffer, 8, 11)
+				GDScriptUtils.encode_message(buffer, item)
  
 		if name != "":
 			GDScriptUtils.encode_tag(buffer, 11, 9)
@@ -269,8 +270,9 @@ class ComplexMessage extends Message:
 					status = value[GDScriptUtils.VALUE_KEY]
 					pos += value[GDScriptUtils.SIZE_KEY]
 				8:
-					var value = GDScriptUtils.decode_message(data, pos)
-					nested_messages.append_array([value[GDScriptUtils.VALUE_KEY]])
+					var nested = ComplexMessage.NestedMessage.new()
+					var value = GDScriptUtils.decode_message(data, pos, nested)
+					nested_messages.append(value[GDScriptUtils.VALUE_KEY])
 					pos += value[GDScriptUtils.SIZE_KEY]
 				11:
 					var value = GDScriptUtils.decode_string(data, pos, self)
@@ -286,7 +288,7 @@ class ComplexMessage extends Message:
 					pos += value[GDScriptUtils.SIZE_KEY]
 				14:
 					var value = GDScriptUtils.decode_varint(data, pos)
-					status_list.append_array([value[GDScriptUtils.VALUE_KEY]])
+					status_list.append(value[GDScriptUtils.VALUE_KEY])
 					pos += value[GDScriptUtils.SIZE_KEY]
 				_:
 					pass
@@ -345,7 +347,6 @@ class ComplexMessage extends Message:
 class TreeNode extends Message:
 	var value: String = ""
 	var children = []
-	var parent: TreeNode = TreeNode.new()
 
 	func New() -> Message:
 		return TreeNode.new()
@@ -354,20 +355,16 @@ class TreeNode extends Message:
 		if other is TreeNode:
 			value += other.value
 			children.append_array(other.children)
-			parent.MergeFrom(other.parent)
  
 	func SerializeToBytes(buffer: PackedByteArray = PackedByteArray()) -> PackedByteArray:
 		if value != "":
 			GDScriptUtils.encode_tag(buffer, 1, 9)
 			GDScriptUtils.encode_string(buffer, value)
  
-		for item in children:
-			GDScriptUtils.encode_tag(buffer, 2, 11)
-			GDScriptUtils.encode_message(buffer, item)
- 
-		if parent != null:
-			GDScriptUtils.encode_tag(buffer, 3, 11)
-			GDScriptUtils.encode_message(buffer, parent)
+		for child in children:
+			if child != null:
+				GDScriptUtils.encode_tag(buffer, 2, 11)
+				GDScriptUtils.encode_message(buffer, child)
  
 		return buffer
  
@@ -382,28 +379,27 @@ class TreeNode extends Message:
  
 			match field_number:
 				1:
-					var value = GDScriptUtils.decode_string(data, pos, self)
-					value = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+					var value_data = GDScriptUtils.decode_string(data, pos, self)
+					value = value_data[GDScriptUtils.VALUE_KEY]
+					pos += value_data[GDScriptUtils.SIZE_KEY]
 				2:
-					var value = GDScriptUtils.decode_message(data, pos)
-					children.append_array([value[GDScriptUtils.VALUE_KEY]])
-					pos += value[GDScriptUtils.SIZE_KEY]
-				3:
-					var value = GDScriptUtils.decode_message(data, pos, parent)
-					parent = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+					var child = TreeNode.new()
+					var child_data = GDScriptUtils.decode_message(data, pos, child)
+					children.append(child_data[GDScriptUtils.VALUE_KEY])
+					pos += child_data[GDScriptUtils.SIZE_KEY]
 				_:
 					pass
-
+ 
 		return pos
 
 	func SerializeToDictionary() -> Dictionary:
 		var map = {}
 		map["value"] = value
-		map["children"] = children
-		if parent != null:
-			map["parent"] = parent.SerializeToDictionary()
+		var children_array = []
+		for child in children:
+			if child != null:
+				children_array.append(child.SerializeToDictionary())
+		map["children"] = children_array
 		return map
 
 	func ParseFromDictionary(data: Dictionary) -> void:
@@ -413,10 +409,12 @@ class TreeNode extends Message:
 		if "value" in data:
 			value = data["value"]
 		if "children" in data:
-			children = data["children"]
-		if "parent" in data:
-			if data["parent"] != null:
-				parent.ParseFromDictionary(data["parent"])
+			children.clear()
+			for child_data in data["children"]:
+				if child_data != null:
+					var child = TreeNode.new()
+					child.ParseFromDictionary(child_data)
+					children.append(child)
 
 # =========================================
 
@@ -846,4 +844,3 @@ class FieldRules extends Message:
 			repeated_message = data["repeated_message"]
 
 # =========================================
-

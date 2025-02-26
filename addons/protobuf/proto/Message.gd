@@ -61,3 +61,6 @@ func SerializeToJson() -> String:
 
 func ToString() -> String:
 	return SerializeToJson()
+
+func _to_string() -> String:
+	return ToString()

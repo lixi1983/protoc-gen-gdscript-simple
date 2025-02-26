@@ -1,7 +1,7 @@
 extends SceneTree
 
-const proto3Test = preload("res://proto3/test.proto.gd")
-const common = preload("res://proto3/common.proto.gd")
+const proto3Test = preload("res://addons/protobuf/example/proto3/generated/test.proto.gd")
+const common = preload("res://addons/protobuf/example/proto3/generated/common.proto.gd")
 
 var websocket: WebSocketPeer
 const REQUEST_TIMEOUT: float = 5.0  # 5 seconds timeout
