@@ -63,13 +63,15 @@ class ComplexMessage extends Message:
  
 					match field_number:
 						1:
-						var value = GDScriptUtils.decode_string(data, pos, self)
-						self.data = value[GDScriptUtils.VALUE_KEY]
-						pos += value[GDScriptUtils.SIZE_KEY]
-						2:
-							var value = GDScriptUtils.decode_varint(data, pos)
-							self.numbers.append_array([value[GDScriptUtils.VALUE_KEY]])
+							var value = GDScriptUtils.decode_string(data, pos, self)
+							self.data = value[GDScriptUtils.VALUE_KEY]
 							pos += value[GDScriptUtils.SIZE_KEY]
+						2:
+							var item_value = []
+							var field_value = GDScriptUtils.decode_varint(data, pos, self)
+							item_value = field_value[GDScriptUtils.VALUE_KEY]
+							pos += field_value[GDScriptUtils.SIZE_KEY]
+							self.numbers.append(item_value)
 						_:
 							pass
 
@@ -125,17 +127,17 @@ class ComplexMessage extends Message:
  
 				match field_number:
 					1:
-					var value = GDScriptUtils.decode_string(data, pos, self)
-					self.id = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+						var value = GDScriptUtils.decode_string(data, pos, self)
+						self.id = value[GDScriptUtils.VALUE_KEY]
+						pos += value[GDScriptUtils.SIZE_KEY]
 					2:
-					var value = GDScriptUtils.decode_varint(data, pos, self)
-					self.value = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+						var value = GDScriptUtils.decode_varint(data, pos, self)
+						self.value = value[GDScriptUtils.VALUE_KEY]
+						pos += value[GDScriptUtils.SIZE_KEY]
 					3:
-					var value = GDScriptUtils.decode_message(data, pos, deep)
-					self.deep = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+						var value = GDScriptUtils.decode_message(data, pos, deep)
+						self.deep = value[GDScriptUtils.VALUE_KEY]
+						pos += value[GDScriptUtils.SIZE_KEY]
 					_:
 						pass
 
@@ -241,53 +243,57 @@ class ComplexMessage extends Message:
  
 			match field_number:
 				1:
-				var value = GDScriptUtils.decode_varint(data, pos, self)
-				self.int_field = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_varint(data, pos, self)
+					self.int_field = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 				2:
-				var value = GDScriptUtils.decode_varint(data, pos, self)
-				self.long_field = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_varint(data, pos, self)
+					self.long_field = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 				3:
-				var value = GDScriptUtils.decode_bool(data, pos, self)
-				self.bool_field = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_bool(data, pos, self)
+					self.bool_field = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 				4:
-				var value = GDScriptUtils.decode_float(data, pos, self)
-				self.float_field = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_float(data, pos, self)
+					self.float_field = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 				5:
-				var value = GDScriptUtils.decode_string(data, pos, self)
-				self.string_field = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_string(data, pos, self)
+					self.string_field = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 				6:
-				var value = GDScriptUtils.decode_bytes(data, pos, self)
-				self.bytes_field = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_bytes(data, pos, self)
+					self.bytes_field = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 				7:
-				var value = GDScriptUtils.decode_varint(data, pos, self)
-				self.status = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_varint(data, pos, self)
+					self.status = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 				8:
-					var value = GDScriptUtils.decode_message(data, pos)
-					self.nested_messages.append_array([value[GDScriptUtils.VALUE_KEY]])
-					pos += value[GDScriptUtils.SIZE_KEY]
+					var item_value = ComplexMessage.NestedMessage.new()
+					var field_value = GDScriptUtils.decode_message(data, pos, item_value)
+					item_value = field_value[GDScriptUtils.VALUE_KEY]
+					pos += field_value[GDScriptUtils.SIZE_KEY]
+					self.nested_messages.append(item_value)
 				11:
-				var value = GDScriptUtils.decode_string(data, pos, self)
-				self.name = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
-				12:
-				var value = GDScriptUtils.decode_varint(data, pos, self)
-				self.id = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
-				13:
-				var value = GDScriptUtils.decode_message(data, pos, message)
-				self.message = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
-				14:
-					var value = GDScriptUtils.decode_varint(data, pos)
-					self.status_list.append_array([value[GDScriptUtils.VALUE_KEY]])
+					var value = GDScriptUtils.decode_string(data, pos, self)
+					self.name = value[GDScriptUtils.VALUE_KEY]
 					pos += value[GDScriptUtils.SIZE_KEY]
+				12:
+					var value = GDScriptUtils.decode_varint(data, pos, self)
+					self.id = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
+				13:
+					var value = GDScriptUtils.decode_message(data, pos, message)
+					self.message = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
+				14:
+					var item_value = []
+					var field_value = GDScriptUtils.decode_varint(data, pos, self)
+					item_value = field_value[GDScriptUtils.VALUE_KEY]
+					pos += field_value[GDScriptUtils.SIZE_KEY]
+					self.status_list.append(item_value)
 				_:
 					pass
 
@@ -382,17 +388,19 @@ class TreeNode extends Message:
  
 			match field_number:
 				1:
-				var value = GDScriptUtils.decode_string(data, pos, self)
-				self.value = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
-				2:
-					var value = GDScriptUtils.decode_message(data, pos)
-					self.children.append_array([value[GDScriptUtils.VALUE_KEY]])
+					var value = GDScriptUtils.decode_string(data, pos, self)
+					self.value = value[GDScriptUtils.VALUE_KEY]
 					pos += value[GDScriptUtils.SIZE_KEY]
+				2:
+					var item_value = TreeNode.new()
+					var field_value = GDScriptUtils.decode_message(data, pos, item_value)
+					item_value = field_value[GDScriptUtils.VALUE_KEY]
+					pos += field_value[GDScriptUtils.SIZE_KEY]
+					self.children.append(item_value)
 				3:
-				var value = GDScriptUtils.decode_message(data, pos, parent)
-				self.parent = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_message(data, pos, parent)
+					self.parent = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 				_:
 					pass
 
@@ -514,53 +522,53 @@ class NumberTypes extends Message:
  
 			match field_number:
 				1:
-				var value = GDScriptUtils.decode_varint(data, pos, self)
-				self.int32_field = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_varint(data, pos, self)
+					self.int32_field = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 				2:
-				var value = GDScriptUtils.decode_varint(data, pos, self)
-				self.int64_field = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_varint(data, pos, self)
+					self.int64_field = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 				3:
-				var value = GDScriptUtils.decode_varint(data, pos, self)
-				self.uint32_field = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_varint(data, pos, self)
+					self.uint32_field = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 				4:
-				var value = GDScriptUtils.decode_varint(data, pos, self)
-				self.uint64_field = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_varint(data, pos, self)
+					self.uint64_field = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 				5:
-				var value = GDScriptUtils.decode_zigzag32(data, pos, self)
-				self.sint32_field = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_zigzag32(data, pos, self)
+					self.sint32_field = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 				6:
-				var value = GDScriptUtils.decode_zigzag64(data, pos, self)
-				self.sint64_field = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_zigzag64(data, pos, self)
+					self.sint64_field = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 				7:
-				var value = GDScriptUtils.decode_int32(data, pos, self)
-				self.fixed32_field = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_int32(data, pos, self)
+					self.fixed32_field = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 				8:
-				var value = GDScriptUtils.decode_int64(data, pos, self)
-				self.fixed64_field = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_int64(data, pos, self)
+					self.fixed64_field = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 				9:
-				var value = GDScriptUtils.decode_int32(data, pos, self)
-				self.sfixed32_field = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_int32(data, pos, self)
+					self.sfixed32_field = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 				10:
-				var value = GDScriptUtils.decode_int64(data, pos, self)
-				self.sfixed64_field = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_int64(data, pos, self)
+					self.sfixed64_field = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 				11:
-				var value = GDScriptUtils.decode_float(data, pos, self)
-				self.float_field = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_float(data, pos, self)
+					self.float_field = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 				12:
-				var value = GDScriptUtils.decode_double(data, pos, self)
-				self.double_field = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_double(data, pos, self)
+					self.double_field = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 				_:
 					pass
 
@@ -671,29 +679,29 @@ class DefaultValues extends Message:
  
 			match field_number:
 				1:
-				var value = GDScriptUtils.decode_varint(data, pos, self)
-				self.int_with_default = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_varint(data, pos, self)
+					self.int_with_default = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 				2:
-				var value = GDScriptUtils.decode_string(data, pos, self)
-				self.string_with_default = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_string(data, pos, self)
+					self.string_with_default = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 				3:
-				var value = GDScriptUtils.decode_bytes(data, pos, self)
-				self.bytes_with_default = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_bytes(data, pos, self)
+					self.bytes_with_default = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 				4:
-				var value = GDScriptUtils.decode_bool(data, pos, self)
-				self.bool_with_default = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_bool(data, pos, self)
+					self.bool_with_default = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 				5:
-				var value = GDScriptUtils.decode_float(data, pos, self)
-				self.float_with_default = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_float(data, pos, self)
+					self.float_with_default = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 				6:
-				var value = GDScriptUtils.decode_varint(data, pos, self)
-				self.enum_with_default = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_varint(data, pos, self)
+					self.enum_with_default = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 				_:
 					pass
 
@@ -786,29 +794,33 @@ class FieldRules extends Message:
  
 			match field_number:
 				1:
-				var value = GDScriptUtils.decode_string(data, pos, self)
-				self.required_field = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_string(data, pos, self)
+					self.required_field = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 				2:
-				var value = GDScriptUtils.decode_string(data, pos, self)
-				self.optional_field = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_string(data, pos, self)
+					self.optional_field = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 				3:
-					var value = GDScriptUtils.decode_string(data, pos)
-					self.repeated_field.append_array([value[GDScriptUtils.VALUE_KEY]])
-					pos += value[GDScriptUtils.SIZE_KEY]
+					var item_value = []
+					var field_value = GDScriptUtils.decode_string(data, pos, self)
+					item_value = field_value[GDScriptUtils.VALUE_KEY]
+					pos += field_value[GDScriptUtils.SIZE_KEY]
+					self.repeated_field.append(item_value)
 				4:
-				var value = GDScriptUtils.decode_message(data, pos, required_message)
-				self.required_message = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
-				5:
-				var value = GDScriptUtils.decode_message(data, pos, optional_message)
-				self.optional_message = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
-				6:
-					var value = GDScriptUtils.decode_message(data, pos)
-					self.repeated_message.append_array([value[GDScriptUtils.VALUE_KEY]])
+					var value = GDScriptUtils.decode_message(data, pos, required_message)
+					self.required_message = value[GDScriptUtils.VALUE_KEY]
 					pos += value[GDScriptUtils.SIZE_KEY]
+				5:
+					var value = GDScriptUtils.decode_message(data, pos, optional_message)
+					self.optional_message = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
+				6:
+					var item_value = ComplexMessage.NestedMessage.new()
+					var field_value = GDScriptUtils.decode_message(data, pos, item_value)
+					item_value = field_value[GDScriptUtils.VALUE_KEY]
+					pos += field_value[GDScriptUtils.SIZE_KEY]
+					self.repeated_message.append(item_value)
 				_:
 					pass
 

@@ -51,13 +51,15 @@ class Character extends Message:
  
 				match field_number:
 					1:
-					var value = GDScriptUtils.decode_varint(data, pos, self)
-					self.slots = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
-					2:
-						var value = GDScriptUtils.decode_message(data, pos)
-						self.items.append_array([value[GDScriptUtils.VALUE_KEY]])
+						var value = GDScriptUtils.decode_varint(data, pos, self)
+						self.slots = value[GDScriptUtils.VALUE_KEY]
 						pos += value[GDScriptUtils.SIZE_KEY]
+					2:
+						var item_value = Character.Item.new()
+						var field_value = GDScriptUtils.decode_message(data, pos, item_value)
+						item_value = field_value[GDScriptUtils.VALUE_KEY]
+						pos += field_value[GDScriptUtils.SIZE_KEY]
+						self.items.append(item_value)
 					_:
 						pass
 
@@ -118,17 +120,17 @@ class Character extends Message:
  
 				match field_number:
 					1:
-					var value = GDScriptUtils.decode_string(data, pos, self)
-					self.id = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+						var value = GDScriptUtils.decode_string(data, pos, self)
+						self.id = value[GDScriptUtils.VALUE_KEY]
+						pos += value[GDScriptUtils.SIZE_KEY]
 					2:
-					var value = GDScriptUtils.decode_string(data, pos, self)
-					self.name = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+						var value = GDScriptUtils.decode_string(data, pos, self)
+						self.name = value[GDScriptUtils.VALUE_KEY]
+						pos += value[GDScriptUtils.SIZE_KEY]
 					3:
-					var value = GDScriptUtils.decode_varint(data, pos, self)
-					self.quantity = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+						var value = GDScriptUtils.decode_varint(data, pos, self)
+						self.quantity = value[GDScriptUtils.VALUE_KEY]
+						pos += value[GDScriptUtils.SIZE_KEY]
 					_:
 						pass
 
@@ -202,29 +204,31 @@ class Character extends Message:
  
 			match field_number:
 				1:
-				var value = GDScriptUtils.decode_string(data, pos, self)
-				self.name = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
-				2:
-				var value = GDScriptUtils.decode_varint(data, pos, self)
-				self.level = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
-				3:
-				var value = GDScriptUtils.decode_float(data, pos, self)
-				self.health = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
-				4:
-				var value = GDScriptUtils.decode_varint(data, pos, self)
-				self.character = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
-				5:
-					var value = GDScriptUtils.decode_string(data, pos)
-					self.skills.append_array([value[GDScriptUtils.VALUE_KEY]])
+					var value = GDScriptUtils.decode_string(data, pos, self)
+					self.name = value[GDScriptUtils.VALUE_KEY]
 					pos += value[GDScriptUtils.SIZE_KEY]
+				2:
+					var value = GDScriptUtils.decode_varint(data, pos, self)
+					self.level = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
+				3:
+					var value = GDScriptUtils.decode_float(data, pos, self)
+					self.health = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
+				4:
+					var value = GDScriptUtils.decode_varint(data, pos, self)
+					self.character = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
+				5:
+					var item_value = []
+					var field_value = GDScriptUtils.decode_string(data, pos, self)
+					item_value = field_value[GDScriptUtils.VALUE_KEY]
+					pos += field_value[GDScriptUtils.SIZE_KEY]
+					self.skills.append(item_value)
 				6:
-				var value = GDScriptUtils.decode_message(data, pos, inventory)
-				self.inventory = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_message(data, pos, inventory)
+					self.inventory = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 				_:
 					pass
 
@@ -319,25 +323,27 @@ class GameSession extends Message:
  
 			match field_number:
 				1:
-				var value = GDScriptUtils.decode_string(data, pos, self)
-				self.session_id = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
-				2:
-				var value = GDScriptUtils.decode_varint(data, pos, self)
-				self.start_time = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
-				3:
-				var value = GDScriptUtils.decode_varint(data, pos, self)
-				self.end_time = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
-				4:
-					var value = GDScriptUtils.decode_message(data, pos)
-					self.players.append_array([value[GDScriptUtils.VALUE_KEY]])
+					var value = GDScriptUtils.decode_string(data, pos, self)
+					self.session_id = value[GDScriptUtils.VALUE_KEY]
 					pos += value[GDScriptUtils.SIZE_KEY]
+				2:
+					var value = GDScriptUtils.decode_varint(data, pos, self)
+					self.start_time = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
+				3:
+					var value = GDScriptUtils.decode_varint(data, pos, self)
+					self.end_time = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
+				4:
+					var item_value = Character.new()
+					var field_value = GDScriptUtils.decode_message(data, pos, item_value)
+					item_value = field_value[GDScriptUtils.VALUE_KEY]
+					pos += field_value[GDScriptUtils.SIZE_KEY]
+					self.players.append(item_value)
 				5:
-				var value = GDScriptUtils.decode_varint(data, pos, self)
-				self.state = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_varint(data, pos, self)
+					self.state = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 				_:
 					pass
 

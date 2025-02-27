@@ -67,29 +67,29 @@ class CommonMessage extends Message:
  
 			match field_number:
 				1:
-				var value = GDScriptUtils.decode_varint(data, pos, self)
-				self.common_field1 = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_varint(data, pos, self)
+					self.common_field1 = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 				2:
-				var value = GDScriptUtils.decode_zigzag32(data, pos, self)
-				self.common_sint32 = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_zigzag32(data, pos, self)
+					self.common_sint32 = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 				3:
-				var value = GDScriptUtils.decode_string(data, pos, self)
-				self.common_field2 = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_string(data, pos, self)
+					self.common_field2 = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 				4:
-				var value = GDScriptUtils.decode_int32(data, pos, self)
-				self.common_sfixed32 = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_int32(data, pos, self)
+					self.common_sfixed32 = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 				5:
-				var value = GDScriptUtils.decode_int64(data, pos, self)
-				self.common_sfixed64 = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_int64(data, pos, self)
+					self.common_sfixed64 = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 				6:
-				var value = GDScriptUtils.decode_zigzag64(data, pos, self)
-				self.common_sint64 = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_zigzag64(data, pos, self)
+					self.common_sint64 = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 				_:
 					pass
 

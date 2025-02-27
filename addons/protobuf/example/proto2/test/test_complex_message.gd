@@ -15,7 +15,8 @@ func _init():
 	# Test TreeNode
 	print("\n=== Testing TreeNode ===")
 	test_tree_node()
-	
+	print("\n=== Testing TreeNode End ===")
+
 	# Test NumberTypes
 	print("\n=== Testing NumberTypes ===")
 	test_number_types()
@@ -179,6 +180,7 @@ func test_complex_message_nested():
 	parsed_msg.ParseFromBytes(bytes)
 	
 	# Verify nested message
+	print("Nested message:", parsed_msg.message.id)
 	assert(parsed_msg.message.id == "nested_id", "Nested message id mismatch")
 	assert(parsed_msg.message.value == 42, "Nested message value mismatch")
 	assert(parsed_msg.message.deep.data == "deep_data", "Deep nested data mismatch")
@@ -316,7 +318,8 @@ func test_tree_node():
 	parsed_root.ParseFromBytes(bytes)
 	
 	# Verify tree structure
-	assert(parsed_root.value == "根节点", "Root value mismatch")
+	print("Root value:", parsed_root.value)
+	assert(parsed_root.value == root.value, "Root value mismatch")
 	assert(parsed_root.children.size() == 2, "Children size mismatch")
 	assert(parsed_root.children[0].value == "子节点1", "Child1 value mismatch")
 	assert(parsed_root.children[1].value == "子节点2", "Child2 value mismatch")

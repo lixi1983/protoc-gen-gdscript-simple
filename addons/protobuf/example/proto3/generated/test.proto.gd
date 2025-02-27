@@ -60,13 +60,13 @@ class MsgBase extends Message:
  
 				match field_number:
 					1:
-					var value = GDScriptUtils.decode_varint(data, pos, self)
-					self.sub_field1 = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+						var value = GDScriptUtils.decode_varint(data, pos, self)
+						self.sub_field1 = value[GDScriptUtils.VALUE_KEY]
+						pos += value[GDScriptUtils.SIZE_KEY]
 					2:
-					var value = GDScriptUtils.decode_string(data, pos, self)
-					self.sub_field2 = value[GDScriptUtils.VALUE_KEY]
-					pos += value[GDScriptUtils.SIZE_KEY]
+						var value = GDScriptUtils.decode_string(data, pos, self)
+						self.sub_field2 = value[GDScriptUtils.VALUE_KEY]
+						pos += value[GDScriptUtils.SIZE_KEY]
 					_:
 						pass
 
@@ -191,25 +191,27 @@ class MsgBase extends Message:
  
 			match field_number:
 				1:
-				var value = GDScriptUtils.decode_varint(data, pos, self)
-				self.msg_field32 = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
-				2:
-					var value = GDScriptUtils.decode_varint(data, pos)
-					self.field64.append_array([value[GDScriptUtils.VALUE_KEY]])
+					var value = GDScriptUtils.decode_varint(data, pos, self)
+					self.msg_field32 = value[GDScriptUtils.VALUE_KEY]
 					pos += value[GDScriptUtils.SIZE_KEY]
+				2:
+					var item_value = []
+					var field_value = GDScriptUtils.decode_varint(data, pos, self)
+					item_value = field_value[GDScriptUtils.VALUE_KEY]
+					pos += field_value[GDScriptUtils.SIZE_KEY]
+					self.field64.append(item_value)
 				3:
-				var value = GDScriptUtils.decode_string(data, pos, self)
-				self.msg_field2 = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_string(data, pos, self)
+					self.msg_field2 = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 				4:
-				var value = GDScriptUtils.decode_bool(data, pos, self)
-				self.b_field3 = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_bool(data, pos, self)
+					self.b_field3 = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 				5:
-				var value = GDScriptUtils.decode_float(data, pos, self)
-				self.f_field4 = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_float(data, pos, self)
+					self.f_field4 = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 				6:
 					var map_length = GDScriptUtils.decode_varint(data, pos)
 					pos += map_length[GDScriptUtils.SIZE_KEY]
@@ -237,33 +239,33 @@ class MsgBase extends Message:
 					if map_pos > 0:
 						self.map_field5[map_key] = map_value
 				7:
-				var value = GDScriptUtils.decode_varint(data, pos, self)
-				self.enum_field6 = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_varint(data, pos, self)
+					self.enum_field6 = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 				8:
-				var value = GDScriptUtils.decode_message(data, pos, sub_msg)
-				self.sub_msg = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_message(data, pos, sub_msg)
+					self.sub_msg = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 				9:
-				var value = GDScriptUtils.decode_message(data, pos, common_msg)
-				self.common_msg = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_message(data, pos, common_msg)
+					self.common_msg = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 				10:
-				var value = GDScriptUtils.decode_varint(data, pos, self)
-				self.common_enum = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_varint(data, pos, self)
+					self.common_enum = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 				11:
-				var value = GDScriptUtils.decode_int32(data, pos, self)
-				self.fixed_field32 = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_int32(data, pos, self)
+					self.fixed_field32 = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 				12:
-				var value = GDScriptUtils.decode_int64(data, pos, self)
-				self.fixed_field64 = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_int64(data, pos, self)
+					self.fixed_field64 = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 				13:
-				var value = GDScriptUtils.decode_double(data, pos, self)
-				self.double_field = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_double(data, pos, self)
+					self.double_field = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 				14:
 					var map_length = GDScriptUtils.decode_varint(data, pos)
 					pos += map_length[GDScriptUtils.SIZE_KEY]
@@ -402,13 +404,15 @@ class MsgTest extends Message:
  
 			match field_number:
 				1:
-				var value = GDScriptUtils.decode_message(data, pos, common_msg)
-				self.common_msg = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
-				2:
-					var value = GDScriptUtils.decode_varint(data, pos)
-					self.common_enums.append_array([value[GDScriptUtils.VALUE_KEY]])
+					var value = GDScriptUtils.decode_message(data, pos, common_msg)
+					self.common_msg = value[GDScriptUtils.VALUE_KEY]
 					pos += value[GDScriptUtils.SIZE_KEY]
+				2:
+					var item_value = []
+					var field_value = GDScriptUtils.decode_varint(data, pos, self)
+					item_value = field_value[GDScriptUtils.VALUE_KEY]
+					pos += field_value[GDScriptUtils.SIZE_KEY]
+					self.common_enums.append(item_value)
 				_:
 					pass
 

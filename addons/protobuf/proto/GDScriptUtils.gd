@@ -204,7 +204,7 @@ static func decode_message(bytes: PackedByteArray, offset: int, msg: Message = n
 	var msg_size = tag[VALUE_KEY]
 
 	if offset + tag_size + msg_size > bytes.size():
-		return {VALUE_KEY: msg, SIZE_KEY: offset + tag_size}
+		return {VALUE_KEY: null, SIZE_KEY: 0}
 
 	var msg_bytes = bytes.slice(offset + tag_size, offset + tag_size + msg_size)
 	var pos = msg.ParseFromBytes(msg_bytes)

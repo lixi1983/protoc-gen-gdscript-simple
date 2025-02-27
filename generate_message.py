@@ -517,9 +517,15 @@ def generate_parse_from_string_methods(message_type, indent):
         if field_label == FieldDescriptorProto.LABEL_REPEATED:
             map_info = get_field_map_info(message_type, field_number)
             if map_info is None:
-                content += f"{indent}\t\t\t\tvar value = GDScriptUtils.decode_{get_field_coder(field)}(data, pos)\n"
-                content += f"{indent}\t\t\t\tself.{field_name}.append_array([value[GDScriptUtils.VALUE_KEY]])\n"
-                content += f"{indent}\t\t\t\tpos += value[GDScriptUtils.SIZE_KEY]\n"
+       #         content += f"{indent}\t\t\t\tvar value = GDScriptUtils.decode_{get_field_coder(field)}(data, pos)\n"
+                field_type = field.type
+                if field_type == FieldDescriptorProto.TYPE_MESSAGE:
+                    content += f"{indent}\t\t\t\tvar item_value = {get_field_type(field)}.new()\n"
+                else:
+                    content += f"{indent}\t\t\t\tvar item_value = {get_default_value(field)}\n"
+                content += base_field_content_info(f"{indent}\t\t\t\t", field, "field_value", "item_value", "pos", "data", False)
+                content += f"{indent}\t\t\t\tself.{field_name}.append(item_value)\n"
+#                content += f"{indent}\t\t\t\tpos += value[GDScriptUtils.SIZE_KEY]\n"
             else:
                 content += f"{indent}\t\t\t\tvar map_length = GDScriptUtils.decode_varint(data, pos)\n"
                 content += f"{indent}\t\t\t\tpos += map_length[GDScriptUtils.SIZE_KEY]\n"
@@ -546,7 +552,7 @@ def generate_parse_from_string_methods(message_type, indent):
                 content += f"{indent}\t\t\t\tif map_pos > 0:\n"
                 content += f"{indent}\t\t\t\t\tself.{field_name}[map_key] = map_value\n"
         else:
-            content += base_field_content_info(f"{indent}\t\t\t", field)
+            content += base_field_content_info(f"{indent}\t\t\t\t", field)
 
     content += f"{indent}\t\t\t_:\n"
     content += f"{indent}\t\t\t\tpass\n\n"

@@ -61,25 +61,27 @@ class SimpleMessage extends Message:
  
 			match field_number:
 				1:
-				var value = GDScriptUtils.decode_string(data, pos, self)
-				self.name = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
-				2:
-				var value = GDScriptUtils.decode_varint(data, pos, self)
-				self.value = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
-				3:
-					var value = GDScriptUtils.decode_string(data, pos)
-					self.tags.append_array([value[GDScriptUtils.VALUE_KEY]])
+					var value = GDScriptUtils.decode_string(data, pos, self)
+					self.name = value[GDScriptUtils.VALUE_KEY]
 					pos += value[GDScriptUtils.SIZE_KEY]
+				2:
+					var value = GDScriptUtils.decode_varint(data, pos, self)
+					self.value = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
+				3:
+					var item_value = []
+					var field_value = GDScriptUtils.decode_string(data, pos, self)
+					item_value = field_value[GDScriptUtils.VALUE_KEY]
+					pos += field_value[GDScriptUtils.SIZE_KEY]
+					self.tags.append(item_value)
 				4:
-				var value = GDScriptUtils.decode_bool(data, pos, self)
-				self.active = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_bool(data, pos, self)
+					self.active = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 				5:
-				var value = GDScriptUtils.decode_double(data, pos, self)
-				self.score = value[GDScriptUtils.VALUE_KEY]
-				pos += value[GDScriptUtils.SIZE_KEY]
+					var value = GDScriptUtils.decode_double(data, pos, self)
+					self.score = value[GDScriptUtils.VALUE_KEY]
+					pos += value[GDScriptUtils.SIZE_KEY]
 				_:
 					pass
 
