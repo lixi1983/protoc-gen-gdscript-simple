@@ -30,9 +30,14 @@ class MsgBase extends Message:
 		var sub_field1: int = 0
 		var sub_field2: String = ""
 
+		func Init() -> void:
+			self.sub_field1 = 0
+			self.sub_field2 = ""
+
 		func New() -> Message:
-			return SubMsg.new()
- 
+			var msg = SubMsg.new()
+			return msg
+
 		func MergeFrom(other : Message) -> void:
 			if other is SubMsg:
 				self.sub_field1 += other.sub_field1
@@ -87,9 +92,28 @@ class MsgBase extends Message:
 			if "sub_field2" in _fmap:
 				self.sub_field2 = _fmap["sub_field2"]
 
+	func Init() -> void:
+		self.msg_field32 = 0
+		self.field64 = []
+		self.msg_field2 = ""
+		self.b_field3 = false
+		self.f_field4 = 0.0
+		self.map_field5  = {}
+		self.enum_field6 = 0
+		if self.sub_msg != null:
+			self.sub_msg.Init()
+		if self.common_msg != null:
+			self.common_msg.Init()
+		self.common_enum = 0
+		self.fixed_field32 = 0
+		self.fixed_field64 = 0
+		self.double_field = 0.0
+		self.map_field_sub  = {}
+
 	func New() -> Message:
-		return MsgBase.new()
- 
+		var msg = MsgBase.new()
+		return msg
+
 	func MergeFrom(other : Message) -> void:
 		if other is MsgBase:
 			self.msg_field32 += other.msg_field32
@@ -390,9 +414,15 @@ class MsgTest extends Message:
 	var common_msg: common.CommonMessage = null
 	var common_enums = []
 
+	func Init() -> void:
+		if self.common_msg != null:
+			self.common_msg.Init()
+		self.common_enums = []
+
 	func New() -> Message:
-		return MsgTest.new()
- 
+		var msg = MsgTest.new()
+		return msg
+
 	func MergeFrom(other : Message) -> void:
 		if other is MsgTest:
 			if self.common_msg == null:

@@ -246,6 +246,9 @@ def generate_message_class(message_type: MessageType, parent_name: Optional[str]
             continue
         content += generate_message_class(nested_type, message_type.name, indent_level + 1)
 
+    # Generate Init method
+    content += generate_init_method(message_type, indent + "\t")
+
     # Generate serialization methods
     content += generate_serialization_methods(message_type, indent + "\t")
 #    lines.extend(line for line in serialization_lines if line)
@@ -421,14 +424,39 @@ def get_default_value(field, proto_file=None):
     else:
         return "null"
 
+def generate_init_method(message_type, indent):
+    """Generate init method for a message type."""
+    content = ""
+    content += f"{indent}func Init() -> void:\n"
+
+    if len(message_type.field) <= 0:
+        content += f"{indent}\tpass"
+        return
+
+    for field in message_type.field:
+        field_name = field.name
+        type_name = field.type_name
+
+        if is_map_field(message_type, field.number):
+            content += f"{indent}\tself.{field_name}  = {{}}\n"
+        elif field.type == FieldDescriptorProto.TYPE_MESSAGE and not field.label == FieldDescriptorProto.LABEL_REPEATED and not is_map_field(message_type, field.number):
+            content += f"{indent}\tif self.{field_name} != null:\n"
+            content += f"{indent}\t\tself.{field_name}.Init()\n"
+        else:
+            content += f"{indent}\tself.{field.name} = {get_default_value(field)}\n"
+    
+    content += "\n"
+    return content
+
 def generate_new_methods(message_type, indent):
     """Generate new instance methods for a message type."""
     content = ""
 
     # Generate New method
     content += f"{indent}func New() -> Message:\n"
-    content += f"{indent}\treturn {message_type.name}.new()\n"
-    content += " \n"
+    content += f"{indent}\tvar msg = {message_type.name}.new()\n"
+    content += f"{indent}\treturn msg\n"
+    content += "\n"
 
     return content
 

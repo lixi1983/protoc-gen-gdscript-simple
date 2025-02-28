@@ -33,9 +33,14 @@ class ComplexMessage extends Message:
 			var data: String = ""
 			var numbers = []
 
+			func Init() -> void:
+				self.data = ""
+				self.numbers = []
+
 			func New() -> Message:
-				return DeepNested.new()
- 
+				var msg = DeepNested.new()
+				return msg
+
 			func MergeFrom(other : Message) -> void:
 				if other is DeepNested:
 					self.data += other.data
@@ -92,9 +97,16 @@ class ComplexMessage extends Message:
 				if "numbers" in _fmap:
 					self.numbers = _fmap["numbers"]
 
+		func Init() -> void:
+			self.id = ""
+			self.value = 0
+			if self.deep != null:
+				self.deep.Init()
+
 		func New() -> Message:
-			return NestedMessage.new()
- 
+			var msg = NestedMessage.new()
+			return msg
+
 		func MergeFrom(other : Message) -> void:
 			if other is NestedMessage:
 				self.id += other.id
@@ -169,9 +181,25 @@ class ComplexMessage extends Message:
 				if _fmap["deep"] != null:
 					self.deep.ParseFromDictionary(_fmap["deep"])
 
+	func Init() -> void:
+		self.int_field = 0
+		self.long_field = 1000000
+		self.bool_field = true
+		self.float_field = 3.14
+		self.string_field = "hello"
+		self.bytes_field = PackedByteArray()
+		self.status = ComplexMessage.Status.UNKNOWN
+		self.nested_messages = []
+		self.name = ""
+		self.id = 0
+		if self.message != null:
+			self.message.Init()
+		self.status_list = []
+
 	func New() -> Message:
-		return ComplexMessage.new()
- 
+		var msg = ComplexMessage.new()
+		return msg
+
 	func MergeFrom(other : Message) -> void:
 		if other is ComplexMessage:
 			self.int_field += other.int_field
@@ -369,9 +397,16 @@ class TreeNode extends Message:
 	var children = []
 	var parent: TreeNode = null
 
+	func Init() -> void:
+		self.value = ""
+		self.children = []
+		if self.parent != null:
+			self.parent.Init()
+
 	func New() -> Message:
-		return TreeNode.new()
- 
+		var msg = TreeNode.new()
+		return msg
+
 	func MergeFrom(other : Message) -> void:
 		if other is TreeNode:
 			self.value += other.value
@@ -468,9 +503,24 @@ class NumberTypes extends Message:
 	var float_field: float = 3.40282347e+38
 	var double_field: float = 2.2250738585072014e-308
 
+	func Init() -> void:
+		self.int32_field = -42
+		self.int64_field = -9223372036854775808
+		self.uint32_field = 4294967295
+		self.uint64_field = 9223372036854775807
+		self.sint32_field = -2147483648
+		self.sint64_field = -9223372036854775808
+		self.fixed32_field = 4294967295
+		self.fixed64_field = 9223372036854775807
+		self.sfixed32_field = -2147483648
+		self.sfixed64_field = -9223372036854775808
+		self.float_field = 3.40282347e+38
+		self.double_field = 2.2250738585072014e-308
+
 	func New() -> Message:
-		return NumberTypes.new()
- 
+		var msg = NumberTypes.new()
+		return msg
+
 	func MergeFrom(other : Message) -> void:
 		if other is NumberTypes:
 			self.int32_field += other.int32_field
@@ -655,9 +705,18 @@ class DefaultValues extends Message:
 	var float_with_default: float = 3.14159
 	var enum_with_default: ComplexMessage.Status = ComplexMessage.Status.ACTIVE
 
+	func Init() -> void:
+		self.int_with_default = 42
+		self.string_with_default = "default string"
+		self.bytes_with_default = PackedByteArray("default bytes".to_utf8_buffer())
+		self.bool_with_default = true
+		self.float_with_default = 3.14159
+		self.enum_with_default = ComplexMessage.Status.ACTIVE
+
 	func New() -> Message:
-		return DefaultValues.new()
- 
+		var msg = DefaultValues.new()
+		return msg
+
 	func MergeFrom(other : Message) -> void:
 		if other is DefaultValues:
 			self.int_with_default += other.int_with_default
@@ -770,9 +829,20 @@ class FieldRules extends Message:
 	var optional_message: ComplexMessage.NestedMessage = null
 	var repeated_message = []
 
+	func Init() -> void:
+		self.required_field = ""
+		self.optional_field = ""
+		self.repeated_field = []
+		if self.required_message != null:
+			self.required_message.Init()
+		if self.optional_message != null:
+			self.optional_message.Init()
+		self.repeated_message = []
+
 	func New() -> Message:
-		return FieldRules.new()
- 
+		var msg = FieldRules.new()
+		return msg
+
 	func MergeFrom(other : Message) -> void:
 		if other is FieldRules:
 			self.required_field += other.required_field

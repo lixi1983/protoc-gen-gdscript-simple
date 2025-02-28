@@ -17,9 +17,18 @@ class CommonMessage extends Message:
 	var common_sfixed64: int = 0
 	var common_sint64: int = 0
 
+	func Init() -> void:
+		self.common_field1 = 0
+		self.common_sint32 = 0
+		self.common_field2 = ""
+		self.common_sfixed32 = 0
+		self.common_sfixed64 = 0
+		self.common_sint64 = 0
+
 	func New() -> Message:
-		return CommonMessage.new()
- 
+		var msg = CommonMessage.new()
+		return msg
+
 	func MergeFrom(other : Message) -> void:
 		if other is CommonMessage:
 			self.common_field1 += other.common_field1

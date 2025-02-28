@@ -21,9 +21,14 @@ class Character extends Message:
 		var slots: int = 10
 		var items = []
 
+		func Init() -> void:
+			self.slots = 10
+			self.items = []
+
 		func New() -> Message:
-			return Inventory.new()
- 
+			var msg = Inventory.new()
+			return msg
+
 		func MergeFrom(other : Message) -> void:
 			if other is Inventory:
 				self.slots += other.slots
@@ -89,9 +94,15 @@ class Character extends Message:
 		var name: String = ""
 		var quantity: int = 1
 
+		func Init() -> void:
+			self.id = ""
+			self.name = ""
+			self.quantity = 1
+
 		func New() -> Message:
-			return Item.new()
- 
+			var msg = Item.new()
+			return msg
+
 		func MergeFrom(other : Message) -> void:
 			if other is Item:
 				self.id += other.id
@@ -158,9 +169,19 @@ class Character extends Message:
 			if "quantity" in _fmap:
 				self.quantity = _fmap["quantity"]
 
+	func Init() -> void:
+		self.name = ""
+		self.level = 1
+		self.health = 100
+		self.character = Character.CharacterClass.WARRIOR
+		self.skills = []
+		if self.inventory != null:
+			self.inventory.Init()
+
 	func New() -> Message:
-		return Character.new()
- 
+		var msg = Character.new()
+		return msg
+
 	func MergeFrom(other : Message) -> void:
 		if other is Character:
 			self.name += other.name
@@ -288,9 +309,17 @@ class GameSession extends Message:
 	var players = []
 	var state: GameSession.GameState = GameSession.GameState.WAITING
 
+	func Init() -> void:
+		self.session_id = ""
+		self.start_time = 0
+		self.end_time = 0
+		self.players = []
+		self.state = GameSession.GameState.WAITING
+
 	func New() -> Message:
-		return GameSession.new()
- 
+		var msg = GameSession.new()
+		return msg
+
 	func MergeFrom(other : Message) -> void:
 		if other is GameSession:
 			self.session_id += other.session_id

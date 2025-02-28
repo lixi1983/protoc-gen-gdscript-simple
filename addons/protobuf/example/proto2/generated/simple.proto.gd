@@ -16,9 +16,17 @@ class SimpleMessage extends Message:
 	var active: bool = false
 	var score: float = 0.5
 
+	func Init() -> void:
+		self.name = "simple_demo"
+		self.value = 100
+		self.tags = []
+		self.active = false
+		self.score = 0.5
+
 	func New() -> Message:
-		return SimpleMessage.new()
- 
+		var msg = SimpleMessage.new()
+		return msg
+
 	func MergeFrom(other : Message) -> void:
 		if other is SimpleMessage:
 			self.name += other.name
