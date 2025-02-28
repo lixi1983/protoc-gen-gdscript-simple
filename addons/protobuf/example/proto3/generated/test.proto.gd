@@ -12,7 +12,7 @@ enum EnumTest {
  
 class MsgBase extends Message:
 	var msg_field32: int = 0
-	var field64 = []
+	var field64: Array[int] = []
 	var msg_field2: String = ""
 	var b_field3: bool = false
 	var f_field4: float = 0.0
@@ -412,7 +412,7 @@ class MsgBase extends Message:
 
 class MsgTest extends Message:
 	var common_msg: common.CommonMessage = null
-	var common_enums = []
+	var common_enums: Array[common.CommonEnum] = []
 
 	func Init() -> void:
 		if self.common_msg != null:
@@ -488,4 +488,3 @@ class MsgTest extends Message:
 			self.common_enums = _fmap["common_enums"]
 
 # =========================================
-

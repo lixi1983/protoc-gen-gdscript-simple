@@ -12,7 +12,7 @@ enum SimpleEnum {
 class SimpleMessage extends Message:
 	var name: String = "simple_demo"
 	var value: int = 100
-	var tags = []
+	var tags: Array[String] = []
 	var active: bool = false
 	var score: float = 0.5
 
@@ -120,4 +120,3 @@ class SimpleMessage extends Message:
 			self.score = _fmap["score"]
 
 # =========================================
-

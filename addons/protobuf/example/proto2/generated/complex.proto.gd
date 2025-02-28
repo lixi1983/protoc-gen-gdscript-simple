@@ -18,11 +18,11 @@ class ComplexMessage extends Message:
 	var string_field: String = "hello"
 	var bytes_field: PackedByteArray = PackedByteArray()
 	var status: ComplexMessage.Status = ComplexMessage.Status.UNKNOWN
-	var nested_messages = []
+	var nested_messages: Array[ComplexMessage.NestedMessage] = []
 	var name: String = ""
 	var id: int = 0
 	var message: ComplexMessage.NestedMessage = null
-	var status_list = []
+	var status_list: Array[ComplexMessage.Status] = []
 
 	class NestedMessage extends Message:
 		var id: String = ""
@@ -31,7 +31,7 @@ class ComplexMessage extends Message:
 
 		class DeepNested extends Message:
 			var data: String = ""
-			var numbers = []
+			var numbers: Array[int] = []
 
 			func Init() -> void:
 				self.data = ""
@@ -394,7 +394,7 @@ class ComplexMessage extends Message:
 
 class TreeNode extends Message:
 	var value: String = ""
-	var children = []
+	var children: Array[TreeNode] = []
 	var parent: TreeNode = null
 
 	func Init() -> void:
@@ -824,10 +824,10 @@ class DefaultValues extends Message:
 class FieldRules extends Message:
 	var required_field: String = ""
 	var optional_field: String = ""
-	var repeated_field = []
+	var repeated_field: Array[String] = []
 	var required_message: ComplexMessage.NestedMessage = null
 	var optional_message: ComplexMessage.NestedMessage = null
-	var repeated_message = []
+	var repeated_message: Array[ComplexMessage.NestedMessage] = []
 
 	func Init() -> void:
 		self.required_field = ""
@@ -970,4 +970,3 @@ class FieldRules extends Message:
 			self.repeated_message = _fmap["repeated_message"]
 
 # =========================================
-

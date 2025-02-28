@@ -92,7 +92,7 @@ func test_complex_message_custom():
 	msg.status = ComplexProto.ComplexMessage.Status.ACTIVE
 	msg.name = "复杂消息"
 	msg.id = 123
-	msg.status_list = [ComplexProto.ComplexMessage.Status.ACTIVE, ComplexProto.ComplexMessage.Status.PENDING]
+	msg.status_list.append_array([ComplexProto.ComplexMessage.Status.ACTIVE, ComplexProto.ComplexMessage.Status.PENDING])
 	
 	# Test binary serialization
 	var bytes = msg.SerializeToBytes()
@@ -152,7 +152,7 @@ func test_complex_message_nested():
 	# Setup deep nested
 	var deep = ComplexProto.ComplexMessage.NestedMessage.DeepNested.new()
 	deep.data = "deep_data"
-	deep.numbers = [1, 2, 3]
+	deep.numbers.append_array( [1, 2, 3] )
 	nested.deep = deep
 	
 	msg.message = nested
@@ -163,16 +163,16 @@ func test_complex_message_nested():
 	clone1.value = 43
 	clone1.deep = ComplexProto.ComplexMessage.NestedMessage.DeepNested.new()
 	clone1.deep.data = "clone1_deep"
-	clone1.deep.numbers = [4, 5, 6]
+	clone1.deep.numbers.append_array([4, 5, 6])
 	
 	var clone2 = ComplexProto.ComplexMessage.NestedMessage.new()
 	clone2.id = "clone2"
 	clone2.value = 44
 	clone2.deep = ComplexProto.ComplexMessage.NestedMessage.DeepNested.new()
 	clone2.deep.data = "clone2_deep"
-	clone2.deep.numbers = [7, 8, 9]
+	clone2.deep.numbers.append_array([7, 8, 9])
 	
-	msg.nested_messages = [clone1, clone2]
+	msg.nested_messages.append_array([clone1, clone2])
 	
 	# Test binary serialization
 	var bytes = msg.SerializeToBytes()
@@ -244,20 +244,20 @@ func test_complex_message_to_string():
 	nested1.value = 1
 	nested1.deep = ComplexProto.ComplexMessage.NestedMessage.DeepNested.new()
 	nested1.deep.data = "深层1"  # Test UTF-8 in deep nested
-	nested1.deep.numbers = [1, 2, 3]
+	nested1.deep.numbers.append_array( [1, 2, 3] )
 	
 	var nested2 = ComplexProto.ComplexMessage.NestedMessage.new()
 	nested2.id = "嵌套2"
 	nested2.value = 2
 	nested2.deep = ComplexProto.ComplexMessage.NestedMessage.DeepNested.new()
 	nested2.deep.data = "深层2"
-	nested2.deep.numbers = [4, 5, 6]
+	nested2.deep.numbers.append_array([4, 5, 6])
 	
-	custom_msg.nested_messages = [nested1, nested2]
-	custom_msg.status_list = [
+	custom_msg.nested_messages.append_array([nested1, nested2])
+	custom_msg.status_list.append_array([
 		ComplexProto.ComplexMessage.Status.ACTIVE,
 		ComplexProto.ComplexMessage.Status.INACTIVE
-	]
+	])
 	
 	var custom_str = custom_msg.ToString()
 	print("Custom ToString():", custom_str)
@@ -310,7 +310,7 @@ func test_tree_node():
 	child2.value = "子节点2"
 	
 	# Set children after creation
-	root.children = [child1, child2]
+	root.children.append_array([child1, child2])
 	
 	# Test binary serialization
 	var bytes = root.SerializeToBytes()
@@ -375,7 +375,7 @@ func test_field_rules():
 	# Set required fields
 	msg.required_field = "必填字段"
 	msg.optional_field = "可选字段"
-	msg.repeated_field = ["重复1", "重复2"]
+	msg.repeated_field.append_array(["重复1", "重复2"])
 	msg.required_message = ComplexProto.ComplexMessage.NestedMessage.new()
 	msg.required_message.id = "required_nested"
 	

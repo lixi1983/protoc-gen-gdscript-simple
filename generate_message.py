@@ -335,8 +335,8 @@ def generate_fields(
         default_value = get_default_value(field)
 
         if field.label == FieldDescriptorProto.LABEL_REPEATED:
-#            content += f"{indent}var {field_name}: Array[{get_field_type(field)}] = []\n"
-            content += f"{indent}var {field_name} = {default_value}\n"
+            content += f"{indent}var {field_name}: Array[{get_field_type(field)}] = []\n"
+#            content += f"{indent}var {field_name} = {default_value}\n"
         else:
             content += f"{indent}var {field_name}: {get_field_type(field)} = {default_value}\n"
 

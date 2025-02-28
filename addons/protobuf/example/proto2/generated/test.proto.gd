@@ -14,12 +14,12 @@ class Character extends Message:
 	var level: int = 1
 	var health: float = 100
 	var character: Character.CharacterClass = Character.CharacterClass.WARRIOR
-	var skills = []
+	var skills: Array[String] = []
 	var inventory: Character.Inventory = null
 
 	class Inventory extends Message:
 		var slots: int = 10
-		var items = []
+		var items: Array[Character.Item] = []
 
 		func Init() -> void:
 			self.slots = 10
@@ -306,7 +306,7 @@ class GameSession extends Message:
 	var session_id: String = ""
 	var start_time: int = 0
 	var end_time: int = 0
-	var players = []
+	var players: Array[Character] = []
 	var state: GameSession.GameState = GameSession.GameState.WAITING
 
 	func Init() -> void:

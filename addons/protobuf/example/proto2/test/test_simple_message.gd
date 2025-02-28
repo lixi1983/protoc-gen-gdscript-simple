@@ -58,7 +58,7 @@ func test_custom_values():
 	var msg1 = SimpleProto.SimpleMessage.new()
 	msg1.name = "test_message"
 	msg1.value = 42
-	msg1.tags = ["tag1", "tag2"]
+	msg1.tags.append_array(["tag1", "tag2"])
 	msg1.active = true
 	msg1.score = 3.14
 	
@@ -82,7 +82,7 @@ func test_all_fields_modified():
 	var msg1 = SimpleProto.SimpleMessage.new()
 	msg1.name = "modified_message"
 	msg1.value = 999
-	msg1.tags = ["test"]
+	msg1.tags.append("test")
 	msg1.active = true
 	msg1.score = 1.23
 	
@@ -125,7 +125,7 @@ func test_dictionary_custom_values():
 	var msg1 = SimpleProto.SimpleMessage.new()
 	msg1.name = "test_dict"
 	msg1.value = 42
-	msg1.tags = ["tag1", "tag2"]
+	msg1.tags.append_array(["tag1", "tag2"])
 	msg1.active = true
 	msg1.score = 3.14
 	
@@ -156,7 +156,7 @@ func test_dictionary_all_fields():
 	var msg1 = SimpleProto.SimpleMessage.new()
 	msg1.name = "modified_dict"
 	msg1.value = 999
-	msg1.tags = ["test_tag"]
+	msg1.tags.append("test_tag")
 	msg1.active = true
 	msg1.score = 1.23
 	
@@ -214,7 +214,7 @@ func test_to_string():
 	var msg2 = SimpleProto.SimpleMessage.new()
 	msg2.name = "测试消息"
 	msg2.value = 42
-	msg2.tags = ["标签1", "标签2"]
+	msg2.tags.append_array(["标签1", "标签2"])
 	msg2.active = true
 	msg2.score = 3.14
 	
@@ -272,7 +272,7 @@ func test_simple_message_custom():
 	var msg = SimpleProto.SimpleMessage.new()
 	msg.name = "Test Message"
 	msg.value = 42
-	msg.tags = ["tag1", "tag2"]
+	msg.tags.append_array(["tag1", "tag2"])
 	msg.active = true
 	msg.score = 3.14
 	
@@ -333,7 +333,7 @@ func test_simple_message_to_string():
 	var custom_msg = SimpleProto.SimpleMessage.new()
 	custom_msg.name = "测试消息"  # Test UTF-8 support
 	custom_msg.value = 42
-	custom_msg.tags = ["标签1", "标签2"]  # Test array with UTF-8
+	custom_msg.tags.append_array(["标签1", "标签2"])  # Test array with UTF-8
 	custom_msg.active = true
 	custom_msg.score = 3.14
 	
