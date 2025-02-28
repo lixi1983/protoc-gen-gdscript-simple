@@ -18,8 +18,8 @@ class MsgBase extends Message:
 	var f_field4: float = 0.0
 	var map_field5: Dictionary = {}
 	var enum_field6: EnumTest = 0
-	var sub_msg: MsgBase.SubMsg = MsgBase.SubMsg.new()
-	var common_msg: common.CommonMessage = common.CommonMessage.new()
+	var sub_msg: MsgBase.SubMsg = null
+	var common_msg: common.CommonMessage = null
 	var common_enum: common.CommonEnum = 0
 	var fixed_field32: int = 0
 	var fixed_field64: int = 0
@@ -99,7 +99,11 @@ class MsgBase extends Message:
 			self.f_field4 += other.f_field4
 			self.map_field5.merge(other.map_field5)
 			self.enum_field6 = other.enum_field6
+			if self.sub_msg == null:
+				self.sub_msg = MsgBase.SubMsg.new()
 			self.sub_msg.MergeFrom(other.sub_msg)
+			if self.common_msg == null:
+				self.common_msg = common.CommonMessage.new()
 			self.common_msg.MergeFrom(other.common_msg)
 			self.common_enum = other.common_enum
 			self.fixed_field32 += other.fixed_field32
@@ -243,11 +247,19 @@ class MsgBase extends Message:
 					self.enum_field6 = value[GDScriptUtils.VALUE_KEY]
 					pos += value[GDScriptUtils.SIZE_KEY]
 				8:
-					var value = GDScriptUtils.decode_message(data, pos, sub_msg)
+					if self.sub_msg == null:
+						self.sub_msg = MsgBase.SubMsg.new()
+					else:
+						self.sub_msg = MsgBase.SubMsg.new()
+					var value = GDScriptUtils.decode_message(data, pos, self.sub_msg)
 					self.sub_msg = value[GDScriptUtils.VALUE_KEY]
 					pos += value[GDScriptUtils.SIZE_KEY]
 				9:
-					var value = GDScriptUtils.decode_message(data, pos, common_msg)
+					if self.common_msg == null:
+						self.common_msg = common.CommonMessage.new()
+					else:
+						self.common_msg = common.CommonMessage.new()
+					var value = GDScriptUtils.decode_message(data, pos, self.common_msg)
 					self.common_msg = value[GDScriptUtils.VALUE_KEY]
 					pos += value[GDScriptUtils.SIZE_KEY]
 				10:
@@ -272,7 +284,7 @@ class MsgBase extends Message:
 					var map_buff = data.slice(pos, pos+map_length[GDScriptUtils.VALUE_KEY])
 					var map_pos = 0
 					var map_key: String = ""
-					var map_value: MsgBase.SubMsg = MsgBase.SubMsg.new()
+					var map_value: MsgBase.SubMsg = null
 					while map_pos < map_buff.size():
 						var m_tag = GDScriptUtils.decode_tag(map_buff, map_pos)
 						var m_field_number = m_tag[GDScriptUtils.VALUE_KEY]
@@ -283,6 +295,10 @@ class MsgBase extends Message:
 								map_key = key_value[GDScriptUtils.VALUE_KEY]
 								map_pos += key_value[GDScriptUtils.SIZE_KEY]
 							2:
+								if map_value == null:
+									map_value = MsgBase.SubMsg.new()
+								else:
+									map_value = MsgBase.SubMsg.new()
 								var key_value = GDScriptUtils.decode_message(map_buff, map_pos, map_value)
 								map_value = key_value[GDScriptUtils.VALUE_KEY]
 								map_pos += key_value[GDScriptUtils.SIZE_KEY]
@@ -371,7 +387,7 @@ class MsgBase extends Message:
 # =========================================
 
 class MsgTest extends Message:
-	var common_msg: common.CommonMessage = common.CommonMessage.new()
+	var common_msg: common.CommonMessage = null
 	var common_enums = []
 
 	func New() -> Message:
@@ -379,6 +395,8 @@ class MsgTest extends Message:
  
 	func MergeFrom(other : Message) -> void:
 		if other is MsgTest:
+			if self.common_msg == null:
+				self.common_msg = common.CommonMessage.new()
 			self.common_msg.MergeFrom(other.common_msg)
 			self.common_enums.append_array(other.common_enums)
  
@@ -404,7 +422,11 @@ class MsgTest extends Message:
  
 			match field_number:
 				1:
-					var value = GDScriptUtils.decode_message(data, pos, common_msg)
+					if self.common_msg == null:
+						self.common_msg = common.CommonMessage.new()
+					else:
+						self.common_msg = common.CommonMessage.new()
+					var value = GDScriptUtils.decode_message(data, pos, self.common_msg)
 					self.common_msg = value[GDScriptUtils.VALUE_KEY]
 					pos += value[GDScriptUtils.SIZE_KEY]
 				2:

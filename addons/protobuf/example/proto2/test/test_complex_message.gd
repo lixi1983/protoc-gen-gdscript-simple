@@ -180,7 +180,7 @@ func test_complex_message_nested():
 	parsed_msg.ParseFromBytes(bytes)
 	
 	# Verify nested message
-	print("Nested message:", parsed_msg.message.id)
+#	print("Nested message:", parsed_msg.message.id)
 	assert(parsed_msg.message.id == "nested_id", "Nested message id mismatch")
 	assert(parsed_msg.message.value == 42, "Nested message value mismatch")
 	assert(parsed_msg.message.deep.data == "deep_data", "Deep nested data mismatch")
@@ -376,6 +376,7 @@ func test_field_rules():
 	msg.required_field = "必填字段"
 	msg.optional_field = "可选字段"
 	msg.repeated_field = ["重复1", "重复2"]
+	msg.required_message = ComplexProto.ComplexMessage.NestedMessage.new()
 	msg.required_message.id = "required_nested"
 	
 	# Test binary serialization

@@ -374,7 +374,8 @@ def get_default_value(field, proto_file=None):
     if field.label == FieldDescriptorProto.LABEL_REPEATED:
         return '[]'
     elif field.type == FieldDescriptorProto.TYPE_MESSAGE:
-        return f"{type_parts}.new()"
+        return f"null"
+#        return f"{type_parts}.new()"
     
     # Check if field has a default value set
     if hasattr(field, 'default_value') and field.default_value:
@@ -462,6 +463,8 @@ def generate_merge_methods(message_type, indent):
             elif field.label == FieldDescriptorProto.LABEL_REPEATED:
                 content += f"{indent}\t\tself.{field_name}.append_array(other.{field_name})\n"
             elif field.type == FieldDescriptorProto.TYPE_MESSAGE:
+                content += f"{indent}\t\tif self.{field_name} == null:\n"
+                content += f"{indent}\t\t\tself.{field_name} = {real_type_name(field.type_name)}.new()\n"
                 content += f"{indent}\t\tself.{field_name}.MergeFrom(other.{field_name})\n"
             elif field.type in [FieldDescriptorProto.TYPE_ENUM, FieldDescriptorProto.TYPE_BOOL]:
                 content += f"{indent}\t\tself.{field_name} = other.{field_name}\n"
@@ -482,11 +485,22 @@ def generate_parse_from_string_methods(message_type, indent):
         field_value = f.name if f_value == "" else f_value
         msg_value = field_msg(f, f_value)
         self = "self." if is_self else ""
-        return (
-            f"{f_indent}var {decode_value} = GDScriptUtils.decode_{get_field_coder(f)}({buffer}, {pos}, {msg_value})\n"
-            f"{f_indent}{self}{field_value} = {decode_value}[GDScriptUtils.VALUE_KEY]\n"
-            f"{f_indent}{pos} += {decode_value}[GDScriptUtils.SIZE_KEY]\n"
-        )
+
+        content = ""
+
+        if f.type == FieldDescriptorProto.TYPE_MESSAGE:
+           content += f"{f_indent}if {self}{field_value} == null:\n"
+           content += f"{f_indent}\t{self}{field_value} = {real_type_name(f.type_name)}.new()\n"
+           content += f"{f_indent}else:\n"
+           content += f"{f_indent}\t{self}{field_value} = {real_type_name(f.type_name)}.new()\n"
+           msg_value = f"{self}{field_value}"
+
+        content += f"{f_indent}var {decode_value} = GDScriptUtils.decode_{get_field_coder(f)}({buffer}, {pos}, {msg_value})\n"
+
+        content += f"{f_indent}{self}{field_value} = {decode_value}[GDScriptUtils.VALUE_KEY]\n"
+        content += f"{f_indent}{pos} += {decode_value}[GDScriptUtils.SIZE_KEY]\n"
+        return content
+#        )
 
     content =""
     # Generate ParseFromString method

@@ -15,7 +15,7 @@ class Character extends Message:
 	var health: float = 100
 	var character: Character.CharacterClass = Character.CharacterClass.WARRIOR
 	var skills = []
-	var inventory: Character.Inventory = Character.Inventory.new()
+	var inventory: Character.Inventory = null
 
 	class Inventory extends Message:
 		var slots: int = 10
@@ -56,6 +56,10 @@ class Character extends Message:
 						pos += value[GDScriptUtils.SIZE_KEY]
 					2:
 						var item_value = Character.Item.new()
+						if item_value == null:
+							item_value = Character.Item.new()
+						else:
+							item_value = Character.Item.new()
 						var field_value = GDScriptUtils.decode_message(data, pos, item_value)
 						item_value = field_value[GDScriptUtils.VALUE_KEY]
 						pos += field_value[GDScriptUtils.SIZE_KEY]
@@ -164,6 +168,8 @@ class Character extends Message:
 			self.health += other.health
 			self.character = other.character
 			self.skills.append_array(other.skills)
+			if self.inventory == null:
+				self.inventory = Character.Inventory.new()
 			self.inventory.MergeFrom(other.inventory)
  
 	func SerializeToBytes(buffer: PackedByteArray = PackedByteArray()) -> PackedByteArray:
@@ -226,7 +232,11 @@ class Character extends Message:
 					pos += field_value[GDScriptUtils.SIZE_KEY]
 					self.skills.append(item_value)
 				6:
-					var value = GDScriptUtils.decode_message(data, pos, inventory)
+					if self.inventory == null:
+						self.inventory = Character.Inventory.new()
+					else:
+						self.inventory = Character.Inventory.new()
+					var value = GDScriptUtils.decode_message(data, pos, self.inventory)
 					self.inventory = value[GDScriptUtils.VALUE_KEY]
 					pos += value[GDScriptUtils.SIZE_KEY]
 				_:
@@ -336,6 +346,10 @@ class GameSession extends Message:
 					pos += value[GDScriptUtils.SIZE_KEY]
 				4:
 					var item_value = Character.new()
+					if item_value == null:
+						item_value = Character.new()
+					else:
+						item_value = Character.new()
 					var field_value = GDScriptUtils.decode_message(data, pos, item_value)
 					item_value = field_value[GDScriptUtils.VALUE_KEY]
 					pos += field_value[GDScriptUtils.SIZE_KEY]

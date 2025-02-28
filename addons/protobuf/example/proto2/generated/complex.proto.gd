@@ -21,13 +21,13 @@ class ComplexMessage extends Message:
 	var nested_messages = []
 	var name: String = ""
 	var id: int = 0
-	var message: ComplexMessage.NestedMessage = ComplexMessage.NestedMessage.new()
+	var message: ComplexMessage.NestedMessage = null
 	var status_list = []
 
 	class NestedMessage extends Message:
 		var id: String = ""
 		var value: int = 0
-		var deep: ComplexMessage.NestedMessage.DeepNested = ComplexMessage.NestedMessage.DeepNested.new()
+		var deep: ComplexMessage.NestedMessage.DeepNested = null
 
 		class DeepNested extends Message:
 			var data: String = ""
@@ -99,6 +99,8 @@ class ComplexMessage extends Message:
 			if other is NestedMessage:
 				self.id += other.id
 				self.value += other.value
+				if self.deep == null:
+					self.deep = ComplexMessage.NestedMessage.DeepNested.new()
 				self.deep.MergeFrom(other.deep)
  
 		func SerializeToBytes(buffer: PackedByteArray = PackedByteArray()) -> PackedByteArray:
@@ -135,7 +137,11 @@ class ComplexMessage extends Message:
 						self.value = value[GDScriptUtils.VALUE_KEY]
 						pos += value[GDScriptUtils.SIZE_KEY]
 					3:
-						var value = GDScriptUtils.decode_message(data, pos, deep)
+						if self.deep == null:
+							self.deep = ComplexMessage.NestedMessage.DeepNested.new()
+						else:
+							self.deep = ComplexMessage.NestedMessage.DeepNested.new()
+						var value = GDScriptUtils.decode_message(data, pos, self.deep)
 						self.deep = value[GDScriptUtils.VALUE_KEY]
 						pos += value[GDScriptUtils.SIZE_KEY]
 					_:
@@ -178,6 +184,8 @@ class ComplexMessage extends Message:
 			self.nested_messages.append_array(other.nested_messages)
 			self.name += other.name
 			self.id += other.id
+			if self.message == null:
+				self.message = ComplexMessage.NestedMessage.new()
 			self.message.MergeFrom(other.message)
 			self.status_list.append_array(other.status_list)
  
@@ -272,6 +280,10 @@ class ComplexMessage extends Message:
 					pos += value[GDScriptUtils.SIZE_KEY]
 				8:
 					var item_value = ComplexMessage.NestedMessage.new()
+					if item_value == null:
+						item_value = ComplexMessage.NestedMessage.new()
+					else:
+						item_value = ComplexMessage.NestedMessage.new()
 					var field_value = GDScriptUtils.decode_message(data, pos, item_value)
 					item_value = field_value[GDScriptUtils.VALUE_KEY]
 					pos += field_value[GDScriptUtils.SIZE_KEY]
@@ -285,7 +297,11 @@ class ComplexMessage extends Message:
 					self.id = value[GDScriptUtils.VALUE_KEY]
 					pos += value[GDScriptUtils.SIZE_KEY]
 				13:
-					var value = GDScriptUtils.decode_message(data, pos, message)
+					if self.message == null:
+						self.message = ComplexMessage.NestedMessage.new()
+					else:
+						self.message = ComplexMessage.NestedMessage.new()
+					var value = GDScriptUtils.decode_message(data, pos, self.message)
 					self.message = value[GDScriptUtils.VALUE_KEY]
 					pos += value[GDScriptUtils.SIZE_KEY]
 				14:
@@ -351,7 +367,7 @@ class ComplexMessage extends Message:
 class TreeNode extends Message:
 	var value: String = ""
 	var children = []
-	var parent: TreeNode = TreeNode.new()
+	var parent: TreeNode = null
 
 	func New() -> Message:
 		return TreeNode.new()
@@ -360,6 +376,8 @@ class TreeNode extends Message:
 		if other is TreeNode:
 			self.value += other.value
 			self.children.append_array(other.children)
+			if self.parent == null:
+				self.parent = TreeNode.new()
 			self.parent.MergeFrom(other.parent)
  
 	func SerializeToBytes(buffer: PackedByteArray = PackedByteArray()) -> PackedByteArray:
@@ -393,12 +411,20 @@ class TreeNode extends Message:
 					pos += value[GDScriptUtils.SIZE_KEY]
 				2:
 					var item_value = TreeNode.new()
+					if item_value == null:
+						item_value = TreeNode.new()
+					else:
+						item_value = TreeNode.new()
 					var field_value = GDScriptUtils.decode_message(data, pos, item_value)
 					item_value = field_value[GDScriptUtils.VALUE_KEY]
 					pos += field_value[GDScriptUtils.SIZE_KEY]
 					self.children.append(item_value)
 				3:
-					var value = GDScriptUtils.decode_message(data, pos, parent)
+					if self.parent == null:
+						self.parent = TreeNode.new()
+					else:
+						self.parent = TreeNode.new()
+					var value = GDScriptUtils.decode_message(data, pos, self.parent)
 					self.parent = value[GDScriptUtils.VALUE_KEY]
 					pos += value[GDScriptUtils.SIZE_KEY]
 				_:
@@ -740,8 +766,8 @@ class FieldRules extends Message:
 	var required_field: String = ""
 	var optional_field: String = ""
 	var repeated_field = []
-	var required_message: ComplexMessage.NestedMessage = ComplexMessage.NestedMessage.new()
-	var optional_message: ComplexMessage.NestedMessage = ComplexMessage.NestedMessage.new()
+	var required_message: ComplexMessage.NestedMessage = null
+	var optional_message: ComplexMessage.NestedMessage = null
 	var repeated_message = []
 
 	func New() -> Message:
@@ -752,7 +778,11 @@ class FieldRules extends Message:
 			self.required_field += other.required_field
 			self.optional_field += other.optional_field
 			self.repeated_field.append_array(other.repeated_field)
+			if self.required_message == null:
+				self.required_message = ComplexMessage.NestedMessage.new()
 			self.required_message.MergeFrom(other.required_message)
+			if self.optional_message == null:
+				self.optional_message = ComplexMessage.NestedMessage.new()
 			self.optional_message.MergeFrom(other.optional_message)
 			self.repeated_message.append_array(other.repeated_message)
  
@@ -808,15 +838,27 @@ class FieldRules extends Message:
 					pos += field_value[GDScriptUtils.SIZE_KEY]
 					self.repeated_field.append(item_value)
 				4:
-					var value = GDScriptUtils.decode_message(data, pos, required_message)
+					if self.required_message == null:
+						self.required_message = ComplexMessage.NestedMessage.new()
+					else:
+						self.required_message = ComplexMessage.NestedMessage.new()
+					var value = GDScriptUtils.decode_message(data, pos, self.required_message)
 					self.required_message = value[GDScriptUtils.VALUE_KEY]
 					pos += value[GDScriptUtils.SIZE_KEY]
 				5:
-					var value = GDScriptUtils.decode_message(data, pos, optional_message)
+					if self.optional_message == null:
+						self.optional_message = ComplexMessage.NestedMessage.new()
+					else:
+						self.optional_message = ComplexMessage.NestedMessage.new()
+					var value = GDScriptUtils.decode_message(data, pos, self.optional_message)
 					self.optional_message = value[GDScriptUtils.VALUE_KEY]
 					pos += value[GDScriptUtils.SIZE_KEY]
 				6:
 					var item_value = ComplexMessage.NestedMessage.new()
+					if item_value == null:
+						item_value = ComplexMessage.NestedMessage.new()
+					else:
+						item_value = ComplexMessage.NestedMessage.new()
 					var field_value = GDScriptUtils.decode_message(data, pos, item_value)
 					item_value = field_value[GDScriptUtils.VALUE_KEY]
 					pos += field_value[GDScriptUtils.SIZE_KEY]

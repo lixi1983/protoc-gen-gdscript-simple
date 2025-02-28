@@ -27,8 +27,10 @@ func test_proto3_serialize():
     test.f_field4 = 1234.5566
     test.map_field5 = {1: "hello", 2: "world"}
     test.enum_field6 = proto3Test.EnumTest.ENUM_TEST2
+    test.sub_msg = proto3Test.MsgBase.SubMsg.new()
     test.sub_msg.sub_field1 = 123
     test.sub_msg.sub_field2 = "hello"
+    test.common_msg = common.CommonMessage.new()
     test.common_msg.common_field2 = "world344"
     test.common_msg.common_field1 = 23232
     test.common_msg.common_sint32 = 654321
