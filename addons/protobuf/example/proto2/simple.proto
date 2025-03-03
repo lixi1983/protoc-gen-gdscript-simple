@@ -1,15 +1,72 @@
 syntax = "proto2";
 
 enum SimpleEnum {
-  UNKNOWN = 0;
+  UNKNOWN = 3;
   VALUE1 = 1;
   VALUE2 = 2;
 }
 
 message SimpleMessage {
-  optional string name = 1 [default = "simple_demo"];
-  optional int32 value = 2 [default = 100];
-  repeated string tags = 3;
-  optional bool active = 4 [default = false];
-  optional double score = 5 [default = 0.5];
+  enum EnumDemo{
+    E_UNKNOWN = 0;
+    E_VALUE1 = 1;
+    E_VALUE2 = 2;
+  }
+  optional int32 int32_v = 1;
+  optional int64 int64_v = 2;
+  optional uint32 uint32_v = 3;
+  optional uint64 uint64_v = 4;
+  optional sint32 sint32_v = 5;
+  optional sint64 sint64_v = 6;
+  optional fixed32 fixed32_v = 7;
+  optional fixed64 fixed64_v = 8;
+  optional sfixed32 sfixed32_v = 9;
+  optional sfixed64 sfixed64_v = 10;
+  optional float float_v = 11;
+  optional double double_v = 12;
+  optional bool bool_v = 13;
+  optional string string_v = 14;
+  optional bytes bytes_v = 15;
+  optional SimpleEnum elem_v = 16;
+  optional EnumDemo elem_vd = 17;
+}
+
+message SimpleDefaultMessage {
+  optional int32 int32_v = 1[default=101];
+  optional int64 int64_v = 2[default=102];
+  optional uint32 uint32_v = 3[default=103];
+  optional uint64 uint64_v = 4[default=104];
+  optional sint32 sint32_v = 5[default=105];
+  optional sint64 sint64_v = 6[default=106];
+  optional fixed32 fixed32_v = 7[default=107];
+  optional fixed64 fixed64_v = 8[default=108];
+  optional sfixed32 sfixed32_v = 9[default=109];
+  optional sfixed64 sfixed64_v = 10[default=110];
+  optional float float_v = 11[default=11.1];
+  optional double double_v = 12[default=11.2];
+  optional bool bool_v = 13[default=true];
+  optional string string_v = 14[default="simple_demo"];
+  optional bytes bytes_v = 15;
+  optional SimpleEnum elem_v = 16[default=VALUE1];
+  optional SimpleMessage.EnumDemo elem_vd = 17[default=E_VALUE1];
+}
+
+message SimpleRepeatedMessage {
+  repeated int32 int32_v = 1;
+  repeated int64 int64_v = 2;
+  repeated uint32 uint32_v = 3;
+  repeated uint64 uint64_v = 4;
+  repeated sint32 sint32_v = 5;
+  repeated sint64 sint64_v = 6;
+  repeated fixed32 fixed32_v = 7;
+  repeated fixed64 fixed64_v = 8;
+  repeated sfixed32 sfixed32_v = 9;
+  repeated sfixed64 sfixed64_v = 10;
+  repeated float float_v = 11;
+  repeated double double_v = 12;
+  repeated bool bool_v = 13;
+  repeated string string_v = 14;
+  repeated bytes bytes_v = 15;
+  repeated SimpleEnum elem_v = 16;
+  repeated SimpleMessage.EnumDemo elem_vd = 17;
 }

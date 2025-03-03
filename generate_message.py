@@ -1,11 +1,15 @@
 import string
 from typing import List, Optional
 
-from google.protobuf.descriptor import FieldDescriptor as FieldDescriptorProto, EnumDescriptor, FieldDescriptor
+from google.protobuf.descriptor import Descriptor, FieldDescriptor as FieldDescriptorProto, EnumDescriptor, FieldDescriptor
 from google.protobuf.compiler import plugin_pb2
 from google.protobuf.descriptor import Descriptor as MessageType
 import sys
 import os
+
+import gd_protobuf_info
+from gd_protobuf_info import GDField
+
 
 def get_field_new(field, proto_file=None):
     """Get code to create a new instance of a field."""
@@ -24,26 +28,15 @@ def get_field_new(field, proto_file=None):
     else:
         return get_default_value(field, proto_file)
 
-def get_field_type(field, proto_file=None):
+def get_field_type(field: FieldDescriptor, proto_file=None):
     """Get the GDScript type for a field."""
-
+    
     if field.type == FieldDescriptorProto.TYPE_MESSAGE:
         field_type_name = real_type_name(field.type_name)
         return field_type_name
-#        type_name = field.type_name
-#        if type_name.startswith("."):
-#            type_name = type_name[1:]
-#        return type_name
-#        parts = type_name.split(".")
-#        return parts[-1]
     elif field.type == FieldDescriptorProto.TYPE_ENUM:
         field_type_name = real_type_name(field.type_name)
         return field_type_name
-#        type_name = field.type_name
-
- #       if type_name.startswith("."):
- #           type_name = type_name[1:]
- #       return type_name
     elif field.type == FieldDescriptorProto.TYPE_STRING:
         return "String"
     elif field.type in [FieldDescriptorProto.TYPE_INT32, FieldDescriptorProto.TYPE_INT64,
@@ -102,7 +95,7 @@ def get_file_name(name, package_name=None):
     class_name = get_class_name(name)
     return f"{class_name}.proto.gd"
 
-def get_message_type(message_type, package_name=None):
+def get_message_type(message_type: MessageType, package_name=None):
     """Get the message type name without package prefix."""
     return message_type.name
 
@@ -169,7 +162,7 @@ def generate_imports(proto_file) -> str:
     return content
 
 package_name = ""
-def real_type_name(type_full_name):
+def real_type_name(type_full_name: string):
     if len(type_full_name) <= 0:
         return type_full_name
 
@@ -225,26 +218,34 @@ def generate_gdscript(request: plugin_pb2.CodeGeneratorRequest) -> plugin_pb2.Co
     return response
 
 
-def generate_message_class(message_type: MessageType, parent_name: Optional[str] = None,
-                           indent_level: int = 0) -> str:
+def generate_message_class(message_type: MessageType, indent_level: int = 0) -> str:
+
+    global package_name
+    gdmsg = gd_protobuf_info.init_message_type(message_type, package_name)
+
     """Generate a message class."""
     content = ""
     indent = "\t" * indent_level
 
-    content += f"{indent}class {message_type.name} extends Message:\n"
+    content += f"\n{indent}class {message_type.name} extends Message:\n"
 
     # Generate enums first
     for enum_type in message_type.enum_type:
         content += generate_enum_type(enum_type, message_type.name, indent_level + 1)
 
-    content += generate_fields(message_type, message_type.field, indent_level + 1)
+    for gd_field in gdmsg.field_dic.values():
+        if isinstance(gd_field, GDField):
+            content += f"{gd_field.field_define(indent + "\t")}\n"
+
+   # content += generate_fields(message_type, message_type.field, indent_level + 1)
 
     # Generate nested types
     for nested_type in message_type.nested_type:
         if nested_type.options.map_entry:
             # This is a map field
             continue
-        content += generate_message_class(nested_type, message_type.name, indent_level + 1)
+#        content += generate_message_class(nested_type, message_type.name, indent_level + 1)
+        content += generate_message_class(nested_type, indent_level + 1)
 
     # Generate Init method
     content += generate_init_method(message_type, indent + "\t")
@@ -290,7 +291,7 @@ def is_map_field(message_type, field_number):
 
 def generate_fields(
         message_type: MessageType,
-        fields, ## : Any, # List[FieldDescriptor],
+        fields: List[FieldDescriptor],
         indent_level: int = 0
 ):
     """Generate field declarations for a message type."""
@@ -336,7 +337,6 @@ def generate_fields(
 
         if field.label == FieldDescriptorProto.LABEL_REPEATED:
             content += f"{indent}var {field_name}: Array[{get_field_type(field)}] = []\n"
-#            content += f"{indent}var {field_name} = {default_value}\n"
         else:
             content += f"{indent}var {field_name}: {get_field_type(field)} = {default_value}\n"
 
@@ -363,7 +363,7 @@ def generate_enum_type(enum_type: EnumDescriptor, parent_name: Optional[str] = N
     content += f"{indent}}} \n \n"  # Add empty line at end
     return content
 
-def get_default_value(field, proto_file=None):
+def get_default_value(field: FieldDescriptor, proto_file=None):
     """Get the default value for a field."""
     type_name = field.type_name
     if type_name.startswith("."):
@@ -424,7 +424,7 @@ def get_default_value(field, proto_file=None):
     else:
         return "null"
 
-def generate_init_method(message_type, indent):
+def generate_init_method(message_type: MessageType, indent):
     """Generate init method for a message type."""
     content = ""
     content += f"{indent}func Init() -> void:\n"
@@ -448,7 +448,7 @@ def generate_init_method(message_type, indent):
     content += "\n"
     return content
 
-def generate_new_methods(message_type, indent):
+def generate_new_methods(message_type: MessageType, indent):
     """Generate new instance methods for a message type."""
     content = ""
 
@@ -460,7 +460,7 @@ def generate_new_methods(message_type, indent):
 
     return content
 
-def generate_clone_methods(message_type, indent):
+def generate_clone_methods(message_type: MessageType, indent):
     """Generate clone methods for a message type."""
     content = ""
 
@@ -473,7 +473,7 @@ def generate_clone_methods(message_type, indent):
 
     return content
 
-def generate_merge_methods(message_type, indent):
+def generate_merge_methods(message_type: MessageType, indent):
     """Generate merge methods for a message type."""
     content = ""
 
@@ -506,7 +506,7 @@ def generate_merge_methods(message_type, indent):
     return content
 
 
-def generate_parse_from_string_methods(message_type, indent):
+def generate_parse_from_string_methods(message_type: MessageType, indent):
     field_msg = lambda f, v_name="": "self" if f.type != FieldDescriptorProto.TYPE_MESSAGE else v_name if v_name != "" else f.name
 
     def base_field_content_info(f_indent, f, decode_value="value", f_value="", pos="pos", buffer="data", is_self = True):
@@ -602,7 +602,7 @@ def generate_parse_from_string_methods(message_type, indent):
 
     return content
 
-def generate_serialize_to_string_methods(message_type, indent):
+def generate_serialize_to_string_methods(message_type: MessageType, indent):
     """Generate serialize methods for a message type."""
     base_field_content_info = lambda f_indent, f, v="", b="buffer": (
         f"{f_indent}GDScriptUtils.encode_tag({b}, {f.number}, {f.type})\n"
@@ -643,7 +643,7 @@ def generate_serialize_to_string_methods(message_type, indent):
     content += f"{indent}\treturn buffer\n \n"
     return content
 
-def generate_serialize_to_dictionary_methods(message_type, indent):
+def generate_serialize_to_dictionary_methods(message_type: MessageType, indent):
     """Generate serialize directory methods for a message type."""
     content = ""
 
@@ -676,7 +676,7 @@ def generate_serialize_to_dictionary_methods(message_type, indent):
     content += f"{indent}\treturn _tmap\n\n"
     return content
 
-def generate_parse_from_dictionary_methods(message_type, indent):
+def generate_parse_from_dictionary_methods(message_type: MessageType, indent):
     """Generate parse dictionary methods for a message type."""
     content = ""
 
@@ -715,7 +715,7 @@ def generate_parse_from_dictionary_methods(message_type, indent):
     content += "\n"
     return content
 
-def generate_serialization_methods(message_type, indent):
+def generate_serialization_methods(message_type: MessageType, indent):
     """Generate serialization methods for a message type."""
     content = ""
 
