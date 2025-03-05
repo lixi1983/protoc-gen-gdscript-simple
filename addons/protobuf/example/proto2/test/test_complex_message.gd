@@ -181,6 +181,8 @@ func test_complex_message_nested():
 	
 	# Verify nested message
 #	print("Nested message:", parsed_msg.message.id)
+	print("<<<<<< msg message: <<<<<<<<<<", msg.ToString())
+	print("<<<<<< parsed_msg message: <<<<<<<<<<", parsed_msg.ToString())
 	assert(parsed_msg.message.id == "nested_id", "Nested message id mismatch")
 	assert(parsed_msg.message.value == 42, "Nested message value mismatch")
 	assert(parsed_msg.message.deep.data == "deep_data", "Deep nested data mismatch")
