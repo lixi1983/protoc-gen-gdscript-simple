@@ -233,7 +233,8 @@ def generate_message_class(message_type: MessageType, indent_level: int = 0) -> 
     for enum_type in message_type.enum_type:
         content += generate_enum_type(enum_type, message_type.name, indent_level + 1)
 
-    for gd_field in gd_msg.field_dic.values():
+#    for gd_field in gd_msg.field_dic.values():
+    for gd_field in gd_msg.field_list:
         if isinstance(gd_field, GDField):
             content += f"{indent}\t#{gd_field.field_number()}\n"
             content += f"{gd_field.field_define(indent + "\t")}\n"
@@ -434,7 +435,8 @@ def generate_init_method(message_type: MessageType, gd_message_type: GDMessageTy
         content += f"{indent}\tpass"
         return
 
-    for gd_field in gd_message_type.field_dic.values():
+#    for gd_field in gd_message_type.field_dic.values():
+    for gd_field in gd_message_type.field_list:
         if isinstance(gd_field, GDField):
             content += f"{gd_field.field_clear(indent + '\t')}\n"
     """"
@@ -488,7 +490,8 @@ def generate_merge_methods(message_type: MessageType, gd_message_type: GDMessage
         content += f"{indent}\tpass"
     else:
         content += f"{indent}\tif other is {message_type.name}:\n"
-        for gd_field in gd_message_type.field_dic.values():
+#        for gd_field in gd_message_type.field_dic.values():
+        for gd_field in gd_message_type.field_list:
             if isinstance(gd_field, GDField):
                 content += gd_field.field_merge( f"{indent}\t\t", "other") + "\n"
         """
@@ -515,7 +518,7 @@ def generate_merge_methods(message_type: MessageType, gd_message_type: GDMessage
     return content
 
 
-def generate_parse_from_string_methods(message_type: MessageType, indent):
+def generate_parse_from_string_methods(message_type: MessageType, gd_message_type: GDMessageType, indent):
     field_msg = lambda f, v_name="": "self" if f.type != FieldDescriptorProto.TYPE_MESSAGE else v_name if v_name != "" else f.name
 
     def base_field_content_info(f_indent, f, decode_value="value", f_value="", pos="pos", buffer="data", is_self = True):
@@ -550,7 +553,6 @@ def generate_parse_from_string_methods(message_type: MessageType, indent):
     content += f"{indent}\tvar size = data.size()\n"
     content += f"{indent}\tvar pos = 0\n"
     content += " \n"
-    """
     content += f"{indent}\twhile pos < size:\n"
     content += f"{indent}\t\tvar tag = GDScriptUtils.decode_tag(data, pos)\n"
     content += f"{indent}\t\tvar field_number = tag[GDScriptUtils.VALUE_KEY]\n"
@@ -558,6 +560,12 @@ def generate_parse_from_string_methods(message_type: MessageType, indent):
     content += " \n"
     content += f"{indent}\t\tmatch field_number:\n"
 
+#    for gd_field in gd_message_type.field_dic.values():
+    for gd_field in gd_message_type.field_list:
+        if isinstance(gd_field, GDField):
+            content += f"{indent}\t\t\t{gd_field.field_number()}:\n"
+            content += gd_field.field_parse(f"{indent}\t\t\t\t", "data", "pos", "field_value", "self")
+    """"
     # Parse fields
     for field in message_type.field:
         field_number = field.number
@@ -605,9 +613,10 @@ def generate_parse_from_string_methods(message_type: MessageType, indent):
         else:
             content += base_field_content_info(f"{indent}\t\t\t\t", field)
 
+    """
     content += f"{indent}\t\t\t_:\n"
     content += f"{indent}\t\t\t\tpass\n\n"
-    """
+
     content += f"{indent}\treturn pos\n\n"
 
     return content
@@ -622,8 +631,9 @@ def generate_serialize_to_string_methods(message_type: MessageType, gd_message_t
     content = ""
     content += f"{indent}func SerializeToBytes(buffer: PackedByteArray = PackedByteArray()) -> PackedByteArray:\n"
 
-    for gd_field in gd_message_type.field_dic.values():
-        content += f"{gd_field.field_serialize(indent)}\n"
+#    for gd_field in gd_message_type.field_dic.values():
+    for gd_field in gd_message_type.field_list:
+        content += f"{gd_field.field_serialize(indent + "\t")}\n"
     """
     for field in message_type.field:
         field_name = field.name
@@ -656,14 +666,18 @@ def generate_serialize_to_string_methods(message_type: MessageType, gd_message_t
     content += f"{indent}\treturn buffer\n \n"
     return content
 
-def generate_serialize_to_dictionary_methods(message_type: MessageType, indent):
+def generate_serialize_to_dictionary_methods(message_type: MessageType, gd_message_type: GDMessageType, indent):
     """Generate serialize directory methods for a message type."""
     content = ""
 
     # Generate Serialize method
     content += f"{indent}func SerializeToDictionary() -> Dictionary:\n"
-    content += f"{indent}\tvar _tmap = {{}}\n"
-    
+    content += f"{indent}\tvar dict = {{}}\n"
+
+    for gd_field in gd_message_type.field_list:
+        content += f"{gd_field.field_serialize_to_dictionary(indent + "\t", "dict" )}\n"
+
+    """    
     # 分别处理每个字段
     for field in message_type.field:
         map_info = get_field_map_info(message_type, field.number)
@@ -685,19 +699,23 @@ def generate_serialize_to_dictionary_methods(message_type: MessageType, indent):
             content += f"{indent}\t\t_tmap[\"{field.name}\"] = self.{field.name}.SerializeToDictionary()\n"
         else:
             content += f"{indent}\t_tmap[\"{field.name}\"] = self.{field.name}\n"
-            
-    content += f"{indent}\treturn _tmap\n\n"
+    """
+    content += f"{indent}\treturn dict\n\n"
     return content
 
-def generate_parse_from_dictionary_methods(message_type: MessageType, indent):
+def generate_parse_from_dictionary_methods(message_type: MessageType, gd_message_type: GDMessageType, indent):
     """Generate parse dictionary methods for a message type."""
     content = ""
 
     # Generate Parse method
-    content += f"{indent}func ParseFromDictionary(_fmap: Dictionary) -> void:\n"
-    content += f"{indent}\tif _fmap == null:\n"
+    content += f"{indent}func ParseFromDictionary(dict: Dictionary) -> void:\n"
+    content += f"{indent}\tif dict == null:\n"
     content += f"{indent}\t\treturn\n\n"
 
+    for gd_field in gd_message_type.field_list:
+        content += f"{gd_field.field_parse_from_dictionary(indent + "\t", "dict")}\n"
+
+    """"
     for field in message_type.field:
         field_name = field.name
         map_info = get_field_map_info(message_type, field.number)
@@ -724,7 +742,7 @@ def generate_parse_from_dictionary_methods(message_type: MessageType, indent):
         else:
             content += f"{indent}\tif \"{field_name}\" in _fmap:\n"
             content += f"{indent}\t\tself.{field_name} = _fmap[\"{field_name}\"]\n"
-
+    """
     content += "\n"
     return content
 
@@ -736,10 +754,10 @@ def generate_serialization_methods(message_type: MessageType, gd_message_type: G
     content += generate_merge_methods(message_type, gd_message_type, indent)
 
     content += generate_serialize_to_string_methods(message_type, gd_message_type, indent)
-    content += generate_parse_from_string_methods(message_type, indent)
+    content += generate_parse_from_string_methods(message_type, gd_message_type, indent)
 
-    content += generate_serialize_to_dictionary_methods(message_type, indent)
-    content += generate_parse_from_dictionary_methods(message_type, indent)
+    content += generate_serialize_to_dictionary_methods(message_type, gd_message_type, indent)
+    content += generate_parse_from_dictionary_methods(message_type, gd_message_type, indent)
 
     return content
 

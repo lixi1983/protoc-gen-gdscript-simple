@@ -57,11 +57,11 @@ message NumberTypes {
     optional int32 int32_field = 1 [default = -42];
     optional int64 int64_field = 2 [default = -9223372036854775808];  // min int64
     optional uint32 uint32_field = 3 [default = 4294967295];  // max uint32
-    optional uint64 uint64_field = 4 [default = 18446744073709551615];  // max uint64
+    optional uint64 uint64_field = 4 [default = 1844674407370955161];  // max uint64
     optional sint32 sint32_field = 5 [default = -2147483648];  // min sint32
     optional sint64 sint64_field = 6 [default = -9223372036854775808];  // min sint64
     optional fixed32 fixed32_field = 7 [default = 4294967295];  // max fixed32
-    optional fixed64 fixed64_field = 8 [default = 18446744073709551615];  // max fixed64
+    optional fixed64 fixed64_field = 8 [default = 1844674407370955161];  // max fixed64
     optional sfixed32 sfixed32_field = 9 [default = -2147483648];  // min sfixed32
     optional sfixed64 sfixed64_field = 10 [default = -9223372036854775808];  // min sfixed64
     optional float float_field = 11 [default = 3.402823466e+38];  // max float

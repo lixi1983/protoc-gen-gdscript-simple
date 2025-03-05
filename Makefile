@@ -92,10 +92,10 @@ test: install
 
 check:
 	@echo "Running all tests..."
-	${GODOT} --headless --script addons/protobuf/example/syntax_check.gd addons/protobuf/proto
-	${GODOT} --headless --script addons/protobuf/example/syntax_check.gd addons/protobuf/example/proto2/generated
-	${GODOT} --headless --script addons/protobuf/example/syntax_check.gd addons/protobuf/example/proto3/generated
-#	${GODOT} --headless --script addons/protobuf/example/syntax_check.gd addons
+#	${GODOT} --headless --script addons/protobuf/example/syntax_check.gd addons/protobuf/proto
+#	${GODOT} --headless --script addons/protobuf/example/syntax_check.gd addons/protobuf/example/proto2/generated
+#	${GODOT} --headless --script addons/protobuf/example/syntax_check.gd addons/protobuf/example/proto3/generated
+	${GODOT} --headless --script addons/protobuf/example/syntax_check.gd addons
 	@echo "Running all tests end ......"
 
 #	@$(CD) test/godot_test && $(MAKE) link check_only
