@@ -50,7 +50,7 @@ class GDField:
                      pos: str = "pos",
                      decode_value: str = "decode_value",
                      decode_msg: str = "self",
-                     field_value: str = None,) -> str:
+                     field_value: str = None) -> str:
         if field_value is None:
             field_value = f"self.{self.field_name()}"
         content = f"{indent}var {decode_value} = GDScriptUtils.decode_{self.mash_coder}({from_buffer}, {pos}, {decode_msg})\n"
@@ -129,7 +129,11 @@ class GDMessageField(GDField):
         content += f"{indent}\tself.{self.field_name()} = {self.field_type_name()}.new()\n"
         content += f"{indent}self.{self.field_name()}.Init()\n"
 #        content += f"{indent}var {decode_value} = {{}}\n"
-        content += self.field_decode(indent, from_buffer, pos, decode_value, f"self.{self.field_name()}")
+        content += self.field_decode(indent,
+                                     from_buffer,
+                                     pos,
+                                     decode_value,
+                                    f"self.{self.field_name()}")
 
         return content
 
@@ -188,6 +192,22 @@ class GDRepeatedField(GDField):
 
         return content
 
+    def field_decode(self,
+                     indent: str,
+                     from_buffer: str = "buffer",
+                     pos: str = "pos",
+                     decode_value: str = "decode_value",
+                     decode_msg: str = "self",
+                     field_value: str = None) -> str:
+        if field_value is None:
+            field_value = f"self.{self.field_name()}"
+
+        content = ""
+        content += f"{indent}var {decode_value} = GDScriptUtils.decode_{self.sub_field.mash_coder}({from_buffer}, {pos}, {decode_msg})\n"
+        content += f"{indent}self.{self.field_name()}.append({decode_value}[GDScriptUtils.VALUE_KEY])\n"
+        content += f"{indent}{pos} += {decode_value}[GDScriptUtils.SIZE_KEY]\n"
+        return content
+
     def field_parse(self,
                     indent: str,
                     from_buffer: str = "buffer",
@@ -195,9 +215,20 @@ class GDRepeatedField(GDField):
                     decode_value: str = "decode_value",
                     decode_msg: str = "self",
                     field_value: str = None) -> str:
-        content = f"{indent}var {decode_value} = GDScriptUtils.decode_{self.sub_field.mash_coder}({from_buffer}, {pos}, {decode_msg})\n"
-        content += f"{indent}self.{self.field_name()}.append({decode_value}[GDScriptUtils.VALUE_KEY])\n"
-        content += f"{indent}{pos} += {decode_value}[GDScriptUtils.SIZE_KEY]\n"
+        content = ""
+        if self.sub_field.type == FieldDescriptor.TYPE_MESSAGE:
+            decode_msg = f"sub_{self.field_name()}"
+            content += f"{indent}var {decode_msg} = {self.sub_field.field_type_name()}.new()\n"
+
+#            content += self.field_decode(indent, from_buffer, pos, decode_value, decode_msg, f"sub_{self.field_name()}")
+#            content += f"{indent}var {decode_value} = GDScriptUtils.decode_{self.sub_field.mash_coder}({from_buffer}, {pos}, sun_{self.field_name()})\n"
+#            content += f"{indent}self.{self.field_name()}.append({decode_value}[GDScriptUtils.VALUE_KEY])\n"
+#            content += f"{indent}{pos} += {decode_value}[GDScriptUtils.SIZE_KEY]\n"
+#        else:
+        content += self.field_decode(indent, from_buffer, pos, decode_value, decode_msg, field_value)
+#            content += f"{indent}var {decode_value} = GDScriptUtils.decode_{self.sub_field.mash_coder}({from_buffer}, {pos}, {decode_msg})\n"
+#            content += f"{indent}self.{self.field_name()}.append({decode_value}[GDScriptUtils.VALUE_KEY])\n"
+#            content += f"{indent}{pos} += {decode_value}[GDScriptUtils.SIZE_KEY]\n"
         return content
 
     def field_serialize_to_dictionary(self, indent: str, to_dict: str = "to_dict") -> str:

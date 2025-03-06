@@ -305,7 +305,8 @@ class ComplexMessage extends Message:
 					self.status = field_value[GDScriptUtils.VALUE_KEY]
 					pos += field_value[GDScriptUtils.SIZE_KEY]
 				8:
-					var field_value = GDScriptUtils.decode_message(data, pos, self)
+					var sub_nested_messages = ComplexMessage.NestedMessage.new()
+					var field_value = GDScriptUtils.decode_message(data, pos, sub_nested_messages)
 					self.nested_messages.append(field_value[GDScriptUtils.VALUE_KEY])
 					pos += field_value[GDScriptUtils.SIZE_KEY]
 				11:
@@ -342,7 +343,7 @@ class ComplexMessage extends Message:
 		dict["bytes_field"] = self.bytes_field
 		dict["status"] = self.status
 		for item in self.nested_messages:
-			dict["nested_messages"].append(item.SerializeToDictionary())
+			dict["nested_messages"].append(item.ToString())
 
 		dict["name"] = self.name
 		dict["id"] = self.id
@@ -442,7 +443,8 @@ class TreeNode extends Message:
 					self.value = field_value[GDScriptUtils.VALUE_KEY]
 					pos += field_value[GDScriptUtils.SIZE_KEY]
 				2:
-					var field_value = GDScriptUtils.decode_message(data, pos, self)
+					var sub_children = TreeNode.new()
+					var field_value = GDScriptUtils.decode_message(data, pos, sub_children)
 					self.children.append(field_value[GDScriptUtils.VALUE_KEY])
 					pos += field_value[GDScriptUtils.SIZE_KEY]
 				3:
@@ -461,7 +463,7 @@ class TreeNode extends Message:
 		var dict = {}
 		dict["value"] = self.value
 		for item in self.children:
-			dict["children"].append(item.SerializeToDictionary())
+			dict["children"].append(item.ToString())
 
 		if self.parent != null:
 			dict["parent"] = self.parent.SerializeToDictionary()
@@ -918,7 +920,8 @@ class FieldRules extends Message:
 					self.optional_message = field_value[GDScriptUtils.VALUE_KEY]
 					pos += field_value[GDScriptUtils.SIZE_KEY]
 				6:
-					var field_value = GDScriptUtils.decode_message(data, pos, self)
+					var sub_repeated_message = ComplexMessage.NestedMessage.new()
+					var field_value = GDScriptUtils.decode_message(data, pos, sub_repeated_message)
 					self.repeated_message.append(field_value[GDScriptUtils.VALUE_KEY])
 					pos += field_value[GDScriptUtils.SIZE_KEY]
 				_:
@@ -936,7 +939,7 @@ class FieldRules extends Message:
 		if self.optional_message != null:
 			dict["optional_message"] = self.optional_message.SerializeToDictionary()
 		for item in self.repeated_message:
-			dict["repeated_message"].append(item.SerializeToDictionary())
+			dict["repeated_message"].append(item.ToString())
 
 		return dict
 

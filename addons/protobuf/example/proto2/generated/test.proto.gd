@@ -65,7 +65,8 @@ class Character extends Message:
 						self.slots = field_value[GDScriptUtils.VALUE_KEY]
 						pos += field_value[GDScriptUtils.SIZE_KEY]
 					2:
-						var field_value = GDScriptUtils.decode_message(data, pos, self)
+						var sub_items = Character.Item.new()
+						var field_value = GDScriptUtils.decode_message(data, pos, sub_items)
 						self.items.append(field_value[GDScriptUtils.VALUE_KEY])
 						pos += field_value[GDScriptUtils.SIZE_KEY]
 					_:
@@ -77,7 +78,7 @@ class Character extends Message:
 			var dict = {}
 			dict["slots"] = self.slots
 			for item in self.items:
-				dict["items"].append(item.SerializeToDictionary())
+				dict["items"].append(item.ToString())
 
 			return dict
 
@@ -373,7 +374,8 @@ class GameSession extends Message:
 					self.end_time = field_value[GDScriptUtils.VALUE_KEY]
 					pos += field_value[GDScriptUtils.SIZE_KEY]
 				4:
-					var field_value = GDScriptUtils.decode_message(data, pos, self)
+					var sub_players = Character.new()
+					var field_value = GDScriptUtils.decode_message(data, pos, sub_players)
 					self.players.append(field_value[GDScriptUtils.VALUE_KEY])
 					pos += field_value[GDScriptUtils.SIZE_KEY]
 				5:
@@ -391,7 +393,7 @@ class GameSession extends Message:
 		dict["start_time"] = self.start_time
 		dict["end_time"] = self.end_time
 		for item in self.players:
-			dict["players"].append(item.SerializeToDictionary())
+			dict["players"].append(item.ToString())
 
 		dict["state"] = self.state
 		return dict
