@@ -5,18 +5,20 @@ PYTHON = python
 VENV = venv
 BIN_DIR = bin
 
+GODOT?=Godot.exe
+
 ifeq ($(OS),Windows_NT)
-	GODOT = Godot.exe
+#	GODOT = Godot.exe
     PIP = $(VENV)\Scripts\pip
     PYINSTALLER = $(VENV)\Scripts\pyinstaller
     PYTHON_CMD = $(VENV)\Scripts\python
 	SLEEP = Start-Sleep -Seconds
 else
-	ifeq ($(UNAME_S),Linux)
-		GODOT = godot
-	else
-		GODOT = Godot
-	endif
+#	ifeq ($(UNAME_S),Linux)
+#		GODOT = godot
+#	else
+#		GODOT = Godot
+#	endif
     PIP = $(VENV)/bin/pip
     PYINSTALLER = $(VENV)/bin/pyinstaller
     PYTHON_CMD = $(VENV)/bin/python
