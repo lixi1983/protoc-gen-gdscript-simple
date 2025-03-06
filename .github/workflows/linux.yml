@@ -20,8 +20,8 @@ permissions:
 env:
   BUILD_TYPE: Release
   BIN_DIR: bin
-  GODOT_VERSION: 4.3
-  GODOT_RELEASE_NAME: 4.3-stable
+  GODOT_VERSION: 4.4
+  GODOT_RELEASE_NAME: 4.4-stable
   PLATFORM: linux
 
 jobs:
@@ -75,7 +75,7 @@ jobs:
         which protoc-gen-gdscript
         which godot
         make test check
-        cd test/godot_test
+#        cd test/godot_test
         make serialize
 
     - name: Create release package

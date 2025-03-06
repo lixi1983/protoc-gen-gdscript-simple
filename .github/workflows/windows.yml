@@ -20,8 +20,8 @@ permissions:
 env:
   BUILD_TYPE: Release
   BIN_DIR: bin
-  GODOT_VERSION: 4.3
-  GODOT_RELEASE_NAME: 4.3-stable
+  GODOT_VERSION: 4.4
+  GODOT_RELEASE_NAME: 4.4-stable
   PLATFORM: windows
 
 jobs:
@@ -102,7 +102,7 @@ jobs:
         where protoc-gen-gdscript
         where Godot.exe
         make test check
-        cd test/godot_test
+#        cd test/godot_test
         make serialize
       shell: pwsh
 
