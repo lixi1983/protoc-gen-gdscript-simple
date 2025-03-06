@@ -77,8 +77,9 @@ class Character extends Message:
 		func SerializeToDictionary() -> Dictionary:
 			var dict = {}
 			dict["slots"] = self.slots
+			dict["items"] = []
 			for item in self.items:
-				dict["items"].append(item.ToString())
+				dict["items"].append(item.SerializeToDictionary())
 
 			return dict
 
@@ -392,8 +393,9 @@ class GameSession extends Message:
 		dict["session_id"] = self.session_id
 		dict["start_time"] = self.start_time
 		dict["end_time"] = self.end_time
+		dict["players"] = []
 		for item in self.players:
-			dict["players"].append(item.ToString())
+			dict["players"].append(item.SerializeToDictionary())
 
 		dict["state"] = self.state
 		return dict

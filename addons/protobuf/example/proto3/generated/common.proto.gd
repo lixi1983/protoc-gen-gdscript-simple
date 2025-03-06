@@ -132,4 +132,3 @@ class CommonMessage extends Message:
 			self.common_sint64 = dict.get("common_sint64")
 
 # =========================================
-

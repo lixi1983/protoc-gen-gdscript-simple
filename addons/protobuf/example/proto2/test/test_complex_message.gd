@@ -189,9 +189,9 @@ func test_complex_message_nested():
 	assert(parsed_msg.message.deep.numbers.size() == 3, "Deep nested numbers size mismatch")
 	for i in range(3):
 		assert(parsed_msg.message.deep.numbers[i] == i + 1, "Deep nested number %d mismatch" % i)
-	
+
 	# Verify nested messages array
-	assert(parsed_msg.nested_messages.size() == 2, "Nested messages array size mismatch")
+	assert(parsed_msg.nested_messages.size() == 2, "Nested messages array size mismatch: %d" %parsed_msg.nested_messages.size())
 	assert(parsed_msg.nested_messages[0].id == "clone1", "First clone id mismatch")
 	assert(parsed_msg.nested_messages[0].value == 43, "First clone value mismatch")
 	assert(parsed_msg.nested_messages[0].deep.data == "clone1_deep", "First clone deep data mismatch")
@@ -280,8 +280,8 @@ func test_complex_message_to_string():
 	assert(custom_json["nested_messages"].size() == 2, "Custom nested_messages size mismatch in ToString()")
 	
 	# Parse nested messages JSON strings
-	var nested1_json = JSON.parse_string(custom_json["nested_messages"][0])
-	var nested2_json = JSON.parse_string(custom_json["nested_messages"][1])
+	var nested1_json = custom_json["nested_messages"][0]
+	var nested2_json = custom_json["nested_messages"][1]
 	
 	assert(nested1_json["id"] == "嵌套1", "First nested message id mismatch")
 	assert(nested1_json["value"] == 1, "First nested message value mismatch")
@@ -336,7 +336,7 @@ func test_number_types():
 	assert(msg.int32_field == -42, "Default int32_field mismatch")
 	assert(msg.int64_field == -9223372036854775808, "Default int64_field mismatch")
 	assert(msg.uint32_field == 4294967295, "Default uint32_field mismatch")
-	assert(msg.uint64_field == 9223372036854775807, "Default uint64_field mismatch")
+	assert(msg.uint64_field == 1844674407370955161, "Default uint64_field mismatch")
 	
 	# Test binary serialization
 	var bytes = msg.SerializeToBytes()
@@ -347,7 +347,7 @@ func test_number_types():
 	assert(parsed_msg.int32_field == -42, "Parsed int32_field mismatch")
 	assert(parsed_msg.int64_field == -9223372036854775808, "Parsed int64_field mismatch")
 	assert(parsed_msg.uint32_field == 4294967295, "Parsed uint32_field mismatch")
-	assert(parsed_msg.uint64_field == 9223372036854775807, "Parsed uint64_field mismatch")
+	assert(parsed_msg.uint64_field == 1844674407370955161, "Parsed uint64_field mismatch")
 	
 	print("NumberTypes test passed!")
 

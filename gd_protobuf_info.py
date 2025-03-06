@@ -233,7 +233,8 @@ class GDRepeatedField(GDField):
 
     def field_serialize_to_dictionary(self, indent: str, to_dict: str = "to_dict") -> str:
         if self.sub_field.type == FieldDescriptor.TYPE_MESSAGE:
-            content = f"{indent}for item in self.{self.field_name()}:\n"
+            content = f"{indent}{to_dict}[\"{self.field_name()}\"] = []\n"
+            content += f"{indent}for item in self.{self.field_name()}:\n"
             content += f"{indent}\t{to_dict}[\"{self.field_name()}\"].append(item.SerializeToDictionary())\n"
             return content
         else:

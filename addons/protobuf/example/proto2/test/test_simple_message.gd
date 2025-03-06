@@ -53,7 +53,7 @@ func test_simple_message_default():
 	assert(msg2.string_v == "", "Default string_v mismatch")
 	var empty_bytes = PackedByteArray([])
 	assert(msg2.bytes_v == empty_bytes, "Default bytes_v mismatch")
-	# 在proto2中，如果没有指定默认值，枚举字段会使用0作为默认值
+	# 在proto2中，如果没有指定默认值，枚举字段会使用第一个定义的枚举值作为默认值
 	assert(msg2.elem_v == 0, "Default elem_v mismatch")
 	assert(msg2.elem_vd == SimpleProto.SimpleMessage.EnumDemo.E_UNKNOWN, "Default elem_vd mismatch")
 	print("Default values test passed!")

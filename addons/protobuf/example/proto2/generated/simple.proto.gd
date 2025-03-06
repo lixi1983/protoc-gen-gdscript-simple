@@ -832,4 +832,3 @@ class SimpleRepeatedMessage extends Message:
 			self.elem_vd = dict.get("elem_vd")
 
 # =========================================
-

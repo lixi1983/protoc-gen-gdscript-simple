@@ -342,8 +342,9 @@ class ComplexMessage extends Message:
 		dict["string_field"] = self.string_field
 		dict["bytes_field"] = self.bytes_field
 		dict["status"] = self.status
+		dict["nested_messages"] = []
 		for item in self.nested_messages:
-			dict["nested_messages"].append(item.ToString())
+			dict["nested_messages"].append(item.SerializeToDictionary())
 
 		dict["name"] = self.name
 		dict["id"] = self.id
@@ -462,8 +463,9 @@ class TreeNode extends Message:
 	func SerializeToDictionary() -> Dictionary:
 		var dict = {}
 		dict["value"] = self.value
+		dict["children"] = []
 		for item in self.children:
-			dict["children"].append(item.ToString())
+			dict["children"].append(item.SerializeToDictionary())
 
 		if self.parent != null:
 			dict["parent"] = self.parent.SerializeToDictionary()
@@ -938,8 +940,9 @@ class FieldRules extends Message:
 			dict["required_message"] = self.required_message.SerializeToDictionary()
 		if self.optional_message != null:
 			dict["optional_message"] = self.optional_message.SerializeToDictionary()
+		dict["repeated_message"] = []
 		for item in self.repeated_message:
-			dict["repeated_message"].append(item.ToString())
+			dict["repeated_message"].append(item.SerializeToDictionary())
 
 		return dict
 
@@ -974,4 +977,3 @@ class FieldRules extends Message:
 				self.repeated_message.append(item_msg)
 
 # =========================================
-

@@ -473,4 +473,3 @@ class MsgTest extends Message:
 			self.common_enums = dict.get("common_enums")
 
 # =========================================
-
