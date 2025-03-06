@@ -72,8 +72,8 @@ jobs:
         which protoc
         which protoc-gen-gdscript
         which Godot
-        make test check
-        make serialize
+        make GODOT=Godot test check
+        make GODOT=Godot serialize
 
     - name: Create release package
       run: |
