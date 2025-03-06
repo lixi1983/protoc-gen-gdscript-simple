@@ -75,7 +75,6 @@ jobs:
         which protoc-gen-gdscript
         which godot
         make test check
-#        cd test/godot_test
         make serialize
 
     - name: Create release package

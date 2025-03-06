@@ -102,7 +102,6 @@ jobs:
         where protoc-gen-gdscript
         where Godot.exe
         make test check
-#        cd test/godot_test
         make serialize
       shell: pwsh
 
