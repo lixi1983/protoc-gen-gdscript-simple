@@ -108,9 +108,12 @@ class GDMessageField(GDField):
         return content
 
     def field_merge(self, indent: str, other: str) -> str:
-        content = f"{indent}if self.{self.field_name()} == null:\n"
-        content += f"{indent}\tself.{self.field_name()} = {self.field_type_name()}.new()\n"
-        content += f"{indent}self.{self.field_name()}.MergeFrom({other}.{self.field_name()})"
+        content = f"{indent}if other.{self.field_name()} != null:\n"
+        content += f"{indent}\tif self.{self.field_name()} == null:\n"
+        content += f"{indent}\t\tself.{self.field_name()} = {self.field_type_name()}.new()\n"
+        content += f"{indent}\tself.{self.field_name()}.MergeFrom({other}.{self.field_name()})\n"
+        content += f"{indent}else:\n"
+        content += f"{indent}\tself.{self.field_name()} = null"
         return content
 
     def field_serialize(self, indent: str, to_buffer: str = "buffer") -> str:
@@ -394,10 +397,16 @@ def create_gd_field(gd_msg: GDMessageType, descriptor: Descriptor, field: FieldD
     elif field.type == FieldDescriptor.TYPE_BYTES:
         gd_field = GDBytesField()
         gd_field.create(field.name, field.number, field.type, "PackedByteArray", "PackedByteArray()", "bytes")
-    elif field.type in [FieldDescriptor.TYPE_FLOAT, FieldDescriptor.TYPE_DOUBLE]:
+
+    elif field.type == FieldDescriptor.TYPE_FLOAT:
         gd_field = GDField()
         default_value = default_value_func(0.0)
-        gd_field.create(field.name, field.number, field.type, "float", default_value, "float" )
+        gd_field.create(field.name, field.number, field.type, "float", default_value, "float")
+
+    elif field.type in [FieldDescriptor.TYPE_DOUBLE]:
+        gd_field = GDField()
+        default_value = default_value_func(0.0)
+        gd_field.create(field.name, field.number, field.type, "float", default_value, "double" )
     elif field.type in [ FieldDescriptor.TYPE_INT32, FieldDescriptor.TYPE_UINT32,
                         FieldDescriptor.TYPE_INT64, FieldDescriptor.TYPE_UINT64]:
         gd_field = GDField()

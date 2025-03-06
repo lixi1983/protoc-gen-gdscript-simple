@@ -121,9 +121,12 @@ class ComplexMessage extends Message:
 			if other is NestedMessage:
 				self.id += other.id
 				self.value += other.value
-				if self.deep == null:
-					self.deep = ComplexMessage.NestedMessage.DeepNested.new()
-				self.deep.MergeFrom(other.deep)
+				if other.deep != null:
+					if self.deep == null:
+						self.deep = ComplexMessage.NestedMessage.DeepNested.new()
+					self.deep.MergeFrom(other.deep)
+				else:
+					self.deep = null
  
 		func SerializeToBytes(buffer: PackedByteArray = PackedByteArray()) -> PackedByteArray:
 			if self.id != "":
@@ -222,9 +225,12 @@ class ComplexMessage extends Message:
 			self.nested_messages.append_array(other.nested_messages)
 			self.name += other.name
 			self.id += other.id
-			if self.message == null:
-				self.message = ComplexMessage.NestedMessage.new()
-			self.message.MergeFrom(other.message)
+			if other.message != null:
+				if self.message == null:
+					self.message = ComplexMessage.NestedMessage.new()
+				self.message.MergeFrom(other.message)
+			else:
+				self.message = null
 			self.status_list.append_array(other.status_list)
  
 	func SerializeToBytes(buffer: PackedByteArray = PackedByteArray()) -> PackedByteArray:
@@ -413,9 +419,12 @@ class TreeNode extends Message:
 		if other is TreeNode:
 			self.value += other.value
 			self.children.append_array(other.children)
-			if self.parent == null:
-				self.parent = TreeNode.new()
-			self.parent.MergeFrom(other.parent)
+			if other.parent != null:
+				if self.parent == null:
+					self.parent = TreeNode.new()
+				self.parent.MergeFrom(other.parent)
+			else:
+				self.parent = null
  
 	func SerializeToBytes(buffer: PackedByteArray = PackedByteArray()) -> PackedByteArray:
 		if self.value != "":
@@ -588,7 +597,7 @@ class NumberTypes extends Message:
 			GDScriptUtils.encode_float(buffer, self.float_field)
 		if self.double_field != 2.2250738585072014e-308:
 			GDScriptUtils.encode_tag(buffer, 12, 1)
-			GDScriptUtils.encode_float(buffer, self.double_field)
+			GDScriptUtils.encode_double(buffer, self.double_field)
 		return buffer
  
 	func ParseFromBytes(data: PackedByteArray) -> int:
@@ -646,7 +655,7 @@ class NumberTypes extends Message:
 					self.float_field = field_value[GDScriptUtils.VALUE_KEY]
 					pos += field_value[GDScriptUtils.SIZE_KEY]
 				12:
-					var field_value = GDScriptUtils.decode_float(data, pos, self)
+					var field_value = GDScriptUtils.decode_double(data, pos, self)
 					self.double_field = field_value[GDScriptUtils.VALUE_KEY]
 					pos += field_value[GDScriptUtils.SIZE_KEY]
 				_:
@@ -856,12 +865,18 @@ class FieldRules extends Message:
 			self.required_field += other.required_field
 			self.optional_field += other.optional_field
 			self.repeated_field.append_array(other.repeated_field)
-			if self.required_message == null:
-				self.required_message = ComplexMessage.NestedMessage.new()
-			self.required_message.MergeFrom(other.required_message)
-			if self.optional_message == null:
-				self.optional_message = ComplexMessage.NestedMessage.new()
-			self.optional_message.MergeFrom(other.optional_message)
+			if other.required_message != null:
+				if self.required_message == null:
+					self.required_message = ComplexMessage.NestedMessage.new()
+				self.required_message.MergeFrom(other.required_message)
+			else:
+				self.required_message = null
+			if other.optional_message != null:
+				if self.optional_message == null:
+					self.optional_message = ComplexMessage.NestedMessage.new()
+				self.optional_message.MergeFrom(other.optional_message)
+			else:
+				self.optional_message = null
 			self.repeated_message.append_array(other.repeated_message)
  
 	func SerializeToBytes(buffer: PackedByteArray = PackedByteArray()) -> PackedByteArray:

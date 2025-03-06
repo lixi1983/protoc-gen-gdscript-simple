@@ -135,12 +135,18 @@ class MsgBase extends Message:
 			self.f_field4 += other.f_field4
 			self.map_field5.merge(other.map_field5)
 			self.enum_field6 = other.enum_field6
-			if self.sub_msg == null:
-				self.sub_msg = MsgBase.SubMsg.new()
-			self.sub_msg.MergeFrom(other.sub_msg)
-			if self.common_msg == null:
-				self.common_msg = common.CommonMessage.new()
-			self.common_msg.MergeFrom(other.common_msg)
+			if other.sub_msg != null:
+				if self.sub_msg == null:
+					self.sub_msg = MsgBase.SubMsg.new()
+				self.sub_msg.MergeFrom(other.sub_msg)
+			else:
+				self.sub_msg = null
+			if other.common_msg != null:
+				if self.common_msg == null:
+					self.common_msg = common.CommonMessage.new()
+				self.common_msg.MergeFrom(other.common_msg)
+			else:
+				self.common_msg = null
 			self.common_enum = other.common_enum
 			self.fixed_field32 += other.fixed_field32
 			self.fixed_field64 += other.fixed_field64
@@ -161,8 +167,8 @@ class MsgBase extends Message:
 			GDScriptUtils.encode_tag(buffer, 4, 8)
 			GDScriptUtils.encode_bool(buffer, self.b_field3)
 		if self.f_field4 != 0.0:
-			GDScriptUtils.encode_tag(buffer, 5, 2)
-			GDScriptUtils.encode_float(buffer, self.f_field4)
+			GDScriptUtils.encode_tag(buffer, 5, 1)
+			GDScriptUtils.encode_double(buffer, self.f_field4)
 		for key in self.map_field5:
 			var map_buff = PackedByteArray()
 			var value = self.map_field5[key]
@@ -194,7 +200,7 @@ class MsgBase extends Message:
 			GDScriptUtils.encode_int64(buffer, self.fixed_field64)
 		if self.double_field != 0.0:
 			GDScriptUtils.encode_tag(buffer, 13, 1)
-			GDScriptUtils.encode_float(buffer, self.double_field)
+			GDScriptUtils.encode_double(buffer, self.double_field)
 		for key in self.map_field_sub:
 			var map_buff = PackedByteArray()
 			var value = self.map_field_sub[key]
@@ -235,7 +241,7 @@ class MsgBase extends Message:
 					self.b_field3 = field_value[GDScriptUtils.VALUE_KEY]
 					pos += field_value[GDScriptUtils.SIZE_KEY]
 				5:
-					var field_value = GDScriptUtils.decode_float(data, pos, self)
+					var field_value = GDScriptUtils.decode_double(data, pos, self)
 					self.f_field4 = field_value[GDScriptUtils.VALUE_KEY]
 					pos += field_value[GDScriptUtils.SIZE_KEY]
 				6:
@@ -295,7 +301,7 @@ class MsgBase extends Message:
 					self.fixed_field64 = field_value[GDScriptUtils.VALUE_KEY]
 					pos += field_value[GDScriptUtils.SIZE_KEY]
 				13:
-					var field_value = GDScriptUtils.decode_float(data, pos, self)
+					var field_value = GDScriptUtils.decode_double(data, pos, self)
 					self.double_field = field_value[GDScriptUtils.VALUE_KEY]
 					pos += field_value[GDScriptUtils.SIZE_KEY]
 				14:
@@ -412,9 +418,12 @@ class MsgTest extends Message:
 
 	func MergeFrom(other : Message) -> void:
 		if other is MsgTest:
-			if self.common_msg == null:
-				self.common_msg = common.CommonMessage.new()
-			self.common_msg.MergeFrom(other.common_msg)
+			if other.common_msg != null:
+				if self.common_msg == null:
+					self.common_msg = common.CommonMessage.new()
+				self.common_msg.MergeFrom(other.common_msg)
+			else:
+				self.common_msg = null
 			self.common_enums.append_array(other.common_enums)
  
 	func SerializeToBytes(buffer: PackedByteArray = PackedByteArray()) -> PackedByteArray:

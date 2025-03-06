@@ -130,7 +130,7 @@ class SimpleMessage extends Message:
 			GDScriptUtils.encode_float(buffer, self.float_v)
 		if self.double_v != 0.0:
 			GDScriptUtils.encode_tag(buffer, 12, 1)
-			GDScriptUtils.encode_float(buffer, self.double_v)
+			GDScriptUtils.encode_double(buffer, self.double_v)
 		if self.bool_v != false:
 			GDScriptUtils.encode_tag(buffer, 13, 8)
 			GDScriptUtils.encode_bool(buffer, self.bool_v)
@@ -203,7 +203,7 @@ class SimpleMessage extends Message:
 					self.float_v = field_value[GDScriptUtils.VALUE_KEY]
 					pos += field_value[GDScriptUtils.SIZE_KEY]
 				12:
-					var field_value = GDScriptUtils.decode_float(data, pos, self)
+					var field_value = GDScriptUtils.decode_double(data, pos, self)
 					self.double_v = field_value[GDScriptUtils.VALUE_KEY]
 					pos += field_value[GDScriptUtils.SIZE_KEY]
 				13:
@@ -408,7 +408,7 @@ class SimpleDefaultMessage extends Message:
 			GDScriptUtils.encode_float(buffer, self.float_v)
 		if self.double_v != 11.2:
 			GDScriptUtils.encode_tag(buffer, 12, 1)
-			GDScriptUtils.encode_float(buffer, self.double_v)
+			GDScriptUtils.encode_double(buffer, self.double_v)
 		if self.bool_v != true:
 			GDScriptUtils.encode_tag(buffer, 13, 8)
 			GDScriptUtils.encode_bool(buffer, self.bool_v)
@@ -481,7 +481,7 @@ class SimpleDefaultMessage extends Message:
 					self.float_v = field_value[GDScriptUtils.VALUE_KEY]
 					pos += field_value[GDScriptUtils.SIZE_KEY]
 				12:
-					var field_value = GDScriptUtils.decode_float(data, pos, self)
+					var field_value = GDScriptUtils.decode_double(data, pos, self)
 					self.double_v = field_value[GDScriptUtils.VALUE_KEY]
 					pos += field_value[GDScriptUtils.SIZE_KEY]
 				13:
@@ -686,7 +686,7 @@ class SimpleRepeatedMessage extends Message:
 			GDScriptUtils.encode_float(buffer, item)
 		for item in self.double_v:
 			GDScriptUtils.encode_tag(buffer, 12, 1)
-			GDScriptUtils.encode_float(buffer, item)
+			GDScriptUtils.encode_double(buffer, item)
 		for item in self.bool_v:
 			GDScriptUtils.encode_tag(buffer, 13, 8)
 			GDScriptUtils.encode_bool(buffer, item)
@@ -759,7 +759,7 @@ class SimpleRepeatedMessage extends Message:
 					self.float_v.append(field_value[GDScriptUtils.VALUE_KEY])
 					pos += field_value[GDScriptUtils.SIZE_KEY]
 				12:
-					var field_value = GDScriptUtils.decode_float(data, pos, self)
+					var field_value = GDScriptUtils.decode_double(data, pos, self)
 					self.double_v.append(field_value[GDScriptUtils.VALUE_KEY])
 					pos += field_value[GDScriptUtils.SIZE_KEY]
 				13:

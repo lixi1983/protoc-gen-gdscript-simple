@@ -196,9 +196,12 @@ class Character extends Message:
 			self.health += other.health
 			self.character = other.character
 			self.skills.append_array(other.skills)
-			if self.inventory == null:
-				self.inventory = Character.Inventory.new()
-			self.inventory.MergeFrom(other.inventory)
+			if other.inventory != null:
+				if self.inventory == null:
+					self.inventory = Character.Inventory.new()
+				self.inventory.MergeFrom(other.inventory)
+			else:
+				self.inventory = null
  
 	func SerializeToBytes(buffer: PackedByteArray = PackedByteArray()) -> PackedByteArray:
 		if self.name != "":

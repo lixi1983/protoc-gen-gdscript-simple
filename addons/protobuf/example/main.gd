@@ -18,7 +18,7 @@ func _ready():
 	
 	print("\n=== Starting Proto3 Serialization Tests ===")
 	var serialize_test = proto3_serialize_test.new()
-#	serialize_test.run_tests()
+#	serialize_test.run_tests()	
 	serialize_test.free()
 	
 	print("\n=== All Tests Completed ===")

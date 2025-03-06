@@ -49,7 +49,7 @@ func test_proto3_serialize():
 	var testBytesString = test2.SerializeToBytes()
 	print("test2 size: ", testBytesString.size())
 	print("test2: ", test2.ToString())
-	print("test end, is equal: ", test.ToString() == test2.ToString())
+	assert( test.ToString() == test2.ToString(), "test end, is equal " )
 
 	print("========= end proto3/test.proto serialize ==============")
 
@@ -66,10 +66,9 @@ func test_proto3_merge():
 
 	print("first toString: ", first.ToString())
 	second.MergeFrom(first)
-	first.field64[1] = 10
 	print("second toString: ", second.ToString())
 
-	print("after first toString: ", first.ToString())
+	assert(first.ToString() == second.ToString(), "merge failed")
 	print("========= end proto3/test.proto merge ==============")
 
 func test_proto3_clone():
@@ -84,10 +83,9 @@ func test_proto3_clone():
 	var second = first.Clone() #proto3Test.MsgBase.new()
 
 	print("first toString: ", first.ToString())
-	first.field64[1] = 10
 	print("second toString: ", second.ToString())
 
-	print("after first toString: ", first.ToString())
+	assert(first.ToString() == second.ToString(), "Clone failed")
 	print("========= end proto3/test.proto merge ==============")
 
 

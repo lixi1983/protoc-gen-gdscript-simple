@@ -19,7 +19,7 @@ message MsgBase {
     repeated int64 field64 = 2;
     string msg_field2 = 3;
     bool b_field3 = 4;
-    float f_field4 = 5;
+    double f_field4 = 5;
     map<int32, string> map_field5 = 6;
     EnumTest enum_field6 = 7;
     SubMsg sub_msg = 8;
