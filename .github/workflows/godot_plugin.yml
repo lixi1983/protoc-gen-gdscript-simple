@@ -36,6 +36,8 @@ jobs:
         PACKAGE_NAME="godot-${{ env.PLUGIN_NAME }}-plugin-${VERSION}"
         mkdir -p ${PACKAGE_NAME}
         cp -r addons ${PACKAGE_NAME}/
+        # Remove .uid files before packaging
+        find ${PACKAGE_NAME} -name "*.uid" -type f -delete
         zip -r ${PACKAGE_NAME}.zip ${PACKAGE_NAME}
 
     - name: Upload Artifact 
