@@ -179,3 +179,4 @@ server
 bin
 dist
 .godot
+.gd.uid
