@@ -14,7 +14,29 @@ class MsgBase extends Message:
 	#1
 	var msg_field32: int = 0
 	#2
-	var field64: Array[int] = []
+	var _field64: Array[int] = []
+	var _field64_size: int = 0
+	func field64_size() -> int:
+		return self._field64_size
+
+	func field64() -> Array[int]:
+		return self._field64.slice(0, self._field64_size)
+	func get_field64(index: int) -> int: # index begin from 1
+		if index > 0 and index <= _field64_size and index <= _field64.size():
+			return self._field64[index - 1]
+		return 0
+	func add_field64(item: int) -> int:
+		if self._field64_size >= 0 and self._field64_size < self._field64.size():
+			self._field64[self._field64_size] = item
+		else:
+			self._field64.append(item)
+		self._field64_size += 1
+		return item
+	func append_field64(item_array: Array[int]):
+		for item in item_array:
+			self.add_field64(item)
+	func clear_field64() -> void:
+		self._field64_size = 0
 	#3
 	var msg_field2: String = ""
 	#4
@@ -108,7 +130,7 @@ class MsgBase extends Message:
 
 	func Init() -> void:
 		self.msg_field32 = 0
-		self.field64 = []
+		self.clear_field64
 		self.msg_field2 = ""
 		self.b_field3 = false
 		self.f_field4 = 0.0
@@ -129,7 +151,9 @@ class MsgBase extends Message:
 	func MergeFrom(other : Message) -> void:
 		if other is MsgBase:
 			self.msg_field32 += other.msg_field32
-			self.field64.append_array(other.field64)
+			self._field64 = self._field64.slice(0, _field64_size)
+			self._field64.append_array(other._field64.slice(0, other._field64_size))
+			self._field64_size += other._field64_size
 			self.msg_field2 += other.msg_field2
 			self.b_field3 = other.b_field3
 			self.f_field4 += other.f_field4
@@ -157,7 +181,7 @@ class MsgBase extends Message:
 		if self.msg_field32 != 0:
 			GDScriptUtils.encode_tag(buffer, 1, 5)
 			GDScriptUtils.encode_varint(buffer, self.msg_field32)
-		for item in self.field64:
+		for item in self._field64:
 			GDScriptUtils.encode_tag(buffer, 2, 3)
 			GDScriptUtils.encode_varint(buffer, item)
 		if self.msg_field2 != "":
@@ -230,7 +254,7 @@ class MsgBase extends Message:
 					pos += field_value[GDScriptUtils.SIZE_KEY]
 				2:
 					var field_value = GDScriptUtils.decode_varint(data, pos, self)
-					self.field64.append(field_value[GDScriptUtils.VALUE_KEY])
+					self.add_field64(field_value[GDScriptUtils.VALUE_KEY])
 					pos += field_value[GDScriptUtils.SIZE_KEY]
 				3:
 					var field_value = GDScriptUtils.decode_string(data, pos, self)
@@ -341,7 +365,7 @@ class MsgBase extends Message:
 	func SerializeToDictionary() -> Dictionary:
 		var dict = {}
 		dict["msg_field32"] = self.msg_field32
-		dict["field64"] = self.field64
+		dict["field64"] = self._field64
 		dict["msg_field2"] = self.msg_field2
 		dict["b_field3"] = self.b_field3
 		dict["f_field4"] = self.f_field4
@@ -364,7 +388,11 @@ class MsgBase extends Message:
 
 		if dict.has("msg_field32"):
 			self.msg_field32 = dict.get("msg_field32")
-			self.field64 = dict.get("field64")
+		self.clear_field64()
+		if dict.has("field64"):
+			var list = dict["field64"]
+			for item in list:
+				self.add_field64(item)
 		if dict.has("msg_field2"):
 			self.msg_field2 = dict.get("msg_field2")
 		if dict.has("b_field3"):
@@ -406,11 +434,33 @@ class MsgTest extends Message:
 	#1
 	var common_msg: common.CommonMessage = null
 	#2
-	var common_enums: Array[common.CommonEnum] = []
+	var _common_enums: Array[common.CommonEnum] = []
+	var _common_enums_size: int = 0
+	func common_enums_size() -> int:
+		return self._common_enums_size
+
+	func common_enums() -> Array[common.CommonEnum]:
+		return self._common_enums.slice(0, self._common_enums_size)
+	func get_common_enums(index: int) -> common.CommonEnum: # index begin from 1
+		if index > 0 and index <= _common_enums_size and index <= _common_enums.size():
+			return self._common_enums[index - 1]
+		return 0
+	func add_common_enums(item: common.CommonEnum) -> common.CommonEnum:
+		if self._common_enums_size >= 0 and self._common_enums_size < self._common_enums.size():
+			self._common_enums[self._common_enums_size] = item
+		else:
+			self._common_enums.append(item)
+		self._common_enums_size += 1
+		return item
+	func append_common_enums(item_array: Array[common.CommonEnum]):
+		for item in item_array:
+			self.add_common_enums(item)
+	func clear_common_enums() -> void:
+		self._common_enums_size = 0
 
 	func Init() -> void:
 		if self.common_msg != null:			self.common_msg.clear()
-		self.common_enums = []
+		self.clear_common_enums
 
 	func New() -> Message:
 		var msg = MsgTest.new()
@@ -424,13 +474,15 @@ class MsgTest extends Message:
 				self.common_msg.MergeFrom(other.common_msg)
 			else:
 				self.common_msg = null
-			self.common_enums.append_array(other.common_enums)
+			self._common_enums = self._common_enums.slice(0, _common_enums_size)
+			self._common_enums.append_array(other._common_enums.slice(0, other._common_enums_size))
+			self._common_enums_size += other._common_enums_size
  
 	func SerializeToBytes(buffer: PackedByteArray = PackedByteArray()) -> PackedByteArray:
 		if self.common_msg != null:
 			GDScriptUtils.encode_tag(buffer, 1, 11)
 			GDScriptUtils.encode_message(buffer, self.common_msg)
-		for item in self.common_enums:
+		for item in self._common_enums:
 			GDScriptUtils.encode_tag(buffer, 2, 14)
 			GDScriptUtils.encode_varint(buffer, item)
 		return buffer
@@ -454,7 +506,7 @@ class MsgTest extends Message:
 					pos += field_value[GDScriptUtils.SIZE_KEY]
 				2:
 					var field_value = GDScriptUtils.decode_varint(data, pos, self)
-					self.common_enums.append(field_value[GDScriptUtils.VALUE_KEY])
+					self.add_common_enums(field_value[GDScriptUtils.VALUE_KEY])
 					pos += field_value[GDScriptUtils.SIZE_KEY]
 				_:
 					pass
@@ -465,7 +517,7 @@ class MsgTest extends Message:
 		var dict = {}
 		if self.common_msg != null:
 			dict["common_msg"] = self.common_msg.SerializeToDictionary()
-		dict["common_enums"] = self.common_enums
+		dict["common_enums"] = self._common_enums
 		return dict
 
 	func ParseFromDictionary(dict: Dictionary) -> void:
@@ -479,6 +531,10 @@ class MsgTest extends Message:
 			self.common_msg.ParseFromDictionary(dict.get("common_msg"))
 		else:
 			self.common_msg = null
-			self.common_enums = dict.get("common_enums")
+		self.clear_common_enums()
+		if dict.has("common_enums"):
+			var list = dict["common_enums"]
+			for item in list:
+				self.add_common_enums(item)
 
 # =========================================

@@ -22,7 +22,7 @@ func test_proto3_serialize():
 	var test = proto3Test.MsgBase.new()
 	test.msg_field32 = 12345789098765
 	test.msg_field2 = "132"
-	test.field64.append(123451232232332233)
+	test.add_field64(123451232232332233)
 	test.b_field3 = true
 	test.f_field4 = 1234.5566
 	test.map_field5 = {1: "hello", 2: "world"}
@@ -57,7 +57,11 @@ func test_proto3_merge():
 	print("========= begin proto3/test.proto merge ==============")
 	var first = proto3Test.MsgBase.new()
 	first.msg_field32 = 13232
-	first.field64.append_array([1, 2, 3, 4, 5])
+	first.add_field64(1)
+	first.add_field64(2)
+	first.add_field64(3)
+	first.add_field64(4)
+	first.add_field64(5)
 	first.msg_field2 = "hello"
 	first.b_field3 = true
 	first.map_field5 = {3: "hello", 4: "world"}
@@ -75,7 +79,10 @@ func test_proto3_clone():
 	print("========= begin proto3/test.proto clone ==============")
 	var first = proto3Test.MsgBase.new()
 	first.msg_field32 = 668866
-	first.field64.append_array([1, 2, 3, 4])
+	first.add_field64(1)
+	first.add_field64(2)
+	first.add_field64(3)
+	first.add_field64(4)
 	first.msg_field2 = "world"
 	first.b_field3 = false
 	first.map_field5 = {5: "hello", 6: "world"}

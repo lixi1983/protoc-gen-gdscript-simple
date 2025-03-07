@@ -19,18 +19,62 @@ class Character extends Message:
 	#4
 	var character: Character.CharacterClass = Character.CharacterClass.WARRIOR
 	#5
-	var skills: Array[String] = []
+	var _skills: Array[String] = []
+	var _skills_size: int = 0
+	func skills_size() -> int:
+		return self._skills_size
+
+	func skills() -> Array[String]:
+		return self._skills.slice(0, self._skills_size)
+	func get_skills(index: int) -> String: # index begin from 1
+		if index > 0 and index <= _skills_size and index <= _skills.size():
+			return self._skills[index - 1]
+		return ""
+	func add_skills(item: String) -> String:
+		if self._skills_size >= 0 and self._skills_size < self._skills.size():
+			self._skills[self._skills_size] = item
+		else:
+			self._skills.append(item)
+		self._skills_size += 1
+		return item
+	func append_skills(item_array: Array[String]):
+		for item in item_array:
+			self.add_skills(item)
+	func clear_skills() -> void:
+		self._skills_size = 0
 	#6
 	var inventory: Character.Inventory = null
 	class Inventory extends Message:
 		#1
 		var slots: int = 10
 		#2
-		var items: Array[Character.Item] = []
+		var _items: Array[Character.Item] = []
+		var _items_size: int = 0
+		func items_size() -> int:
+			return self._items_size
+
+		func items() -> Array[Character.Item]:
+			return self._items.slice(0, self._items_size)
+		func get_items(index: int) -> Character.Item: # index begin from 1
+			if index > 0 and index <= _items_size and index <= _items.size():
+				return self._items[index - 1]
+			return null
+		func add_items(item: Character.Item) -> Character.Item:
+			if self._items_size >= 0 and self._items_size < self._items.size():
+				self._items[self._items_size] = item
+			else:
+				self._items.append(item)
+			self._items_size += 1
+			return item
+		func append_items(item_array: Array[Character.Item]):
+			for item in item_array:
+				self.add_items(item)
+		func clear_items() -> void:
+			self._items_size = 0
 
 		func Init() -> void:
 			self.slots = 10
-			self.items = []
+			self.clear_items
 
 		func New() -> Message:
 			var msg = Inventory.new()
@@ -39,13 +83,15 @@ class Character extends Message:
 		func MergeFrom(other : Message) -> void:
 			if other is Inventory:
 				self.slots += other.slots
-				self.items.append_array(other.items)
+				self._items = self._items.slice(0, _items_size)
+				self._items.append_array(other._items.slice(0, other._items_size))
+				self._items_size += other._items_size
  
 		func SerializeToBytes(buffer: PackedByteArray = PackedByteArray()) -> PackedByteArray:
 			if self.slots != 10:
 				GDScriptUtils.encode_tag(buffer, 1, 5)
 				GDScriptUtils.encode_varint(buffer, self.slots)
-			for item in self.items:
+			for item in self._items:
 				GDScriptUtils.encode_tag(buffer, 2, 11)
 				GDScriptUtils.encode_message(buffer, item)
 			return buffer
@@ -65,9 +111,9 @@ class Character extends Message:
 						self.slots = field_value[GDScriptUtils.VALUE_KEY]
 						pos += field_value[GDScriptUtils.SIZE_KEY]
 					2:
-						var sub_items = Character.Item.new()
-						var field_value = GDScriptUtils.decode_message(data, pos, sub_items)
-						self.items.append(field_value[GDScriptUtils.VALUE_KEY])
+						var sub__items = Character.Item.new()
+						var field_value = GDScriptUtils.decode_message(data, pos, sub__items)
+						self.add_items(field_value[GDScriptUtils.VALUE_KEY])
 						pos += field_value[GDScriptUtils.SIZE_KEY]
 					_:
 						pass
@@ -77,10 +123,10 @@ class Character extends Message:
 		func SerializeToDictionary() -> Dictionary:
 			var dict = {}
 			dict["slots"] = self.slots
-			dict["items"] = []
-			for item in self.items:
+			dict["<bound method GDRepeatedField.field_name of <gd_protobuf_info.GDRepeatedField object at 0x105065a60>>"] = []
+			for index in range(1, self._items_size + 1):
+				var item = self.get_items(index)
 				dict["items"].append(item.SerializeToDictionary())
-
 			return dict
 
 		func ParseFromDictionary(dict: Dictionary) -> void:
@@ -89,12 +135,13 @@ class Character extends Message:
 
 			if dict.has("slots"):
 				self.slots = dict.get("slots")
+			self.clear_items()
 			if dict.has("items"):
-				var list = dict.get("items")
+				var list = dict["items"]
 				for item in list:
 					var item_msg = Character.Item.new()
 					item_msg.ParseFromDictionary(item)
-					self.items.append(item_msg)
+					self.add_items(item_msg)
 
 	class Item extends Message:
 		#1
@@ -182,7 +229,7 @@ class Character extends Message:
 		self.level = 1
 		self.health = 100
 		self.character = Character.CharacterClass.WARRIOR
-		self.skills = []
+		self.clear_skills
 		if self.inventory != null:			self.inventory.clear()
 
 	func New() -> Message:
@@ -195,7 +242,9 @@ class Character extends Message:
 			self.level += other.level
 			self.health += other.health
 			self.character = other.character
-			self.skills.append_array(other.skills)
+			self._skills = self._skills.slice(0, _skills_size)
+			self._skills.append_array(other._skills.slice(0, other._skills_size))
+			self._skills_size += other._skills_size
 			if other.inventory != null:
 				if self.inventory == null:
 					self.inventory = Character.Inventory.new()
@@ -216,7 +265,7 @@ class Character extends Message:
 		if self.character != Character.CharacterClass.WARRIOR:
 			GDScriptUtils.encode_tag(buffer, 4, 14)
 			GDScriptUtils.encode_varint(buffer, self.character)
-		for item in self.skills:
+		for item in self._skills:
 			GDScriptUtils.encode_tag(buffer, 5, 9)
 			GDScriptUtils.encode_string(buffer, item)
 		if self.inventory != null:
@@ -252,7 +301,7 @@ class Character extends Message:
 					pos += field_value[GDScriptUtils.SIZE_KEY]
 				5:
 					var field_value = GDScriptUtils.decode_string(data, pos, self)
-					self.skills.append(field_value[GDScriptUtils.VALUE_KEY])
+					self.add_skills(field_value[GDScriptUtils.VALUE_KEY])
 					pos += field_value[GDScriptUtils.SIZE_KEY]
 				6:
 					if self.inventory == null:
@@ -272,7 +321,7 @@ class Character extends Message:
 		dict["level"] = self.level
 		dict["health"] = self.health
 		dict["character"] = self.character
-		dict["skills"] = self.skills
+		dict["skills"] = self._skills
 		if self.inventory != null:
 			dict["inventory"] = self.inventory.SerializeToDictionary()
 		return dict
@@ -289,7 +338,11 @@ class Character extends Message:
 			self.health = dict.get("health")
 		if dict.has("character"):
 			self.character = dict.get("character")
-			self.skills = dict.get("skills")
+		self.clear_skills()
+		if dict.has("skills"):
+			var list = dict["skills"]
+			for item in list:
+				self.add_skills(item)
 		if dict.has("inventory"):
 			if self.inventory == null:
 				self.inventory = Character.Inventory.new()
@@ -314,7 +367,29 @@ class GameSession extends Message:
 	#3
 	var end_time: int = 0
 	#4
-	var players: Array[Character] = []
+	var _players: Array[Character] = []
+	var _players_size: int = 0
+	func players_size() -> int:
+		return self._players_size
+
+	func players() -> Array[Character]:
+		return self._players.slice(0, self._players_size)
+	func get_players(index: int) -> Character: # index begin from 1
+		if index > 0 and index <= _players_size and index <= _players.size():
+			return self._players[index - 1]
+		return null
+	func add_players(item: Character) -> Character:
+		if self._players_size >= 0 and self._players_size < self._players.size():
+			self._players[self._players_size] = item
+		else:
+			self._players.append(item)
+		self._players_size += 1
+		return item
+	func append_players(item_array: Array[Character]):
+		for item in item_array:
+			self.add_players(item)
+	func clear_players() -> void:
+		self._players_size = 0
 	#5
 	var state: GameSession.GameState = GameSession.GameState.WAITING
 
@@ -322,7 +397,7 @@ class GameSession extends Message:
 		self.session_id = ""
 		self.start_time = 0
 		self.end_time = 0
-		self.players = []
+		self.clear_players
 		self.state = GameSession.GameState.WAITING
 
 	func New() -> Message:
@@ -334,7 +409,9 @@ class GameSession extends Message:
 			self.session_id += other.session_id
 			self.start_time += other.start_time
 			self.end_time += other.end_time
-			self.players.append_array(other.players)
+			self._players = self._players.slice(0, _players_size)
+			self._players.append_array(other._players.slice(0, other._players_size))
+			self._players_size += other._players_size
 			self.state = other.state
  
 	func SerializeToBytes(buffer: PackedByteArray = PackedByteArray()) -> PackedByteArray:
@@ -347,7 +424,7 @@ class GameSession extends Message:
 		if self.end_time != 0:
 			GDScriptUtils.encode_tag(buffer, 3, 3)
 			GDScriptUtils.encode_varint(buffer, self.end_time)
-		for item in self.players:
+		for item in self._players:
 			GDScriptUtils.encode_tag(buffer, 4, 11)
 			GDScriptUtils.encode_message(buffer, item)
 		if self.state != GameSession.GameState.WAITING:
@@ -378,9 +455,9 @@ class GameSession extends Message:
 					self.end_time = field_value[GDScriptUtils.VALUE_KEY]
 					pos += field_value[GDScriptUtils.SIZE_KEY]
 				4:
-					var sub_players = Character.new()
-					var field_value = GDScriptUtils.decode_message(data, pos, sub_players)
-					self.players.append(field_value[GDScriptUtils.VALUE_KEY])
+					var sub__players = Character.new()
+					var field_value = GDScriptUtils.decode_message(data, pos, sub__players)
+					self.add_players(field_value[GDScriptUtils.VALUE_KEY])
 					pos += field_value[GDScriptUtils.SIZE_KEY]
 				5:
 					var field_value = GDScriptUtils.decode_varint(data, pos, self)
@@ -396,10 +473,10 @@ class GameSession extends Message:
 		dict["session_id"] = self.session_id
 		dict["start_time"] = self.start_time
 		dict["end_time"] = self.end_time
-		dict["players"] = []
-		for item in self.players:
+		dict["<bound method GDRepeatedField.field_name of <gd_protobuf_info.GDRepeatedField object at 0x1050656d0>>"] = []
+		for index in range(1, self._players_size + 1):
+			var item = self.get_players(index)
 			dict["players"].append(item.SerializeToDictionary())
-
 		dict["state"] = self.state
 		return dict
 
@@ -413,12 +490,13 @@ class GameSession extends Message:
 			self.start_time = dict.get("start_time")
 		if dict.has("end_time"):
 			self.end_time = dict.get("end_time")
+		self.clear_players()
 		if dict.has("players"):
-			var list = dict.get("players")
+			var list = dict["players"]
 			for item in list:
 				var item_msg = Character.new()
 				item_msg.ParseFromDictionary(item)
-				self.players.append(item_msg)
+				self.add_players(item_msg)
 		if dict.has("state"):
 			self.state = dict.get("state")
 

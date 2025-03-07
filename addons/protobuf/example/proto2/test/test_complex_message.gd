@@ -54,10 +54,10 @@ func test_complex_message_default():
 	assert(parsed_msg.string_field == "hello", "Default string_field mismatch")
 	assert(parsed_msg.bytes_field.size() == 0, "Default bytes_field mismatch")
 	assert(parsed_msg.status == ComplexProto.ComplexMessage.Status.UNKNOWN, "Default status mismatch")
-	assert(parsed_msg.nested_messages.size() == 0, "Default nested_messages mismatch")
+	assert(parsed_msg.nested_messages_size() == 0, "Default nested_messages mismatch")
 	assert(parsed_msg.name == "", "Default name mismatch")
 	assert(parsed_msg.id == 0, "Default id mismatch")
-	assert(parsed_msg.status_list.size() == 0, "Default status_list mismatch")
+	assert(parsed_msg.status_list_size() == 0, "Default status_list mismatch")
 	
 	# Verify dictionary parsed values
 	assert(dict_parsed_msg.int_field == 0, "Default dict int_field mismatch")
@@ -67,10 +67,10 @@ func test_complex_message_default():
 	assert(dict_parsed_msg.string_field == "hello", "Default dict string_field mismatch")
 	assert(dict_parsed_msg.bytes_field.size() == 0, "Default dict bytes_field mismatch")
 	assert(dict_parsed_msg.status == ComplexProto.ComplexMessage.Status.UNKNOWN, "Default dict status mismatch")
-	assert(dict_parsed_msg.nested_messages.size() == 0, "Default dict nested_messages mismatch")
+	assert(dict_parsed_msg.nested_messages_size() == 0, "Default dict nested_messages mismatch")
 	assert(dict_parsed_msg.name == "", "Default dict name mismatch")
 	assert(dict_parsed_msg.id == 0, "Default dict id mismatch")
-	assert(dict_parsed_msg.status_list.size() == 0, "Default dict status_list mismatch")
+	assert(dict_parsed_msg.status_list_size() == 0, "Default dict status_list mismatch")
 	
 	# Test string representation
 	var str_repr = str(msg)
@@ -92,7 +92,8 @@ func test_complex_message_custom():
 	msg.status = ComplexProto.ComplexMessage.Status.ACTIVE
 	msg.name = "复杂消息"
 	msg.id = 123
-	msg.status_list.append_array([ComplexProto.ComplexMessage.Status.ACTIVE, ComplexProto.ComplexMessage.Status.PENDING])
+	msg.add_status_list(ComplexProto.ComplexMessage.Status.ACTIVE)
+	msg.add_status_list(ComplexProto.ComplexMessage.Status.PENDING)
 	
 	# Test binary serialization
 	var bytes = msg.SerializeToBytes()
@@ -114,9 +115,9 @@ func test_complex_message_custom():
 	assert(parsed_msg.status == ComplexProto.ComplexMessage.Status.ACTIVE, "Custom status mismatch")
 	assert(parsed_msg.name == "复杂消息", "Custom name mismatch")
 	assert(parsed_msg.id == 123, "Custom id mismatch")
-	assert(parsed_msg.status_list.size() == 2, "Custom status_list size mismatch")
-	assert(parsed_msg.status_list[0] == ComplexProto.ComplexMessage.Status.ACTIVE, "Custom status_list[0] mismatch")
-	assert(parsed_msg.status_list[1] == ComplexProto.ComplexMessage.Status.PENDING, "Custom status_list[1] mismatch")
+	assert(parsed_msg.status_list_size() == 2, "Custom status_list size mismatch")
+	assert(parsed_msg.get_status_list(1) == ComplexProto.ComplexMessage.Status.ACTIVE, "Custom status_list[0] mismatch")
+	assert(parsed_msg.get_status_list(2) == ComplexProto.ComplexMessage.Status.PENDING, "Custom status_list[1] mismatch")
 	
 	# Verify dictionary parsed values
 	assert(dict_parsed_msg.int_field == 42, "Custom dict int_field mismatch")
@@ -128,9 +129,9 @@ func test_complex_message_custom():
 	assert(dict_parsed_msg.status == ComplexProto.ComplexMessage.Status.ACTIVE, "Custom dict status mismatch")
 	assert(dict_parsed_msg.name == "复杂消息", "Custom dict name mismatch")
 	assert(dict_parsed_msg.id == 123, "Custom dict id mismatch")
-	assert(dict_parsed_msg.status_list.size() == 2, "Custom dict status_list size mismatch")
-	assert(dict_parsed_msg.status_list[0] == ComplexProto.ComplexMessage.Status.ACTIVE, "Custom dict status_list[0] mismatch")
-	assert(dict_parsed_msg.status_list[1] == ComplexProto.ComplexMessage.Status.PENDING, "Custom dict status_list[1] mismatch")
+	assert(dict_parsed_msg.status_list_size() == 2, "Custom dict status_list size mismatch")
+	assert(dict_parsed_msg.get_status_list(1) == ComplexProto.ComplexMessage.Status.ACTIVE, "Custom dict status_list[0] mismatch")
+	assert(dict_parsed_msg.get_status_list(2) == ComplexProto.ComplexMessage.Status.PENDING, "Custom dict status_list[1] mismatch")
 	
 	# Test string representation
 	var str_repr = str(msg)
@@ -152,7 +153,7 @@ func test_complex_message_nested():
 	# Setup deep nested
 	var deep = ComplexProto.ComplexMessage.NestedMessage.DeepNested.new()
 	deep.data = "deep_data"
-	deep.numbers.append_array( [1, 2, 3] )
+	deep.append_numbers( [1, 2, 3] )
 	nested.deep = deep
 	
 	msg.message = nested
@@ -163,16 +164,16 @@ func test_complex_message_nested():
 	clone1.value = 43
 	clone1.deep = ComplexProto.ComplexMessage.NestedMessage.DeepNested.new()
 	clone1.deep.data = "clone1_deep"
-	clone1.deep.numbers.append_array([4, 5, 6])
+	clone1.deep.append_numbers([4, 5, 6])
 	
 	var clone2 = ComplexProto.ComplexMessage.NestedMessage.new()
 	clone2.id = "clone2"
 	clone2.value = 44
 	clone2.deep = ComplexProto.ComplexMessage.NestedMessage.DeepNested.new()
 	clone2.deep.data = "clone2_deep"
-	clone2.deep.numbers.append_array([7, 8, 9])
+	clone2.deep.append_numbers([7, 8, 9])
 	
-	msg.nested_messages.append_array([clone1, clone2])
+	msg.append_nested_messages([clone1, clone2])
 	
 	# Test binary serialization
 	var bytes = msg.SerializeToBytes()

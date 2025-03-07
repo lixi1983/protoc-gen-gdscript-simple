@@ -146,12 +146,12 @@ func test_repeated_message():
 	var msg1 = SimpleProto.SimpleRepeatedMessage.new()
 	
 	# Add some values to repeated fields
-	msg1.int32_v.append(1)
-	msg1.int32_v.append(2)
-	msg1.string_v.append("one")
-	msg1.string_v.append("two")
-	msg1.elem_v.append(SimpleProto.SimpleEnum.VALUE1)
-	msg1.elem_v.append(SimpleProto.SimpleEnum.VALUE2)
+	msg1.add_int32_v(1)
+	msg1.add_int32_v(2)
+	msg1.add_string_v("one")
+	msg1.add_string_v("two")
+	msg1.add_elem_v(SimpleProto.SimpleEnum.VALUE1)
+	msg1.add_elem_v(SimpleProto.SimpleEnum.VALUE2)
 	
 	# Serialize message
 	var bytes = msg1.SerializeToBytes()
@@ -161,7 +161,7 @@ func test_repeated_message():
 	msg2.ParseFromBytes(bytes)
 	
 	# Verify repeated values
-	assert(msg2.int32_v.size() == 2 && msg2.int32_v[0] == 1 && msg2.int32_v[1] == 2, "Repeated int32_v mismatch")
-	assert(msg2.string_v.size() == 2 && msg2.string_v[0] == "one" && msg2.string_v[1] == "two", "Repeated string_v mismatch")
-	assert(msg2.elem_v.size() == 2 && msg2.elem_v[0] == SimpleProto.SimpleEnum.VALUE1 && msg2.elem_v[1] == SimpleProto.SimpleEnum.VALUE2, "Repeated elem_v mismatch")
+	assert(msg2.int32_v_size() == 2 && msg2.get_int32_v(0) == 1 && msg2.get_int32_v(1) == 2, "Repeated int32_v mismatch")
+	assert(msg2.string_v_size() == 2 && msg2.get_string_v(0) == "one" && msg2.get_string_v(1) == "two", "Repeated string_v mismatch")
+	assert(msg2.elem_v_size() == 2 && msg2.get_elem_v(0) == SimpleProto.SimpleEnum.VALUE1 && msg2.get_elem_v(1) == SimpleProto.SimpleEnum.VALUE2, "Repeated elem_v mismatch")
 	print("Repeated message test passed!")

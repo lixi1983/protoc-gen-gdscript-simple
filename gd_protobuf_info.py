@@ -1,4 +1,5 @@
 import string
+from typing import override
 from google.protobuf.descriptor import Descriptor, FieldDescriptor, EnumDescriptor
 
 class GDField:
@@ -61,8 +62,6 @@ class GDField:
     def field_serialize(self, indent: str, to_buffer: str = "buffer") -> str:
         content = f"{indent}if self.{self.field_name()} != {self.default_value}:\n"
         content += self.field_encode(indent + "\t", to_buffer)
-#        content += f"{indent}\tGDScriptUtils.encode_tag({to_buffer}, {self.number}, {self.field_type})\n"
-#        content += f"{indent}\tGDScriptUtils.encode_{self.mash_coder}({to_buffer}, self.{self.field_name()})"
 
         return content
 
@@ -73,7 +72,6 @@ class GDField:
                     decode_value: str = "decode_value",
                     decode_msg: str = "self",
                     field_value: str = None) -> str:
-#        content = f"{indent}var {decode_value} = {{}}\n"
         content = self.field_decode(indent, from_buffer, pos, decode_value, "self", field_value)
         return content
 
@@ -86,8 +84,6 @@ class GDField:
         content = f"{indent}if {from_dict}.has(\"{self.field_name()}\"):\n"
         content += f"{indent}\tself.{self.field_name()} = {from_dict}.get(\"{self.field_name()}\")"
         return content
-#        content = f"{indent}{field_value} = {from_dictionary}[\"{self.field_name()}\"]\n"
-#        return content
 
 class GDBoolField(GDField):
     def field_merge(self, indent: str, other: str) -> str:
@@ -131,7 +127,6 @@ class GDMessageField(GDField):
         content = f"{indent}if self.{self.field_name()} == null:\n"
         content += f"{indent}\tself.{self.field_name()} = {self.field_type_name()}.new()\n"
         content += f"{indent}self.{self.field_name()}.Init()\n"
-#        content += f"{indent}var {decode_value} = {{}}\n"
         content += self.field_decode(indent,
                                      from_buffer,
                                      pos,
@@ -174,25 +169,85 @@ class GDBytesField(GDField):
 
 class GDRepeatedField(GDField):
     sub_field: GDField = None
-#    def create(self, name: str, number: int, field_type: str, default_value: str, coder: str):
-#        super().create(name, number, f"Array[field_type:{field_type}]", "[]", coder)
 
     def create(self, name: str, number: int, field_type: int, field: GDField):
         self.sub_field = field
+        # 修改字段名为私有
+#        self.name = "_" + name
         super().create(name, number, field_type, f"Array[{self.sub_field.field_type_name()}]", "[]", "")
 
-    def field_merge(self, indent: str, other: str) -> str:
-        return f"{indent}self.{self.field_name()}.append_array({other}.{self.field_name()})"
+    def field_clear(self, indent: str) -> str:
+        return f"{indent}self.{self.method_field_clear_name()}"
 
-#    def field_decode(self, indent: str, from_buffer: str = "buffer", pos: str = "pos", decode_value: str = "decode_value", decode_msg: str = "self", field_from: str = "self.") -> str:
-#        content = f"{indent}var {decode_value} = GDScriptUtils.decode_{self.mash_coder}({from_buffer}, {pos}, {decode_msg})\n"
-#        content += f"{indent}{field_from}{self.field_name()}.append({decode_value}[GDScriptUtils.VALUE_KEY])\n"
-#        content += f"{indent}{pos} += {decode_value}[GDScriptUtils.SIZE_KEY]\n"
-#        return content
+
+    def field_merge(self, indent: str, other: str) -> str:
+        # 使用get方法访问
+        content = f"{indent}self.{self.field_name()} = self.{self.field_name()}.slice(0, {self.field_size_name()})\n"
+        content += f"{indent}self.{self.field_name()}.append_array({other}.{self.field_name()}.slice(0, {other}.{self.field_size_name()}))\n"
+        content += f"{indent}self.{self.field_size_name()} += other.{self.field_size_name()}"
+        return content
+
     def field_serialize(self, indent: str, to_buffer: str = "buffer") -> str:
+        # 使用get方法访问
         content = f"{indent}for item in self.{self.field_name()}:\n"
         content += self.sub_field.field_encode(indent + "\t", to_buffer, f"item")
+        return content
 
+    def field_name(self) -> str:
+        return f"_{self.name}"
+
+    def field_size_name(self) -> str:   
+        return f"{self.field_name()}_size"
+
+    def method_field_size_name(self) -> str:
+        return f"{self.name}_size"   
+
+    def method_field_add_name(self) -> str:
+        return f"add_{self.name}"
+
+    def method_field_append_name(self) -> str:
+        return f"append_{self.name}"
+
+    def method_field_get_array_name(self) -> str:
+        return f"{self.name}"
+    def method_field_get_name(self) -> str:
+        return f"get_{self.name}"
+
+    def method_field_clear_name(self) -> str:
+        return f"clear_{self.name}"
+
+    def _index_check_content(self, index: str = "index")->str:
+        return f"{index} > 0 and {index} <= {self.field_size_name()} and {index} <= {self.field_name()}.size()"
+
+    def field_define(self, indent: str, define_name: str = None, flag: int = 0) -> str:
+        content = super().field_define(indent, define_name, flag) + "\n"
+        content += f"{indent}var {self.field_size_name()}: int = 0\n"
+        # 添加size方法
+        content += f"{indent}func {self.method_field_size_name()}() -> int:\n"
+        content += f"{indent}\treturn self.{self.field_size_name()}\n"
+        # 添加get方法
+        content += f"{indent}func {self.method_field_get_array_name()}() -> {self.field_type_name()}:\n"
+        content += f"{indent}\treturn self.{self.field_name()}.slice(0, self.{self.field_size_name()})\n"
+        # 添加get_item方法
+        content += f"{indent}func {self.method_field_get_name()}(index: int) -> {self.sub_field.field_type_name()}: # index begin from 1\n"
+        content += f"{indent}\tif {self._index_check_content()}:\n"
+        content += f"{indent}\t\treturn self.{self.field_name()}[index - 1]\n"
+        content += f"{indent}\treturn {self.sub_field.default_value}\n"
+        # 添加add方法（内存复用）
+        content += f"{indent}func {self.method_field_add_name()}(item: {self.sub_field.field_type_name()}) -> {self.sub_field.field_type_name()}:\n"
+        content += f"{indent}\tif self.{self.field_size_name()} >= 0 and self.{self.field_size_name()} < self.{self.field_name()}.size():\n"
+        content += f"{indent}\t\tself.{self.field_name()}[self.{self.field_size_name()}] = item\n"
+        content += f"{indent}\telse:\n"
+        content += f"{indent}\t\tself.{self.field_name()}.append(item)\n"
+        content += f"{indent}\tself.{self.field_size_name()} += 1\n"
+        content += f"{indent}\treturn item\n"
+        # append 方法
+        content += f"{indent}func {self.method_field_append_name()}(item_array: Array[{self.sub_field.field_type_name()}]):\n"
+        content += f"{indent}\tfor item in item_array:\n"
+        content += f"{indent}\t\tself.{self.method_field_add_name()}(item)\n"
+        # 添加clean方法
+        content += f"{indent}func {self.method_field_clear_name()}() -> void:\n"
+        content += f"{indent}\tself.{self.field_size_name()} = 0"
         return content
 
     def field_decode(self,
@@ -207,7 +262,8 @@ class GDRepeatedField(GDField):
 
         content = ""
         content += f"{indent}var {decode_value} = GDScriptUtils.decode_{self.sub_field.mash_coder}({from_buffer}, {pos}, {decode_msg})\n"
-        content += f"{indent}self.{self.field_name()}.append({decode_value}[GDScriptUtils.VALUE_KEY])\n"
+#        content += f"{indent}self.{self.field_name()}.append({decode_value}[GDScriptUtils.VALUE_KEY])\n"
+        content += f"{indent}self.{self.method_field_add_name()}({decode_value}[GDScriptUtils.VALUE_KEY])\n"
         content += f"{indent}{pos} += {decode_value}[GDScriptUtils.SIZE_KEY]\n"
         return content
 
@@ -222,40 +278,34 @@ class GDRepeatedField(GDField):
         if self.sub_field.type == FieldDescriptor.TYPE_MESSAGE:
             decode_msg = f"sub_{self.field_name()}"
             content += f"{indent}var {decode_msg} = {self.sub_field.field_type_name()}.new()\n"
-
-#            content += self.field_decode(indent, from_buffer, pos, decode_value, decode_msg, f"sub_{self.field_name()}")
-#            content += f"{indent}var {decode_value} = GDScriptUtils.decode_{self.sub_field.mash_coder}({from_buffer}, {pos}, sun_{self.field_name()})\n"
-#            content += f"{indent}self.{self.field_name()}.append({decode_value}[GDScriptUtils.VALUE_KEY])\n"
-#            content += f"{indent}{pos} += {decode_value}[GDScriptUtils.SIZE_KEY]\n"
-#        else:
-        content += self.field_decode(indent, from_buffer, pos, decode_value, decode_msg, field_value)
-#            content += f"{indent}var {decode_value} = GDScriptUtils.decode_{self.sub_field.mash_coder}({from_buffer}, {pos}, {decode_msg})\n"
-#            content += f"{indent}self.{self.field_name()}.append({decode_value}[GDScriptUtils.VALUE_KEY])\n"
-#            content += f"{indent}{pos} += {decode_value}[GDScriptUtils.SIZE_KEY]\n"
+            content += self.field_decode(indent, from_buffer, pos, decode_value, decode_msg, field_value)
+        else:
+            content += self.field_decode(indent, from_buffer, pos, decode_value, decode_msg, field_value)
         return content
 
     def field_serialize_to_dictionary(self, indent: str, to_dict: str = "to_dict") -> str:
         if self.sub_field.type == FieldDescriptor.TYPE_MESSAGE:
-            content = f"{indent}{to_dict}[\"{self.field_name()}\"] = []\n"
-            content += f"{indent}for item in self.{self.field_name()}:\n"
-            content += f"{indent}\t{to_dict}[\"{self.field_name()}\"].append(item.SerializeToDictionary())\n"
+            content = f"{indent}{to_dict}[\"{self.field_name}\"] = []\n"
+            content += f"{indent}for index in range(1, self.{self.field_size_name()} + 1):\n"
+            content += f"{indent}\tvar item = self.{self.method_field_get_name()}(index)\n"
+            content += f"{indent}\t{to_dict}[\"{self.name}\"].append(item.SerializeToDictionary())"
             return content
         else:
-           return f"{indent}{to_dict}[\"{self.field_name()}\"] = self.{self.field_name()}"
+           return f"{indent}{to_dict}[\"{self.name}\"] = self.{self.field_name()}"
 
     def field_parse_from_dictionary(self,
                                         indent: str,
                                         from_dict: str = "from_dict") -> str:
-        content = f"{indent}if {from_dict}.has(\"{self.field_name()}\"):\n"
-
+        content = f"{indent}self.{self.method_field_clear_name()}()\n"
+        content += f"{indent}if {from_dict}.has(\"{self.name}\"):\n"
+        content += f"{indent}\tvar list = {from_dict}[\"{self.name}\"]\n"
+        content += f"{indent}\tfor item in list:\n"
         if self.sub_field.type == FieldDescriptor.TYPE_MESSAGE:
-            content += f"{indent}\tvar list = {from_dict}.get(\"{self.field_name()}\")\n"
-            content += f"{indent}\tfor item in list:\n"
             content += f"{indent}\t\tvar item_msg = {self.sub_field.field_type_name()}.new()\n"
             content += f"{indent}\t\titem_msg.ParseFromDictionary(item)\n"
-            content += f"{indent}\t\tself.{self.field_name()}.append(item_msg)"
+            content += f"{indent}\t\tself.{self.method_field_add_name()}(item_msg)"
         else:
-           return f"{indent}\tself.{self.field_name()} = {from_dict}.get(\"{self.field_name()}\")"
+            content += f"{indent}\t\tself.{self.method_field_add_name()}(item)"
 
         return content
 
@@ -387,9 +437,6 @@ def create_gd_field(gd_msg: GDMessageType, descriptor: Descriptor, field: FieldD
             gd_field = GDField()
             gd_field.create(f"m_unknown_{field.name}", field.number, field.type, f"m_unknown_{map_type}", f"unknown_{na}", "unknown")
             return gd_field
-#    elif field.label == FieldDescriptor.LABEL_REPEATED:
-#        gd_field = GDRepeatedField()
-#        gd_field.create(field.name, field.number, real_type, "[]", "")
     elif field.type == FieldDescriptor.TYPE_STRING:
         gd_field = GDField()
         default_value = default_value_func("")
