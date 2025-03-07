@@ -87,10 +87,10 @@ func test_complex_message_custom():
 	msg.long_field = 999999999
 	msg.bool_field = false
 	msg.float_field = 2.718
-	msg.string_field = "测试消息"
+	msg.string_field = "Test Message"
 	msg.bytes_field = "Hello".to_utf8_buffer()
 	msg.status = ComplexProto.ComplexMessage.Status.ACTIVE
-	msg.name = "复杂消息"
+	msg.name = "Complex Message"
 	msg.id = 123
 	msg.add_status_list(ComplexProto.ComplexMessage.Status.ACTIVE)
 	msg.add_status_list(ComplexProto.ComplexMessage.Status.PENDING)
@@ -110,10 +110,10 @@ func test_complex_message_custom():
 	assert(parsed_msg.long_field == 999999999, "Custom long_field mismatch")
 	assert(parsed_msg.bool_field == false, "Custom bool_field mismatch")
 	assert(is_equal_approx(parsed_msg.float_field, 2.718), "Custom float_field mismatch")
-	assert(parsed_msg.string_field == "测试消息", "Custom string_field mismatch")
+	assert(parsed_msg.string_field == "Test Message", "Custom string_field mismatch")
 	assert(parsed_msg.bytes_field == "Hello".to_utf8_buffer(), "Custom bytes_field mismatch")
 	assert(parsed_msg.status == ComplexProto.ComplexMessage.Status.ACTIVE, "Custom status mismatch")
-	assert(parsed_msg.name == "复杂消息", "Custom name mismatch")
+	assert(parsed_msg.name == "Complex Message", "Custom name mismatch")
 	assert(parsed_msg.id == 123, "Custom id mismatch")
 	assert(parsed_msg.status_list_size() == 2, "Custom status_list size mismatch")
 	assert(parsed_msg.get_status_list(1) == ComplexProto.ComplexMessage.Status.ACTIVE, "Custom status_list[0] mismatch")
@@ -124,10 +124,10 @@ func test_complex_message_custom():
 	assert(dict_parsed_msg.long_field == 999999999, "Custom dict long_field mismatch")
 	assert(dict_parsed_msg.bool_field == false, "Custom dict bool_field mismatch")
 	assert(is_equal_approx(dict_parsed_msg.float_field, 2.718), "Custom dict float_field mismatch")
-	assert(dict_parsed_msg.string_field == "测试消息", "Custom dict string_field mismatch")
+	assert(dict_parsed_msg.string_field == "Test Message", "Custom dict string_field mismatch")
 	assert(dict_parsed_msg.bytes_field == "Hello".to_utf8_buffer(), "Custom dict bytes_field mismatch")
 	assert(dict_parsed_msg.status == ComplexProto.ComplexMessage.Status.ACTIVE, "Custom dict status mismatch")
-	assert(dict_parsed_msg.name == "复杂消息", "Custom dict name mismatch")
+	assert(dict_parsed_msg.name == "Complex Message", "Custom dict name mismatch")
 	assert(dict_parsed_msg.id == 123, "Custom dict id mismatch")
 	assert(dict_parsed_msg.status_list_size() == 2, "Custom dict status_list size mismatch")
 	assert(dict_parsed_msg.get_status_list(1) == ComplexProto.ComplexMessage.Status.ACTIVE, "Custom dict status_list[0] mismatch")
@@ -236,28 +236,28 @@ func test_complex_message_to_string():
 	
 	# Test custom values with nested messages
 	var custom_msg = ComplexProto.ComplexMessage.new()
-	custom_msg.name = "复杂消息"  # Test UTF-8 support
+	custom_msg.name = "Complex Message"  # Test UTF-8 support
 	custom_msg.int_field = 42
 	custom_msg.long_field = 999999
 	custom_msg.bool_field = false
 	custom_msg.float_field = 2.718
-	custom_msg.string_field = "你好世界"  # Test UTF-8
+	custom_msg.string_field = "Hello World"  # Test UTF-8
 	custom_msg.bytes_field = [1, 2, 3, 4]
 	custom_msg.status = ComplexProto.ComplexMessage.Status.ACTIVE
 	
 	# Add nested messages
 	var nested1 = ComplexProto.ComplexMessage.NestedMessage.new()
-	nested1.id = "嵌套1"  # Test UTF-8 in nested
+	nested1.id = "Nested 1"  # Test UTF-8 in nested
 	nested1.value = 1
 	nested1.deep = ComplexProto.ComplexMessage.NestedMessage.DeepNested.new()
-	nested1.deep.data = "深层1"  # Test UTF-8 in deep nested
+	nested1.deep.data = "Deep 1"  # Test UTF-8 in deep nested
 	nested1.deep.append_numbers( [1, 2, 3] )
 	
 	var nested2 = ComplexProto.ComplexMessage.NestedMessage.new()
-	nested2.id = "嵌套2"
+	nested2.id = "Nested 2"
 	nested2.value = 2
 	nested2.deep = ComplexProto.ComplexMessage.NestedMessage.DeepNested.new()
-	nested2.deep.data = "深层2"
+	nested2.deep.data = "Deep 2"
 	nested2.deep.append_numbers([4, 5, 6])
 	
 	custom_msg.append_nested_messages([nested1, nested2])
@@ -272,12 +272,12 @@ func test_complex_message_to_string():
 	# Verify custom string is valid JSON
 	var custom_json = JSON.parse_string(custom_str)
 	assert(custom_json != null, "Custom ToString() should produce valid JSON")
-	assert(custom_json["name"] == "复杂消息", "Custom name mismatch in ToString()")
+	assert(custom_json["name"] == "Complex Message", "Custom name mismatch in ToString()")
 	assert(custom_json["int_field"] == 42, "Custom int_field mismatch in ToString()")
 	assert(custom_json["long_field"] == 999999, "Custom long_field mismatch in ToString()")
 	assert(custom_json["bool_field"] == false, "Custom bool_field mismatch in ToString()")
 	assert(is_equal_approx(custom_json["float_field"], 2.718), "Custom float_field mismatch in ToString()")
-	assert(custom_json["string_field"] == "你好世界", "Custom string_field mismatch in ToString()")
+	assert(custom_json["string_field"] == "Hello World", "Custom string_field mismatch in ToString()")
 	assert(custom_json["bytes_field"] == "[1, 2, 3, 4]", "Custom bytes_field mismatch in ToString()")
 	assert(custom_json["status"] == ComplexProto.ComplexMessage.Status.ACTIVE, "Custom status mismatch in ToString()")
 	
@@ -288,13 +288,13 @@ func test_complex_message_to_string():
 	var nested1_json = custom_json["nested_messages"][0]
 	var nested2_json = custom_json["nested_messages"][1]
 	
-	assert(nested1_json["id"] == "嵌套1", "First nested message id mismatch")
+	assert(nested1_json["id"] == "Nested 1", "First nested message id mismatch")
 	assert(nested1_json["value"] == 1, "First nested message value mismatch")
-	assert(nested1_json["deep"]["data"] == "深层1", "First deep nested data mismatch")
+	assert(nested1_json["deep"]["data"] == "Deep 1", "First deep nested data mismatch")
 	assert(nested1_json["deep"]["numbers"].size() == 3, "First deep nested numbers size mismatch")
-	assert(nested2_json["id"] == "嵌套2", "Second nested message id mismatch")
+	assert(nested2_json["id"] == "Nested 2", "Second nested message id mismatch")
 	assert(nested2_json["value"] == 2, "Second nested message value mismatch")
-	assert(nested2_json["deep"]["data"] == "深层2", "Second deep nested data mismatch")
+	assert(nested2_json["deep"]["data"] == "Deep 2", "Second deep nested data mismatch")
 	assert(nested2_json["deep"]["numbers"].size() == 3, "Second deep nested numbers size mismatch")
 	
 	# Verify status list
@@ -307,14 +307,14 @@ func test_complex_message_to_string():
 func test_tree_node():
 	print("\nTesting TreeNode...")
 	var root = ComplexProto.TreeNode.new()
-	root.value = "根节点"
+	root.value = "Root Node"
 	
 	# Create child nodes without setting their children to avoid recursion
 	var child1 = ComplexProto.TreeNode.new()
-	child1.value = "子节点1"
+	child1.value = "Child Node 1"
 	
 	var child2 = ComplexProto.TreeNode.new()
-	child2.value = "子节点2"
+	child2.value = "Child Node 2"
 	
 	# Set children after creation
 	root.append_children([child1, child2])
@@ -328,8 +328,8 @@ func test_tree_node():
 	print("Root value:", parsed_root.value)
 	assert(parsed_root.value == root.value, "Root value mismatch")
 	assert(parsed_root.children_size() == 2, "Children size mismatch")
-	assert(parsed_root.get_children(1).value == "子节点1", "Child1 value mismatch")
-	assert(parsed_root.get_children(2).value == "子节点2", "Child2 value mismatch")
+	assert(parsed_root.get_children(1).value == "Child Node 1", "Child1 value mismatch")
+	assert(parsed_root.get_children(2).value == "Child Node 2", "Child2 value mismatch")
 	
 	print("TreeNode test passed!")
 
@@ -380,9 +380,9 @@ func test_field_rules():
 	var msg = ComplexProto.FieldRules.new()
 	
 	# Set required fields
-	msg.required_field = "必填字段"
-	msg.optional_field = "可选字段"
-	msg.append_repeated_field(["重复1", "重复2"])
+	msg.required_field = "Required Field"
+	msg.optional_field = "Optional Field"
+	msg.append_repeated_field(["Repeated 1", "Repeated 2"])
 	msg.required_message = ComplexProto.ComplexMessage.NestedMessage.new()
 	msg.required_message.id = "required_nested"
 	
@@ -392,8 +392,8 @@ func test_field_rules():
 	parsed_msg.ParseFromBytes(bytes)
 	
 	# Verify fields
-	assert(parsed_msg.required_field == "必填字段", "Required field mismatch")
-	assert(parsed_msg.optional_field == "可选字段", "Optional field mismatch")
+	assert(parsed_msg.required_field == "Required Field", "Required field mismatch")
+	assert(parsed_msg.optional_field == "Optional Field", "Optional field mismatch")
 	assert(parsed_msg.repeated_field_size() == 2, "Repeated field size mismatch")
 	assert(parsed_msg.required_message.id == "required_nested", "Required message field mismatch")
 	

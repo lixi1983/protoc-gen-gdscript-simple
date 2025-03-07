@@ -1,6 +1,6 @@
 extends RefCounted
 
-# Protocol Buffer 字段类型枚举
+# Protocol Buffer field type enumeration
 enum FieldType {
 	TYPE_DOUBLE = 1,        # double
 	TYPE_FLOAT = 2,         # float
@@ -23,7 +23,7 @@ enum FieldType {
 	TYPE_MAP = 19,         # map
 }
 
-# 线类型枚举 (Wire Types)
+# Wire Types enumeration
 enum WireType {
 	WIRETYPE_VARINT = 0,           # int32, int64, uint32, uint64, sint32, sint64, bool, enum
 	WIRETYPE_FIXED64 = 1,          # fixed64, sfixed64, double
@@ -33,14 +33,14 @@ enum WireType {
 	WIRETYPE_FIXED32 = 5,          # fixed32, sfixed32, float
 }
 
-# 字段标签类型
+# Field label types
 enum FieldLabel {
 	LABEL_OPTIONAL = 1,  # optional
 	LABEL_REQUIRED = 2,  # required (proto2 only)
 	LABEL_REPEATED = 3,  # repeated
 }
 
-# 根据字段类型获取对应的线类型
+# Get wire type based on field type
 static func get_wire_type(field_type: int) -> int:
 	match field_type:
 		FieldType.TYPE_INT32, FieldType.TYPE_INT64, FieldType.TYPE_UINT32, FieldType.TYPE_UINT64, FieldType.TYPE_SINT32, FieldType.TYPE_SINT64, FieldType.TYPE_BOOL, FieldType.TYPE_ENUM:
@@ -54,7 +54,7 @@ static func get_wire_type(field_type: int) -> int:
 		_:
 			return WireType.WIRETYPE_VARINT
 
-# 将字段类型转换为字符串表示
+# Convert field type to string representation
 static func field_type_to_string(field_type: int) -> String:
 	match field_type:
 		FieldType.TYPE_DOUBLE:

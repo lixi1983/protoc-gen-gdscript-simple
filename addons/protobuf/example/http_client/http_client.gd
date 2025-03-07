@@ -8,10 +8,10 @@ const REQUEST_TIMEOUT: float = 5.0  # 5 seconds timeout
 var start_time: float = 0
 
 func _init():
-    # 创建 WebSocket 连接
+    # Create WebSocket connection
     websocket = WebSocketPeer.new()
     
-    # 连接到服务器
+    # Connect to server
     var url = "ws://localhost:8080/ws"
     var error = websocket.connect_to_url(url)
     if error != OK:
@@ -19,10 +19,10 @@ func _init():
         quit(1)
         return
     
-    # 记录开始时间
+    # Record start time
     start_time = Time.get_unix_time_from_system()
     
-    # 开始处理
+    # Start processing
     process_websocket()
 
 func check_timeout() -> bool:
@@ -39,7 +39,7 @@ func bytes_to_hex(bytes: PackedByteArray) -> String:
     return hex_str
 
 func process_websocket():
-    # 等待连接建立
+    # Wait for connection
     while websocket.get_ready_state() == WebSocketPeer.STATE_CONNECTING:
         websocket.poll()
         if check_timeout():
@@ -55,25 +55,25 @@ func process_websocket():
     
     print("WebSocket connection established")
     
-    # 重置超时计时器
+    # Reset timeout timer
     start_time = Time.get_unix_time_from_system()
 
 
     send_test_message2()
-    # 发送测试消息
+    # Send test message
    # send_test_message()
 
-    # 持续处理消息
+    # Continue processing messages
     var message_received = false
     while websocket.get_ready_state() == WebSocketPeer.STATE_OPEN:
         websocket.poll()
         
-        # 处理所有待处理的消息
+        # Process all pending messages
         while websocket.get_available_packet_count() > 0:
             var packet = websocket.get_packet()
             handle_message(packet)
             message_received = true
-            # 收到消息后退出
+            # Exit after receiving message
             quit(0)
             return
         
@@ -117,14 +117,14 @@ func send_test_message2():
     print("send_test_message2 Message size: ", len(test_bytes))
     print("send_test_message2 Message hex: ", bytes_to_hex(test_bytes))
     print("Send message: ", test.ToString())
-        # 发送消息
+        # Send message
     var error = websocket.send(test_bytes, WebSocketPeer.WRITE_MODE_BINARY)
     if error != OK:
         push_error("Failed to send message: " + str(error))
         quit(1)
 
 func send_test_message():
-    # 手动构建 protobuf 消息
+    # Manually construct protobuf message
     var binary_data = PackedByteArray()
     
     # MsgTest message
@@ -150,7 +150,7 @@ func send_test_message():
     print("Message size: ", len(binary_data))
     print("Message hex: ", bytes_to_hex(binary_data))
     
-    # 发送消息
+    # Send message
     var error = websocket.send(binary_data, WebSocketPeer.WRITE_MODE_BINARY)
     if error != OK:
         push_error("Failed to send message: " + str(error))
@@ -167,7 +167,7 @@ func handle_message(packet: PackedByteArray):
 
     return
 
-    # 手动解析 protobuf 消息
+    # Manually parse protobuf message
     var offset = 0
     
     # Field 1: common_msg (embedded message)

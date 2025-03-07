@@ -1,8 +1,8 @@
 class_name Message
 extends RefCounted
 
-## 基类，所有由 protobuf 生成的消息类都继承自此类
-## 提供序列化和反序列化的基本接口
+## Base class for all protobuf generated message classes
+## Provides basic interfaces for serialization and deserialization
 
 func _init() -> void:
 	Init()
@@ -10,57 +10,63 @@ func _init() -> void:
 func Init() -> void:
 	pass
 
-## 将消息序列化为二进制字符串
-## 返回值: PackedByteArray - 序列化后的二进制数据
+## Serialize message to binary string
+## Returns: PackedByteArray - Serialized binary data
 func SerializeToBytes(bytes: PackedByteArray = PackedByteArray()) -> PackedByteArray:
 	push_error("Message.SerializeToString() is virtual")
 	return bytes
 
-## 从二进制字符串解析消息
-## 参数: bytes: PackedByteArray - 要解析的二进制数据
-## 返回值: bool - 解析是否成功
+## Parse message from binary string
+## Args: bytes: PackedByteArray - Binary data to parse
+## Returns: bool - True if parsing successful
 func ParseFromBytes(bytes: PackedByteArray) -> int:
 	push_error("Message.ParseFromString() is virtual")
 	return 0
 
-## 将消息序列化为字典
-## 返回值: Dictionary - 包含消息数据的字典
+## Serialize message to dictionary
+## Returns: Dictionary - Dictionary containing message data
 func SerializeToDictionary() -> Dictionary:
 	push_error("Message.SerializeToDictionary() is virtual")
 	return {}
 
-## 从字典解析消息
-## 参数: data: Dictionary - 包含消息数据的字典
-## 返回值: bool - 解析是否成功
+## Parse message from dictionary
+## Args: data: Dictionary - Dictionary containing message data
+## Returns: void
 func ParseFromDictionary(data: Dictionary) -> void:
 	push_error("Message.ParseFromDictionary() is virtual")
 	return
 
-## 创建一个新的消息实例
-## 返回值: Message - 新的消息实例
+## Create a new message instance
+## Returns: Message - New message instance
 func New() -> Message:
 	push_error("Message.New() is virtual")
 	return null
 
-## 合并两个消息
-## 参数: other: Message - 要合并的消息
-## 返回值: Message - 合并后的消息
+## Merge two messages
+## Args: other: Message - Message to merge from
+## Returns: void
 func MergeFrom(other: Message) -> void:
 	push_error("Message.Merge() is virtual")
 
-## 复制当前消息
-## 返回值: Message - 复制的消息
+## Clone current message
+## Returns: Message - Cloned message
 func Clone() -> Message:
 	var other = New()
 	other.MergeFrom(self)
 	return other
 
+## Serialize message to JSON string
+## Returns: String - JSON string representation
 func SerializeToJson() -> String:
 	var map = SerializeToDictionary()
 	return JSON.stringify(map)
 
+## Convert message to string
+## Returns: String - String representation
 func ToString() -> String:
 	return SerializeToJson()
 
+## Built-in string conversion
+## Returns: String - String representation
 func _to_string() -> String:
 	return ToString()

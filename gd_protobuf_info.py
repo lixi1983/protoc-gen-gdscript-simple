@@ -172,7 +172,7 @@ class GDRepeatedField(GDField):
 
     def create(self, name: str, number: int, field_type: int, field: GDField):
         self.sub_field = field
-        # 修改字段名为私有
+        # Make field name private
 #        self.name = "_" + name
         super().create(name, number, field_type, f"Array[{self.sub_field.field_type_name()}]", "[]", "")
 
@@ -181,14 +181,14 @@ class GDRepeatedField(GDField):
 
 
     def field_merge(self, indent: str, other: str) -> str:
-        # 使用get方法访问
+        # Access using get method
         content = f"{indent}self.{self.field_name()} = self.{self.field_name()}.slice(0, {self.field_size_name()})\n"
         content += f"{indent}self.{self.field_name()}.append_array({other}.{self.field_name()}.slice(0, {other}.{self.field_size_name()}))\n"
         content += f"{indent}self.{self.field_size_name()} += other.{self.field_size_name()}"
         return content
 
     def field_serialize(self, indent: str, to_buffer: str = "buffer") -> str:
-        # 使用get方法访问
+        # Access using get method
         content = f"{indent}for item in self.{self.field_name()}:\n"
         content += self.sub_field.field_encode(indent + "\t", to_buffer, f"item")
         return content
@@ -222,18 +222,18 @@ class GDRepeatedField(GDField):
     def field_define(self, indent: str, define_name: str = None, flag: int = 0) -> str:
         content = super().field_define(indent, define_name, flag) + "\n"
         content += f"{indent}var {self.field_size_name()}: int = 0\n"
-        # 添加size方法
+        # Add size method
         content += f"{indent}func {self.method_field_size_name()}() -> int:\n"
         content += f"{indent}\treturn self.{self.field_size_name()}\n"
-        # 添加get方法
+        # Add get method
         content += f"{indent}func {self.method_field_get_array_name()}() -> {self.field_type_name()}:\n"
         content += f"{indent}\treturn self.{self.field_name()}.slice(0, self.{self.field_size_name()})\n"
-        # 添加get_item方法
+        # Add get_item method
         content += f"{indent}func {self.method_field_get_name()}(index: int) -> {self.sub_field.field_type_name()}: # index begin from 1\n"
         content += f"{indent}\tif {self._index_check_content()}:\n"
         content += f"{indent}\t\treturn self.{self.field_name()}[index - 1]\n"
         content += f"{indent}\treturn {self.sub_field.default_value}\n"
-        # 添加add方法（内存复用）
+        # Add add method (memory reuse)
         content += f"{indent}func {self.method_field_add_name()}(item: {self.sub_field.field_type_name()}) -> {self.sub_field.field_type_name()}:\n"
         content += f"{indent}\tif self.{self.field_size_name()} >= 0 and self.{self.field_size_name()} < self.{self.field_name()}.size():\n"
         content += f"{indent}\t\tself.{self.field_name()}[self.{self.field_size_name()}] = item\n"
@@ -241,13 +241,13 @@ class GDRepeatedField(GDField):
         content += f"{indent}\t\tself.{self.field_name()}.append(item)\n"
         content += f"{indent}\tself.{self.field_size_name()} += 1\n"
         content += f"{indent}\treturn item\n"
-        # append 方法
+        # append method
 #        content += f"{indent}func {self.method_field_append_name()}(item_array: Array[{self.sub_field.field_type_name()}]):\n"
         content += f"{indent}func {self.method_field_append_name()}(item_array: Array):\n"
         content += f"{indent}\tfor item in item_array:\n"
         content += f"{indent}\t\tif item is {self.sub_field.field_type_name()}:\n"
         content += f"{indent}\t\t\tself.{self.method_field_add_name()}(item)\n"
-        # 添加clean方法
+        # Add clean method
         content += f"{indent}func {self.method_field_clear_name()}() -> void:\n"
         content += f"{indent}\tself.{self.field_size_name()} = 0"
         return content
@@ -396,7 +396,7 @@ class GDMessageType:
         if len(self.package_name) <= 0:
             return type_full_name
 
-        # 去除包名
+        # Remove package name
         return type_full_name.replace(self.package_name + ".", "")
 
 def create_gd_field(gd_msg: GDMessageType, descriptor: Descriptor, field: FieldDescriptor) ->GDField:

@@ -33,25 +33,25 @@ NOTES:
     sys.exit(0)
 
 def main():
-    """主函数"""
-    # 检查是否有 --help 参数
+    """Main function"""
+    # Check for --help argument
     if len(sys.argv) > 1 and sys.argv[1] in ['--help', '-h']:
         print_help()
 
     try:
-        # 从标准输入读取请求
+        # Read request from standard input
         data = sys.stdin.buffer.read()
         request: plugin_pb2.CodeGeneratorRequest = plugin_pb2.CodeGeneratorRequest()
         request.ParseFromString(data)
         
         print("Starting GDScript code generator...", file=sys.stderr)
 
-        # 生成代码
+        # Generate code
         response = generate_gdscript(request)
         
         print("end GDScript code generator...", file=sys.stderr)
         
-        # 写入响应
+        # Write response
         sys.stdout.buffer.write(response.SerializeToString())
         return 0
         

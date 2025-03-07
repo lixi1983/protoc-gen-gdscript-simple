@@ -109,49 +109,46 @@ def get_protobuf_base_path():
 
 
 def get_import_path(proto_file_path: str, import_path: str) -> str:
-    """获取导入文件的路径
+    """Get import file path
     
     Args:
-        proto_file_path: 当前 proto 文件的路径
-        import_path: import 语句中的路径
-        
-    Returns:
-        str: 导入文件的 GDScript 路径
+        proto_file_path: Current proto file path
+        import_path: Path in import statement
     """
-    # 获取当前 proto 文件的目录
+    # Get the directory of the current proto file
     proto_dir = os.path.dirname(proto_file_path)
     
-    # 计算导入文件的绝对路径
+    # Calculate the absolute path of the import file
     import_abs_path = os.path.normpath(os.path.join(proto_dir, import_path))
     
-    # 将 .proto 扩展名替换为 .proto.gd
+    # Replace the .proto extension with .proto.gd
     import_gd_path = os.path.splitext(import_abs_path)[0] + ".proto.gd"
     
-    # 获取相对于当前文件的路径
+    # Get the relative path to the current file
     rel_path = os.path.relpath(import_gd_path, proto_dir)
     
-    # 如果在同一目录下，添加 "./"
+    # If in the same directory, add "./"
     if not rel_path.startswith('.'):
         rel_path = f"./{rel_path}"
         
     return rel_path
 
 def generate_imports(proto_file) -> str:
-    """生成导入语句
+    """Generate import statements
     
     Args:
-        proto_file: protobuf 文件描述符
+        proto_file: protobuf file descriptor
         
     Returns:
-        str: 导入语句
+        str: Import statements
     """
     content = ""
     
-    # 添加基础依赖
+    # Add base dependencies
     content += f'const GDScriptUtils = preload("{get_protobuf_base_path()}/proto/GDScriptUtils.gd")\n'
     content += f'const Message = preload("{get_protobuf_base_path()}/proto/Message.gd")\n'
     
-    # 添加导入的其他 proto 文件
+    # Add imports for other proto files
     for dependency in proto_file.dependency:
         import_path = get_import_path(proto_file.name, dependency)
         content += f'const {os.path.splitext(os.path.basename(dependency))[0]} = preload("{import_path}")\n'
@@ -172,7 +169,7 @@ def real_type_name(type_full_name: string):
     if len(package_name) <= 0:
         return type_full_name
 
-    # 去除包名
+    # Remove package name
     return type_full_name.replace(package_name + ".", "")
 
 def generate_gdscript(request: plugin_pb2.CodeGeneratorRequest) -> plugin_pb2.CodeGeneratorResponse:
@@ -257,13 +254,13 @@ def generate_message_class(message_type: MessageType, indent_level: int = 0) -> 
 
 
 def get_message_type_key(message_type):
-    """获取消息类型的唯一键"""
+    """Get the unique key for a message type"""
     if hasattr(message_type, 'full_name'):
         return message_type.full_name
     return message_type.name
 
 def get_map_fields(message_type):
-    """获取消息类型的 map 字段信息"""
+    """Get the map field information for a message type"""
     key = get_message_type_key(message_type)
     return _map_fields_cache.get(key, {})    
 
@@ -272,20 +269,20 @@ _map_fields_cache = {}
 key_field_name = 'key_field'
 value_field_name = 'value_field'
 def get_field_map_info(message_type, field_number):
-    """获取消息类型中指定字段编号的 map 字段信息
+    """Get the map field information for a field number in a message type
     
     Args:
-        message_type: 消息类型
-        field_number: 字段编号
+        message_type: Message type
+        field_number: Field number
 
     Returns:
-        dict: 包含 field_name, key_field, value_field 的字典，如果不是 map 字段则返回 None
+        dict: Dictionary containing field_name, key_field, value_field, or None if not a map field
     """
     maps = get_map_fields(message_type)
     return maps.get(field_number)
 
 def is_map_field(message_type, field_number):
-    """判断字段是否是 map 类型"""
+    """Check if a field is a map field"""
     return get_field_map_info(message_type, field_number) is not None
 
 def generate_fields(
@@ -297,7 +294,7 @@ def generate_fields(
     content = ""
     indent = "\t" * indent_level
     
-    # 创建当前消息类型的 map 字段信息
+    # Create map field information for the current message type
     message_maps = {}
 
     for field in fields:
@@ -308,9 +305,9 @@ def generate_fields(
                 type_name = type_name[1:]
             parts = type_name.split(".")
             if len(parts) > 1 and parts[-1].endswith("Entry"):
-                # 这是一个 map 字段，获取 key 和 value 的类型
-                # 在 proto3 中，map 字段会被转换为一个包含 key 和 value 字段的消息类型
-                # 我们需要在消息类型的嵌套类型中找到它
+                # This is a map field, get the key and value types
+                # In proto3, map fields are converted to a message type with key and value fields
+                # We need to find it in the nested types of the message type
                 map_type = None
                 for nested_type in message_type.nested_type:
                     if nested_type.name == parts[-1]:
@@ -318,17 +315,17 @@ def generate_fields(
                         break
                 
                 if map_type and len(map_type.field) >= 2:
-                    key_field = map_type.field[0]   # key 是第一个字段
-                    value_field = map_type.field[1] # value 是第二个字段
+                    key_field = map_type.field[0]   # key is the first field
+                    value_field = map_type.field[1] # value is the second field
                     
-                    # 存储 map 字段信息到当前消息的缓存中
+                    # Store map field information in the current message's cache
                     message_maps[field.number] = {
                         'field_name': field_name,
                         'key_field': key_field,
                         'value_field': value_field
                     }
                 
-                # 生成字典字段声明
+                # Generate dictionary field declaration
                 content += f"{indent}var {field_name}: Dictionary = {{}}\n"
                 continue
 
@@ -342,7 +339,7 @@ def generate_fields(
     if len(content) > 0:
         content += "\n"
 
-    # 将当前消息类型的 map 字段信息存储到全局缓存中
+    # Store the current message type's map field information in the global cache
     if message_maps:
         _map_fields_cache[get_message_type_key(message_type)] = message_maps
 
@@ -393,7 +390,7 @@ def get_default_value(field: FieldDescriptor, proto_file=None):
             return type_parts + '.' + field.default_value
         elif field.type in [FieldDescriptorProto.TYPE_UINT32, FieldDescriptorProto.TYPE_UINT64,
                          FieldDescriptorProto.TYPE_FIXED32, FieldDescriptorProto.TYPE_FIXED64]:
-            # GDScript的整数是64位有符号整数，范围是-2^63到2^63-1
+            # GDScript's integer is a 64-bit signed integer, range is -2^63 to 2^63-1
             max_value = 9223372036854775807  # 2^63-1
             try:
                 value = int(field.default_value)
@@ -675,7 +672,7 @@ def generate_serialize_to_dictionary_methods(message_type: MessageType, gd_messa
         content += f"{gd_field.field_serialize_to_dictionary(indent + "\t", "dict" )}\n"
 
     """    
-    # 分别处理每个字段
+    # Process each field
     for field in message_type.field:
         map_info = get_field_map_info(message_type, field.number)
         if map_info is not None:
