@@ -145,6 +145,8 @@ proto2_serialize:
 http_client:
 	${GODOT} --headless --script addons/protobuf/example/http_client/http_client.gd
 
-http_test:
+http_build:
+	${MAKE} -C test build
+
+http_test: 
 	${MAKE} -C test run
-	make http_client

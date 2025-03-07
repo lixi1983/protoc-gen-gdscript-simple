@@ -12,5 +12,5 @@ clean:
 	rm -f server
 	rm -f proto3/*.pb.go
 
-run: build
+run:
 	./server

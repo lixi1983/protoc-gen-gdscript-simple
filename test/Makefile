@@ -38,4 +38,7 @@ clean: $(clean_dirs)
 
 run:
 	@echo "================ Running in $@ directory.. ===============:"
-	$(MAKE) -C godot_test proto run
+	$(MAKE) -C godot_test run
+
+build:
+	$(MAKE) -C godot_test build

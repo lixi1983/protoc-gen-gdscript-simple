@@ -8,7 +8,7 @@ http_client:
 clean:
 	cd backend_http && make clean
 
-test: proto
+build: proto
 	cd backend_http && make build
 
 proto:

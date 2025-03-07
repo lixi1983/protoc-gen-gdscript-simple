@@ -93,9 +93,10 @@ jobs:
         make GODOT=Godot serialize
         
         # HTTP server check
-        make GODOT=Godot http_test &
+        make GODOT=Godot http_build
+        make GODOT=Godot http_test 
         # Wait for server to start
-        sleep 2
+        sleep 20
  
         make GODOT=Godot http_client
 
