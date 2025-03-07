@@ -222,18 +222,18 @@ class GDRepeatedField(GDField):
     def field_define(self, indent: str, define_name: str = None, flag: int = 0) -> str:
         content = super().field_define(indent, define_name, flag) + "\n"
         content += f"{indent}var {self.field_size_name()}: int = 0\n"
-        # Add size method
+        content += f"{indent}## Size of {self.field_name()}\n"
         content += f"{indent}func {self.method_field_size_name()}() -> int:\n"
         content += f"{indent}\treturn self.{self.field_size_name()}\n"
-        # Add get method
+        content += f"{indent}## Get {self.field_name()}\n"
         content += f"{indent}func {self.method_field_get_array_name()}() -> {self.field_type_name()}:\n"
         content += f"{indent}\treturn self.{self.field_name()}.slice(0, self.{self.field_size_name()})\n"
-        # Add get_item method
+        content += f"{indent}## Get {self.field_name()} item \n"
         content += f"{indent}func {self.method_field_get_name()}(index: int) -> {self.sub_field.field_type_name()}: # index begin from 1\n"
         content += f"{indent}\tif {self._index_check_content()}:\n"
         content += f"{indent}\t\treturn self.{self.field_name()}[index - 1]\n"
         content += f"{indent}\treturn {self.sub_field.default_value}\n"
-        # Add add method (memory reuse)
+        content += f"{indent}## Add {self.field_name()}\n"
         content += f"{indent}func {self.method_field_add_name()}(item: {self.sub_field.field_type_name()}) -> {self.sub_field.field_type_name()}:\n"
         content += f"{indent}\tif self.{self.field_size_name()} >= 0 and self.{self.field_size_name()} < self.{self.field_name()}.size():\n"
         content += f"{indent}\t\tself.{self.field_name()}[self.{self.field_size_name()}] = item\n"
@@ -241,13 +241,12 @@ class GDRepeatedField(GDField):
         content += f"{indent}\t\tself.{self.field_name()}.append(item)\n"
         content += f"{indent}\tself.{self.field_size_name()} += 1\n"
         content += f"{indent}\treturn item\n"
-        # append method
-#        content += f"{indent}func {self.method_field_append_name()}(item_array: Array[{self.sub_field.field_type_name()}]):\n"
+        content += f"{indent}## Append {self.field_name()}\n"
         content += f"{indent}func {self.method_field_append_name()}(item_array: Array):\n"
         content += f"{indent}\tfor item in item_array:\n"
         content += f"{indent}\t\tif item is {self.sub_field.field_type_name()}:\n"
         content += f"{indent}\t\t\tself.{self.method_field_add_name()}(item)\n"
-        # Add clean method
+        content += f"{indent}## Clean {self.field_name()} \n"
         content += f"{indent}func {self.method_field_clear_name()}() -> void:\n"
         content += f"{indent}\tself.{self.field_size_name()} = 0"
         return content
@@ -264,7 +263,6 @@ class GDRepeatedField(GDField):
 
         content = ""
         content += f"{indent}var {decode_value} = GDScriptUtils.decode_{self.sub_field.mash_coder}({from_buffer}, {pos}, {decode_msg})\n"
-#        content += f"{indent}self.{self.field_name()}.append({decode_value}[GDScriptUtils.VALUE_KEY])\n"
         content += f"{indent}self.{self.method_field_add_name()}({decode_value}[GDScriptUtils.VALUE_KEY])\n"
         content += f"{indent}{pos} += {decode_value}[GDScriptUtils.SIZE_KEY]\n"
         return content

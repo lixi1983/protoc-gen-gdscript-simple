@@ -25,14 +25,18 @@ class Character extends Message:
 	#5 : skills
 	var _skills: Array[String] = []
 	var _skills_size: int = 0
+	## Size of _skills
 	func skills_size() -> int:
 		return self._skills_size
+	## Get _skills
 	func skills() -> Array[String]:
 		return self._skills.slice(0, self._skills_size)
+	## Get _skills item 
 	func get_skills(index: int) -> String: # index begin from 1
 		if index > 0 and index <= _skills_size and index <= _skills.size():
 			return self._skills[index - 1]
 		return ""
+	## Add _skills
 	func add_skills(item: String) -> String:
 		if self._skills_size >= 0 and self._skills_size < self._skills.size():
 			self._skills[self._skills_size] = item
@@ -40,10 +44,12 @@ class Character extends Message:
 			self._skills.append(item)
 		self._skills_size += 1
 		return item
+	## Append _skills
 	func append_skills(item_array: Array):
 		for item in item_array:
 			if item is String:
 				self.add_skills(item)
+	## Clean _skills 
 	func clear_skills() -> void:
 		self._skills_size = 0
 
@@ -57,14 +63,18 @@ class Character extends Message:
 		#2 : items
 		var _items: Array[Character.Item] = []
 		var _items_size: int = 0
+		## Size of _items
 		func items_size() -> int:
 			return self._items_size
+		## Get _items
 		func items() -> Array[Character.Item]:
 			return self._items.slice(0, self._items_size)
+		## Get _items item 
 		func get_items(index: int) -> Character.Item: # index begin from 1
 			if index > 0 and index <= _items_size and index <= _items.size():
 				return self._items[index - 1]
 			return null
+		## Add _items
 		func add_items(item: Character.Item) -> Character.Item:
 			if self._items_size >= 0 and self._items_size < self._items.size():
 				self._items[self._items_size] = item
@@ -72,18 +82,23 @@ class Character extends Message:
 				self._items.append(item)
 			self._items_size += 1
 			return item
+		## Append _items
 		func append_items(item_array: Array):
 			for item in item_array:
 				if item is Character.Item:
 					self.add_items(item)
+		## Clean _items 
 		func clear_items() -> void:
 			self._items_size = 0
 
 
+		## Init message field values to default value
 		func Init() -> void:
 			self.slots = 10
 			self.clear_items
 
+		## Create a new message instance
+		## Returns: Message - New message instance
 		func New() -> Message:
 			var msg = Inventory.new()
 			return msg
@@ -162,11 +177,14 @@ class Character extends Message:
 		var quantity: int = 1
 
 
+		## Init message field values to default value
 		func Init() -> void:
 			self.id = ""
 			self.name = ""
 			self.quantity = 1
 
+		## Create a new message instance
+		## Returns: Message - New message instance
 		func New() -> Message:
 			var msg = Item.new()
 			return msg
@@ -235,6 +253,7 @@ class Character extends Message:
 				self.quantity = dict.get("quantity")
 
 
+	## Init message field values to default value
 	func Init() -> void:
 		self.name = ""
 		self.level = 1
@@ -243,6 +262,8 @@ class Character extends Message:
 		self.clear_skills
 		if self.inventory != null:			self.inventory.clear()
 
+	## Create a new message instance
+	## Returns: Message - New message instance
 	func New() -> Message:
 		var msg = Character.new()
 		return msg
@@ -383,14 +404,18 @@ class GameSession extends Message:
 	#4 : players
 	var _players: Array[Character] = []
 	var _players_size: int = 0
+	## Size of _players
 	func players_size() -> int:
 		return self._players_size
+	## Get _players
 	func players() -> Array[Character]:
 		return self._players.slice(0, self._players_size)
+	## Get _players item 
 	func get_players(index: int) -> Character: # index begin from 1
 		if index > 0 and index <= _players_size and index <= _players.size():
 			return self._players[index - 1]
 		return null
+	## Add _players
 	func add_players(item: Character) -> Character:
 		if self._players_size >= 0 and self._players_size < self._players.size():
 			self._players[self._players_size] = item
@@ -398,10 +423,12 @@ class GameSession extends Message:
 			self._players.append(item)
 		self._players_size += 1
 		return item
+	## Append _players
 	func append_players(item_array: Array):
 		for item in item_array:
 			if item is Character:
 				self.add_players(item)
+	## Clean _players 
 	func clear_players() -> void:
 		self._players_size = 0
 
@@ -409,6 +436,7 @@ class GameSession extends Message:
 	var state: GameSession.GameState = GameSession.GameState.WAITING
 
 
+	## Init message field values to default value
 	func Init() -> void:
 		self.session_id = ""
 		self.start_time = 0
@@ -416,6 +444,8 @@ class GameSession extends Message:
 		self.clear_players
 		self.state = GameSession.GameState.WAITING
 
+	## Create a new message instance
+	## Returns: Message - New message instance
 	func New() -> Message:
 		var msg = GameSession.new()
 		return msg

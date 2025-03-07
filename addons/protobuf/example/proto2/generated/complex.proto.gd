@@ -35,14 +35,18 @@ class ComplexMessage extends Message:
 	#8 : nested_messages
 	var _nested_messages: Array[ComplexMessage.NestedMessage] = []
 	var _nested_messages_size: int = 0
+	## Size of _nested_messages
 	func nested_messages_size() -> int:
 		return self._nested_messages_size
+	## Get _nested_messages
 	func nested_messages() -> Array[ComplexMessage.NestedMessage]:
 		return self._nested_messages.slice(0, self._nested_messages_size)
+	## Get _nested_messages item 
 	func get_nested_messages(index: int) -> ComplexMessage.NestedMessage: # index begin from 1
 		if index > 0 and index <= _nested_messages_size and index <= _nested_messages.size():
 			return self._nested_messages[index - 1]
 		return null
+	## Add _nested_messages
 	func add_nested_messages(item: ComplexMessage.NestedMessage) -> ComplexMessage.NestedMessage:
 		if self._nested_messages_size >= 0 and self._nested_messages_size < self._nested_messages.size():
 			self._nested_messages[self._nested_messages_size] = item
@@ -50,10 +54,12 @@ class ComplexMessage extends Message:
 			self._nested_messages.append(item)
 		self._nested_messages_size += 1
 		return item
+	## Append _nested_messages
 	func append_nested_messages(item_array: Array):
 		for item in item_array:
 			if item is ComplexMessage.NestedMessage:
 				self.add_nested_messages(item)
+	## Clean _nested_messages 
 	func clear_nested_messages() -> void:
 		self._nested_messages_size = 0
 
@@ -69,14 +75,18 @@ class ComplexMessage extends Message:
 	#14 : status_list
 	var _status_list: Array[ComplexMessage.Status] = []
 	var _status_list_size: int = 0
+	## Size of _status_list
 	func status_list_size() -> int:
 		return self._status_list_size
+	## Get _status_list
 	func status_list() -> Array[ComplexMessage.Status]:
 		return self._status_list.slice(0, self._status_list_size)
+	## Get _status_list item 
 	func get_status_list(index: int) -> ComplexMessage.Status: # index begin from 1
 		if index > 0 and index <= _status_list_size and index <= _status_list.size():
 			return self._status_list[index - 1]
 		return 0
+	## Add _status_list
 	func add_status_list(item: ComplexMessage.Status) -> ComplexMessage.Status:
 		if self._status_list_size >= 0 and self._status_list_size < self._status_list.size():
 			self._status_list[self._status_list_size] = item
@@ -84,10 +94,12 @@ class ComplexMessage extends Message:
 			self._status_list.append(item)
 		self._status_list_size += 1
 		return item
+	## Append _status_list
 	func append_status_list(item_array: Array):
 		for item in item_array:
 			if item is ComplexMessage.Status:
 				self.add_status_list(item)
+	## Clean _status_list 
 	func clear_status_list() -> void:
 		self._status_list_size = 0
 
@@ -108,14 +120,18 @@ class ComplexMessage extends Message:
 			#2 : numbers
 			var _numbers: Array[int] = []
 			var _numbers_size: int = 0
+			## Size of _numbers
 			func numbers_size() -> int:
 				return self._numbers_size
+			## Get _numbers
 			func numbers() -> Array[int]:
 				return self._numbers.slice(0, self._numbers_size)
+			## Get _numbers item 
 			func get_numbers(index: int) -> int: # index begin from 1
 				if index > 0 and index <= _numbers_size and index <= _numbers.size():
 					return self._numbers[index - 1]
 				return 0
+			## Add _numbers
 			func add_numbers(item: int) -> int:
 				if self._numbers_size >= 0 and self._numbers_size < self._numbers.size():
 					self._numbers[self._numbers_size] = item
@@ -123,18 +139,23 @@ class ComplexMessage extends Message:
 					self._numbers.append(item)
 				self._numbers_size += 1
 				return item
+			## Append _numbers
 			func append_numbers(item_array: Array):
 				for item in item_array:
 					if item is int:
 						self.add_numbers(item)
+			## Clean _numbers 
 			func clear_numbers() -> void:
 				self._numbers_size = 0
 
 
+			## Init message field values to default value
 			func Init() -> void:
 				self.data = ""
 				self.clear_numbers
 
+			## Create a new message instance
+			## Returns: Message - New message instance
 			func New() -> Message:
 				var msg = DeepNested.new()
 				return msg
@@ -197,11 +218,14 @@ class ComplexMessage extends Message:
 						self.add_numbers(item)
 
 
+		## Init message field values to default value
 		func Init() -> void:
 			self.id = ""
 			self.value = 0
 			if self.deep != null:				self.deep.clear()
 
+		## Create a new message instance
+		## Returns: Message - New message instance
 		func New() -> Message:
 			var msg = NestedMessage.new()
 			return msg
@@ -284,6 +308,7 @@ class ComplexMessage extends Message:
 				self.deep = null
 
 
+	## Init message field values to default value
 	func Init() -> void:
 		self.int_field = 0
 		self.long_field = 1000000
@@ -298,6 +323,8 @@ class ComplexMessage extends Message:
 		if self.message != null:			self.message.clear()
 		self.clear_status_list
 
+	## Create a new message instance
+	## Returns: Message - New message instance
 	func New() -> Message:
 		var msg = ComplexMessage.new()
 		return msg
@@ -503,14 +530,18 @@ class TreeNode extends Message:
 	#2 : children
 	var _children: Array[TreeNode] = []
 	var _children_size: int = 0
+	## Size of _children
 	func children_size() -> int:
 		return self._children_size
+	## Get _children
 	func children() -> Array[TreeNode]:
 		return self._children.slice(0, self._children_size)
+	## Get _children item 
 	func get_children(index: int) -> TreeNode: # index begin from 1
 		if index > 0 and index <= _children_size and index <= _children.size():
 			return self._children[index - 1]
 		return null
+	## Add _children
 	func add_children(item: TreeNode) -> TreeNode:
 		if self._children_size >= 0 and self._children_size < self._children.size():
 			self._children[self._children_size] = item
@@ -518,10 +549,12 @@ class TreeNode extends Message:
 			self._children.append(item)
 		self._children_size += 1
 		return item
+	## Append _children
 	func append_children(item_array: Array):
 		for item in item_array:
 			if item is TreeNode:
 				self.add_children(item)
+	## Clean _children 
 	func clear_children() -> void:
 		self._children_size = 0
 
@@ -529,11 +562,14 @@ class TreeNode extends Message:
 	var parent: TreeNode = null
 
 
+	## Init message field values to default value
 	func Init() -> void:
 		self.value = ""
 		self.clear_children
 		if self.parent != null:			self.parent.clear()
 
+	## Create a new message instance
+	## Returns: Message - New message instance
 	func New() -> Message:
 		var msg = TreeNode.new()
 		return msg
@@ -666,6 +702,7 @@ class NumberTypes extends Message:
 	var double_field: float = 2.2250738585072014e-308
 
 
+	## Init message field values to default value
 	func Init() -> void:
 		self.int32_field = -42
 		self.int64_field = -9223372036854775808
@@ -680,6 +717,8 @@ class NumberTypes extends Message:
 		self.float_field = 3.40282347e+38
 		self.double_field = 2.2250738585072014e-308
 
+	## Create a new message instance
+	## Returns: Message - New message instance
 	func New() -> Message:
 		var msg = NumberTypes.new()
 		return msg
@@ -868,6 +907,7 @@ class DefaultValues extends Message:
 	var enum_with_default: ComplexMessage.Status = ComplexMessage.Status.ACTIVE
 
 
+	## Init message field values to default value
 	func Init() -> void:
 		self.int_with_default = 42
 		self.string_with_default = "default string"
@@ -876,6 +916,8 @@ class DefaultValues extends Message:
 		self.float_with_default = 3.14159
 		self.enum_with_default = ComplexMessage.Status.ACTIVE
 
+	## Create a new message instance
+	## Returns: Message - New message instance
 	func New() -> Message:
 		var msg = DefaultValues.new()
 		return msg
@@ -988,14 +1030,18 @@ class FieldRules extends Message:
 	#3 : repeated_field
 	var _repeated_field: Array[String] = []
 	var _repeated_field_size: int = 0
+	## Size of _repeated_field
 	func repeated_field_size() -> int:
 		return self._repeated_field_size
+	## Get _repeated_field
 	func repeated_field() -> Array[String]:
 		return self._repeated_field.slice(0, self._repeated_field_size)
+	## Get _repeated_field item 
 	func get_repeated_field(index: int) -> String: # index begin from 1
 		if index > 0 and index <= _repeated_field_size and index <= _repeated_field.size():
 			return self._repeated_field[index - 1]
 		return ""
+	## Add _repeated_field
 	func add_repeated_field(item: String) -> String:
 		if self._repeated_field_size >= 0 and self._repeated_field_size < self._repeated_field.size():
 			self._repeated_field[self._repeated_field_size] = item
@@ -1003,10 +1049,12 @@ class FieldRules extends Message:
 			self._repeated_field.append(item)
 		self._repeated_field_size += 1
 		return item
+	## Append _repeated_field
 	func append_repeated_field(item_array: Array):
 		for item in item_array:
 			if item is String:
 				self.add_repeated_field(item)
+	## Clean _repeated_field 
 	func clear_repeated_field() -> void:
 		self._repeated_field_size = 0
 
@@ -1019,14 +1067,18 @@ class FieldRules extends Message:
 	#6 : repeated_message
 	var _repeated_message: Array[ComplexMessage.NestedMessage] = []
 	var _repeated_message_size: int = 0
+	## Size of _repeated_message
 	func repeated_message_size() -> int:
 		return self._repeated_message_size
+	## Get _repeated_message
 	func repeated_message() -> Array[ComplexMessage.NestedMessage]:
 		return self._repeated_message.slice(0, self._repeated_message_size)
+	## Get _repeated_message item 
 	func get_repeated_message(index: int) -> ComplexMessage.NestedMessage: # index begin from 1
 		if index > 0 and index <= _repeated_message_size and index <= _repeated_message.size():
 			return self._repeated_message[index - 1]
 		return null
+	## Add _repeated_message
 	func add_repeated_message(item: ComplexMessage.NestedMessage) -> ComplexMessage.NestedMessage:
 		if self._repeated_message_size >= 0 and self._repeated_message_size < self._repeated_message.size():
 			self._repeated_message[self._repeated_message_size] = item
@@ -1034,14 +1086,17 @@ class FieldRules extends Message:
 			self._repeated_message.append(item)
 		self._repeated_message_size += 1
 		return item
+	## Append _repeated_message
 	func append_repeated_message(item_array: Array):
 		for item in item_array:
 			if item is ComplexMessage.NestedMessage:
 				self.add_repeated_message(item)
+	## Clean _repeated_message 
 	func clear_repeated_message() -> void:
 		self._repeated_message_size = 0
 
 
+	## Init message field values to default value
 	func Init() -> void:
 		self.required_field = ""
 		self.optional_field = ""
@@ -1050,6 +1105,8 @@ class FieldRules extends Message:
 		if self.optional_message != null:			self.optional_message.clear()
 		self.clear_repeated_message
 
+	## Create a new message instance
+	## Returns: Message - New message instance
 	func New() -> Message:
 		var msg = FieldRules.new()
 		return msg

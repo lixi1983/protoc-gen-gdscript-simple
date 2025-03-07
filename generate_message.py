@@ -423,29 +423,17 @@ def get_default_value(field: FieldDescriptor, proto_file=None):
 def generate_init_method(message_type: MessageType, gd_message_type: GDMessageType, indent):
     """Generate init method for a message type."""
     content = "\n"
+
+    content += f"{indent}## Init message field values to default value\n"
     content += f"{indent}func Init() -> void:\n"
 
     if len(message_type.field) <= 0:
         content += f"{indent}\tpass"
         return
 
-#    for gd_field in gd_message_type.field_dic.values():
     for gd_field in gd_message_type.field_list:
         if isinstance(gd_field, GDField):
             content += f"{gd_field.field_clear(indent + '\t')}\n"
-    """"
-    for field in message_type.field:
-        field_name = field.name
-        type_name = field.type_name
-
-        if is_map_field(message_type, field.number):
-            content += f"{indent}\tself.{field_name}  = {{}}\n"
-        elif field.type == FieldDescriptorProto.TYPE_MESSAGE and not field.label == FieldDescriptorProto.LABEL_REPEATED and not is_map_field(message_type, field.number):
-            content += f"{indent}\tif self.{field_name} != null:\n"
-            content += f"{indent}\t\tself.{field_name}.Init()\n"
-        else:
-            content += f"{indent}\tself.{field.name} = {get_default_value(field)}\n"
-    """
     content += "\n"
     return content
 
@@ -453,7 +441,8 @@ def generate_new_methods(message_type: MessageType, indent):
     """Generate new instance methods for a message type."""
     content = ""
 
-    # Generate New method
+    content += f"{indent}## Create a new message instance\n"
+    content += f"{indent}## Returns: Message - New message instance\n"
     content += f"{indent}func New() -> Message:\n"
     content += f"{indent}\tvar msg = {message_type.name}.new()\n"
     content += f"{indent}\treturn msg\n"
@@ -488,24 +477,6 @@ def generate_merge_methods(message_type: MessageType, gd_message_type: GDMessage
         for gd_field in gd_message_type.field_list:
             if isinstance(gd_field, GDField):
                 content += gd_field.field_merge( f"{indent}\t\t", "other") + "\n"
-        """
-        for field in message_type.field:
-            field_name = field.name
-            if is_map_field(message_type, field.number):
-                content += f"{indent}\t\tself.{field_name}.merge(other.{field_name})\n"
-            elif field.label == FieldDescriptorProto.LABEL_REPEATED:
-                content += f"{indent}\t\tself.{field_name}.append_array(other.{field_name})\n"
-            elif field.type == FieldDescriptorProto.TYPE_MESSAGE:
-                content += f"{indent}\t\tif self.{field_name} == null:\n"
-                content += f"{indent}\t\t\tself.{field_name} = {real_type_name(field.type_name)}.new()\n"
-                content += f"{indent}\t\tself.{field_name}.MergeFrom(other.{field_name})\n"
-            elif field.type in [FieldDescriptorProto.TYPE_ENUM, FieldDescriptorProto.TYPE_BOOL]:
-                content += f"{indent}\t\tself.{field_name} = other.{field_name}\n"
-            elif field.type == FieldDescriptorProto.TYPE_BYTES:
-                content += f"{indent}\t\tself.{field_name}.append_array(other.{field_name})\n"
-            else :
-                content += f"{indent}\t\tself.{field_name} += other.{field_name}\n"
-        """
 
     content += " \n"
 
@@ -559,55 +530,7 @@ def generate_parse_from_string_methods(message_type: MessageType, gd_message_typ
         if isinstance(gd_field, GDField):
             content += f"{indent}\t\t\t{gd_field.field_number()}:\n"
             content += gd_field.field_parse(f"{indent}\t\t\t\t", "data", "pos", "field_value", "self")
-    """"
-    # Parse fields
-    for field in message_type.field:
-        field_number = field.number
-        field_name = field.name
-        field_label = field.label
 
-        content += f"{indent}\t\t\t{field_number}:\n"
-        if field_label == FieldDescriptorProto.LABEL_REPEATED:
-            map_info = get_field_map_info(message_type, field_number)
-            if map_info is None:
-       #         content += f"{indent}\t\t\t\tvar value = GDScriptUtils.decode_{get_field_coder(field)}(data, pos)\n"
-                field_type = field.type
-                if field_type == FieldDescriptorProto.TYPE_MESSAGE:
-                    content += f"{indent}\t\t\t\tvar item_value = {get_field_type(field)}.new()\n"
-                else:
-                    content += f"{indent}\t\t\t\tvar item_value = {get_default_value(field)}\n"
-                content += base_field_content_info(f"{indent}\t\t\t\t", field, "field_value", "item_value", "pos", "data", False)
-                content += f"{indent}\t\t\t\tself.{field_name}.append(item_value)\n"
-#                content += f"{indent}\t\t\t\tpos += value[GDScriptUtils.SIZE_KEY]\n"
-            else:
-                content += f"{indent}\t\t\t\tvar map_length = GDScriptUtils.decode_varint(data, pos)\n"
-                content += f"{indent}\t\t\t\tpos += map_length[GDScriptUtils.SIZE_KEY]\n"
-                content += f"{indent}\t\t\t\tvar map_buff = data.slice(pos, pos+map_length[GDScriptUtils.VALUE_KEY])\n"
-                content += f"{indent}\t\t\t\tvar map_pos = 0\n"
-                key_field = map_info.get(key_field_name)
-                value_field = map_info.get(value_field_name)
-                content += f"{indent}\t\t\t\tvar map_key: {get_field_type(key_field)} = {get_default_value(key_field)}\n"
-                content += f"{indent}\t\t\t\tvar map_value: {get_field_type(value_field)} = {get_default_value(value_field)}\n"
-                content += f"{indent}\t\t\t\twhile map_pos < map_buff.size():\n"
-                content += f"{indent}\t\t\t\t\tvar m_tag = GDScriptUtils.decode_tag(map_buff, map_pos)\n"
-                content += f"{indent}\t\t\t\t\tvar m_field_number = m_tag[GDScriptUtils.VALUE_KEY]\n"
-                content += f"{indent}\t\t\t\t\tmap_pos += m_tag[GDScriptUtils.SIZE_KEY]\n"
-                content += f"{indent}\t\t\t\t\tmatch m_field_number:\n"
-                content += f"{indent}\t\t\t\t\t\t{key_field.number}:\n"
-                content += base_field_content_info(f"{indent}\t\t\t\t\t\t\t", key_field, "key_value", "map_key", "map_pos", "map_buff", False)
-                content += f"{indent}\t\t\t\t\t\t{value_field.number}:\n"
-                content += base_field_content_info(f"{indent}\t\t\t\t\t\t\t", value_field, "key_value", "map_value", "map_pos", "map_buff", False)
-                content += f"{indent}\t\t\t\t\t\t_:\n"
-                content += f"{indent}\t\t\t\t\t\t\tpass\n"
-                content += "\n"
-
-                content += f"{indent}\t\t\t\tpos += map_pos\n"
-                content += f"{indent}\t\t\t\tif map_pos > 0:\n"
-                content += f"{indent}\t\t\t\t\tself.{field_name}[map_key] = map_value\n"
-        else:
-            content += base_field_content_info(f"{indent}\t\t\t\t", field)
-
-    """
     content += f"{indent}\t\t\t_:\n"
     content += f"{indent}\t\t\t\tpass\n\n"
 
@@ -628,35 +551,7 @@ def generate_serialize_to_string_methods(message_type: MessageType, gd_message_t
 #    for gd_field in gd_message_type.field_dic.values():
     for gd_field in gd_message_type.field_list:
         content += f"{gd_field.field_serialize(indent + "\t")}\n"
-    """
-    for field in message_type.field:
-        field_name = field.name
-        field_number = field.number
 
-        # Check if this is a map field
-        map_field = get_field_map_info(message_type, field_number)
-        if map_field:
-            content += f"{indent}\tfor key in self.{field_name}:\n"
-            content += f"{indent}\t\tGDScriptUtils.encode_tag(buffer, {field_number}, {field.type})\n"
-            content += f"{indent}\t\tvar map_buffer = PackedByteArray()\n"
-#            content += base_field_content_info(f"{indent}\t\t", map_field.get({key_field_name}), "key", "map_buffer")
-            content += base_field_content_info(f"{indent}\t\t", map_field.get(key_field_name), "key", "map_buffer")
-            content += base_field_content_info(f"{indent}\t\t", map_field.get(value_field_name), f"self.{field_name}[key]", "map_buffer")
-            content += "\n"
-            content += f"{indent}\t\tGDScriptUtils.encode_varint(buffer, map_buffer.size())\n"
-            content += f"{indent}\t\tbuffer.append_array(map_buffer)\n"
-        elif field.label == FieldDescriptorProto.LABEL_REPEATED:
-            content += f"{indent}\tfor item in self.{field_name}:\n"
-            content += base_field_content_info(f"{indent}\t\t", field, "item")
-        elif field.type == FieldDescriptorProto.TYPE_MESSAGE:
-            content += f"{indent}\tif self.{field_name} != null:\n"
-            content += base_field_content_info(f"{indent}\t\t", field)
-        else:
-            content += f"{indent}\tif self.{field_name} != {get_default_value(field)}:\n"
-            content += base_field_content_info(f"{indent}\t\t", field)
-
-        content += " \n"
-    """
     content += f"{indent}\treturn buffer\n \n"
     return content
 
@@ -671,29 +566,6 @@ def generate_serialize_to_dictionary_methods(message_type: MessageType, gd_messa
     for gd_field in gd_message_type.field_list:
         content += f"{gd_field.field_serialize_to_dictionary(indent + "\t", "dict" )}\n"
 
-    """    
-    # Process each field
-    for field in message_type.field:
-        map_info = get_field_map_info(message_type, field.number)
-        if map_info is not None:
-            value_field = map_info.get(value_field_name)
-            is_value_message = value_field.type == FieldDescriptorProto.TYPE_MESSAGE
-            content += f"{indent}\tif not self.{field.name}.is_empty():\n"
-            content += f"{indent}\t\tvar map_dict = {{}}\n"
-            content += f"{indent}\t\tfor key in self.{field.name}:\n"
-            if is_value_message:
-                content += f"{indent}\t\t\tmap_dict[key] = self.{field.name}[key].SerializeToDictionary()\n"
-            else:
-                content += f"{indent}\t\t\tmap_dict[key] = self.{field.name}[key]\n"
-            content += f"{indent}\t\t_tmap[\"{field.name}\"] = map_dict\n"
-        elif field.label == FieldDescriptorProto.LABEL_REPEATED:
-            content += f"{indent}\t_tmap[\"{field.name}\"] = self.{field.name}\n"
-        elif field.type == FieldDescriptorProto.TYPE_MESSAGE:
-            content += f"{indent}\tif self.{field.name} != null:\n"
-            content += f"{indent}\t\t_tmap[\"{field.name}\"] = self.{field.name}.SerializeToDictionary()\n"
-        else:
-            content += f"{indent}\t_tmap[\"{field.name}\"] = self.{field.name}\n"
-    """
     content += f"{indent}\treturn dict\n\n"
     return content
 
@@ -709,34 +581,6 @@ def generate_parse_from_dictionary_methods(message_type: MessageType, gd_message
     for gd_field in gd_message_type.field_list:
         content += f"{gd_field.field_parse_from_dictionary(indent + "\t", "dict")}\n"
 
-    """"
-    for field in message_type.field:
-        field_name = field.name
-        map_info = get_field_map_info(message_type, field.number)
-        if map_info is not None:
-            value_field = map_info.get(value_field_name)
-            is_value_message = value_field.type == FieldDescriptorProto.TYPE_MESSAGE
-            content += f"{indent}\tif \"{field_name}\" in _fmap:\n"
-            content += f"{indent}\t\tvar map_dict = _fmap[\"{field_name}\"]\n"
-            content += f"{indent}\t\tif map_dict != null:\n"
-            content += f"{indent}\t\t\tfor key in map_dict:\n"
-            if is_value_message:
-                content += f"{indent}\t\t\t\tvar value = {get_field_new(value_field)}\n"
-                content += f"{indent}\t\t\t\tvalue.ParseFromDictionary(map_dict[key])\n"
-                content += f"{indent}\t\t\t\tself.{field_name}[key] = value\n"
-            else:
-                content += f"{indent}\t\t\t\tself.{field_name}[key] = map_dict[key]\n"
-        elif field.label == FieldDescriptorProto.LABEL_REPEATED:
-            content += f"{indent}\tif \"{field_name}\" in _fmap:\n"
-            content += f"{indent}\t\tself.{field_name} = _fmap[\"{field_name}\"]\n"
-        elif field.type == FieldDescriptorProto.TYPE_MESSAGE:
-            content += f"{indent}\tif \"{field_name}\" in _fmap:\n"
-            content += f"{indent}\t\tif _fmap[\"{field_name}\"] != null:\n"
-            content += f"{indent}\t\t\tself.{field_name}.ParseFromDictionary(_fmap[\"{field_name}\"])\n"
-        else:
-            content += f"{indent}\tif \"{field_name}\" in _fmap:\n"
-            content += f"{indent}\t\tself.{field_name} = _fmap[\"{field_name}\"]\n"
-    """
     content += "\n"
     return content
 

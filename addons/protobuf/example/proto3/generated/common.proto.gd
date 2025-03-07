@@ -29,6 +29,7 @@ class CommonMessage extends Message:
 	var common_sint64: int = 0
 
 
+	## Init message field values to default value
 	func Init() -> void:
 		self.common_field1 = 0
 		self.common_sint32 = 0
@@ -37,6 +38,8 @@ class CommonMessage extends Message:
 		self.common_sfixed64 = 0
 		self.common_sint64 = 0
 
+	## Create a new message instance
+	## Returns: Message - New message instance
 	func New() -> Message:
 		var msg = CommonMessage.new()
 		return msg

@@ -17,14 +17,18 @@ class MsgBase extends Message:
 	#2 : field64
 	var _field64: Array[int] = []
 	var _field64_size: int = 0
+	## Size of _field64
 	func field64_size() -> int:
 		return self._field64_size
+	## Get _field64
 	func field64() -> Array[int]:
 		return self._field64.slice(0, self._field64_size)
+	## Get _field64 item 
 	func get_field64(index: int) -> int: # index begin from 1
 		if index > 0 and index <= _field64_size and index <= _field64.size():
 			return self._field64[index - 1]
 		return 0
+	## Add _field64
 	func add_field64(item: int) -> int:
 		if self._field64_size >= 0 and self._field64_size < self._field64.size():
 			self._field64[self._field64_size] = item
@@ -32,10 +36,12 @@ class MsgBase extends Message:
 			self._field64.append(item)
 		self._field64_size += 1
 		return item
+	## Append _field64
 	func append_field64(item_array: Array):
 		for item in item_array:
 			if item is int:
 				self.add_field64(item)
+	## Clean _field64 
 	func clear_field64() -> void:
 		self._field64_size = 0
 
@@ -83,10 +89,13 @@ class MsgBase extends Message:
 		var sub_field2: String = ""
 
 
+		## Init message field values to default value
 		func Init() -> void:
 			self.sub_field1 = 0
 			self.sub_field2 = ""
 
+		## Create a new message instance
+		## Returns: Message - New message instance
 		func New() -> Message:
 			var msg = SubMsg.new()
 			return msg
@@ -144,6 +153,7 @@ class MsgBase extends Message:
 				self.sub_field2 = dict.get("sub_field2")
 
 
+	## Init message field values to default value
 	func Init() -> void:
 		self.msg_field32 = 0
 		self.clear_field64
@@ -160,6 +170,8 @@ class MsgBase extends Message:
 		self.double_field = 0.0
 		self.map_field_sub = {}
 
+	## Create a new message instance
+	## Returns: Message - New message instance
 	func New() -> Message:
 		var msg = MsgBase.new()
 		return msg
@@ -453,14 +465,18 @@ class MsgTest extends Message:
 	#2 : common_enums
 	var _common_enums: Array[common.CommonEnum] = []
 	var _common_enums_size: int = 0
+	## Size of _common_enums
 	func common_enums_size() -> int:
 		return self._common_enums_size
+	## Get _common_enums
 	func common_enums() -> Array[common.CommonEnum]:
 		return self._common_enums.slice(0, self._common_enums_size)
+	## Get _common_enums item 
 	func get_common_enums(index: int) -> common.CommonEnum: # index begin from 1
 		if index > 0 and index <= _common_enums_size and index <= _common_enums.size():
 			return self._common_enums[index - 1]
 		return 0
+	## Add _common_enums
 	func add_common_enums(item: common.CommonEnum) -> common.CommonEnum:
 		if self._common_enums_size >= 0 and self._common_enums_size < self._common_enums.size():
 			self._common_enums[self._common_enums_size] = item
@@ -468,18 +484,23 @@ class MsgTest extends Message:
 			self._common_enums.append(item)
 		self._common_enums_size += 1
 		return item
+	## Append _common_enums
 	func append_common_enums(item_array: Array):
 		for item in item_array:
 			if item is common.CommonEnum:
 				self.add_common_enums(item)
+	## Clean _common_enums 
 	func clear_common_enums() -> void:
 		self._common_enums_size = 0
 
 
+	## Init message field values to default value
 	func Init() -> void:
 		if self.common_msg != null:			self.common_msg.clear()
 		self.clear_common_enums
 
+	## Create a new message instance
+	## Returns: Message - New message instance
 	func New() -> Message:
 		var msg = MsgTest.new()
 		return msg
