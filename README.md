@@ -145,8 +145,21 @@ The generated GDScript code can be used in your Godot project:
 var character = Character.new()
 character.name = "Hero"
 character.level = 5
-character.items.append("Sword")
-character.items.append("Shield")
+
+# Working with repeated fields
+# Method 1: Using add
+character.add_items(["Sword"])
+character.add_items("Shield")
+
+# Method 2: Using append
+character.append_items(["Sword", "Shield", "Potion"])
+
+
+# Working with nested messages containing repeated fields
+character.inventory = Character.Inventory.new()  # Create nested message
+character.inventory.slots = 20
+character.inventory.append_items(["Gold", "Gems"])  # Assign array directly
+character.inventory.items.append([]"Silver"])  # Append individual items
 
 # Serialize
 var bytes = character.SerializeToBytes()
@@ -154,6 +167,16 @@ var bytes = character.SerializeToBytes()
 # Deserialize
 var new_character = Character.new()
 new_character.ParseFromBytes(bytes)
+
+# Access repeated fields after deserialization
+print(new_character.items.size())  # Get number of items
+for item in new_character.items:  # Iterate through items
+    print(item)
+
+# Access nested repeated fields
+if new_character.has_inventory():  # Check if optional field exists
+    for item in new_character.inventory.items:
+        print(item)
 ```
 
 ## About

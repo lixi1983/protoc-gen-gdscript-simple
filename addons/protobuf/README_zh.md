@@ -72,8 +72,8 @@ message Character {
 var character = Character.new()
 character.name = "Hero"
 character.level = 5
-character.items.append("Sword")
-character.items.append("Shield")
+character.add_items("Sword")
+character.add_items("Shield")
 
 # 序列化
 var bytes = character.SerializeToBytes()
