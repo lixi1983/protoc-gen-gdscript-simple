@@ -11,14 +11,14 @@ enum EnumTest {
 } 
  
 class MsgBase extends Message:
-	#1
+	#1 : msg_field32
 	var msg_field32: int = 0
-	#2
+
+	#2 : field64
 	var _field64: Array[int] = []
 	var _field64_size: int = 0
 	func field64_size() -> int:
 		return self._field64_size
-
 	func field64() -> Array[int]:
 		return self._field64.slice(0, self._field64_size)
 	func get_field64(index: int) -> int: # index begin from 1
@@ -32,40 +32,56 @@ class MsgBase extends Message:
 			self._field64.append(item)
 		self._field64_size += 1
 		return item
-	func append_field64(item_array: Array[int]):
+	func append_field64(item_array: Array):
 		for item in item_array:
-			self.add_field64(item)
+			if item is int:
+				self.add_field64(item)
 	func clear_field64() -> void:
 		self._field64_size = 0
-	#3
+
+	#3 : msg_field2
 	var msg_field2: String = ""
-	#4
+
+	#4 : b_field3
 	var b_field3: bool = false
-	#5
+
+	#5 : f_field4
 	var f_field4: float = 0.0
-	#6
+
+	#6 : map_field5
 	var map_field5: Dictionary = {}
-	#7
+
+	#7 : enum_field6
 	var enum_field6: EnumTest = 0
-	#8
+
+	#8 : sub_msg
 	var sub_msg: MsgBase.SubMsg = null
-	#9
+
+	#9 : common_msg
 	var common_msg: common.CommonMessage = null
-	#10
+
+	#10 : common_enum
 	var common_enum: common.CommonEnum = 0
-	#11
+
+	#11 : fixed_field32
 	var fixed_field32: int = 0
-	#12
+
+	#12 : fixed_field64
 	var fixed_field64: int = 0
-	#13
+
+	#13 : double_field
 	var double_field: float = 0.0
-	#14
+
+	#14 : map_field_sub
 	var map_field_sub: Dictionary = {}
+
 	class SubMsg extends Message:
-		#1
+		#1 : sub_field1
 		var sub_field1: int = 0
-		#2
+
+		#2 : sub_field2
 		var sub_field2: String = ""
+
 
 		func Init() -> void:
 			self.sub_field1 = 0
@@ -431,14 +447,14 @@ class MsgBase extends Message:
 # =========================================
 
 class MsgTest extends Message:
-	#1
+	#1 : common_msg
 	var common_msg: common.CommonMessage = null
-	#2
+
+	#2 : common_enums
 	var _common_enums: Array[common.CommonEnum] = []
 	var _common_enums_size: int = 0
 	func common_enums_size() -> int:
 		return self._common_enums_size
-
 	func common_enums() -> Array[common.CommonEnum]:
 		return self._common_enums.slice(0, self._common_enums_size)
 	func get_common_enums(index: int) -> common.CommonEnum: # index begin from 1
@@ -452,11 +468,13 @@ class MsgTest extends Message:
 			self._common_enums.append(item)
 		self._common_enums_size += 1
 		return item
-	func append_common_enums(item_array: Array[common.CommonEnum]):
+	func append_common_enums(item_array: Array):
 		for item in item_array:
-			self.add_common_enums(item)
+			if item is common.CommonEnum:
+				self.add_common_enums(item)
 	func clear_common_enums() -> void:
 		self._common_enums_size = 0
+
 
 	func Init() -> void:
 		if self.common_msg != null:			self.common_msg.clear()
@@ -538,3 +556,4 @@ class MsgTest extends Message:
 				self.add_common_enums(item)
 
 # =========================================
+

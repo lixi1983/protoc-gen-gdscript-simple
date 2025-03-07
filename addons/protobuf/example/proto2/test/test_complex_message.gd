@@ -164,14 +164,18 @@ func test_complex_message_nested():
 	clone1.value = 43
 	clone1.deep = ComplexProto.ComplexMessage.NestedMessage.DeepNested.new()
 	clone1.deep.data = "clone1_deep"
-	clone1.deep.append_numbers([4, 5, 6])
+	var numbers1: Array[int] = []
+	numbers1.append_array([4, 5, 6])
+	clone1.deep.append_numbers(numbers1)
 	
 	var clone2 = ComplexProto.ComplexMessage.NestedMessage.new()
 	clone2.id = "clone2"
 	clone2.value = 44
 	clone2.deep = ComplexProto.ComplexMessage.NestedMessage.DeepNested.new()
 	clone2.deep.data = "clone2_deep"
-	clone2.deep.append_numbers([7, 8, 9])
+	var numbers2: Array[int] = []
+	numbers2.append_array([7, 8, 9])
+	clone2.deep.append_numbers(numbers2)
 	
 	msg.append_nested_messages([clone1, clone2])
 	
@@ -187,18 +191,18 @@ func test_complex_message_nested():
 	assert(parsed_msg.message.id == "nested_id", "Nested message id mismatch")
 	assert(parsed_msg.message.value == 42, "Nested message value mismatch")
 	assert(parsed_msg.message.deep.data == "deep_data", "Deep nested data mismatch")
-	assert(parsed_msg.message.deep.numbers.size() == 3, "Deep nested numbers size mismatch")
+	assert(parsed_msg.message.deep.numbers_size() == 3, "Deep nested numbers size mismatch")
 	for i in range(3):
-		assert(parsed_msg.message.deep.numbers[i] == i + 1, "Deep nested number %d mismatch" % i)
+		assert(parsed_msg.message.deep.get_numbers(i + 1) == i + 1, "Deep nested number %d mismatch" % i)
 
 	# Verify nested messages array
-	assert(parsed_msg.nested_messages.size() == 2, "Nested messages array size mismatch: %d" %parsed_msg.nested_messages.size())
-	assert(parsed_msg.nested_messages[0].id == "clone1", "First clone id mismatch")
-	assert(parsed_msg.nested_messages[0].value == 43, "First clone value mismatch")
-	assert(parsed_msg.nested_messages[0].deep.data == "clone1_deep", "First clone deep data mismatch")
-	assert(parsed_msg.nested_messages[1].id == "clone2", "Second clone id mismatch")
-	assert(parsed_msg.nested_messages[1].value == 44, "Second clone value mismatch")
-	assert(parsed_msg.nested_messages[1].deep.data == "clone2_deep", "Second clone deep data mismatch")
+	assert(parsed_msg.nested_messages_size() == 2, "Nested messages array size mismatch: %d" %parsed_msg.nested_messages_size())
+	assert(parsed_msg.get_nested_messages(1).id == "clone1", "First clone id mismatch")
+	assert(parsed_msg.get_nested_messages(1).value == 43, "First clone value mismatch")
+	assert(parsed_msg.get_nested_messages(1).deep.data == "clone1_deep", "First clone deep data mismatch")
+	assert(parsed_msg.get_nested_messages(2).id == "clone2", "Second clone id mismatch")
+	assert(parsed_msg.get_nested_messages(2).value == 44, "Second clone value mismatch")
+	assert(parsed_msg.get_nested_messages(2).deep.data == "clone2_deep", "Second clone deep data mismatch")
 	
 	# Test string representation
 	var str_repr = str(msg)
@@ -247,17 +251,17 @@ func test_complex_message_to_string():
 	nested1.value = 1
 	nested1.deep = ComplexProto.ComplexMessage.NestedMessage.DeepNested.new()
 	nested1.deep.data = "深层1"  # Test UTF-8 in deep nested
-	nested1.deep.numbers.append_array( [1, 2, 3] )
+	nested1.deep.append_numbers( [1, 2, 3] )
 	
 	var nested2 = ComplexProto.ComplexMessage.NestedMessage.new()
 	nested2.id = "嵌套2"
 	nested2.value = 2
 	nested2.deep = ComplexProto.ComplexMessage.NestedMessage.DeepNested.new()
 	nested2.deep.data = "深层2"
-	nested2.deep.numbers.append_array([4, 5, 6])
+	nested2.deep.append_numbers([4, 5, 6])
 	
-	custom_msg.nested_messages.append_array([nested1, nested2])
-	custom_msg.status_list.append_array([
+	custom_msg.append_nested_messages([nested1, nested2])
+	custom_msg.append_status_list([
 		ComplexProto.ComplexMessage.Status.ACTIVE,
 		ComplexProto.ComplexMessage.Status.INACTIVE
 	])
@@ -313,7 +317,7 @@ func test_tree_node():
 	child2.value = "子节点2"
 	
 	# Set children after creation
-	root.children.append_array([child1, child2])
+	root.append_children([child1, child2])
 	
 	# Test binary serialization
 	var bytes = root.SerializeToBytes()
@@ -323,9 +327,9 @@ func test_tree_node():
 	# Verify tree structure
 	print("Root value:", parsed_root.value)
 	assert(parsed_root.value == root.value, "Root value mismatch")
-	assert(parsed_root.children.size() == 2, "Children size mismatch")
-	assert(parsed_root.children[0].value == "子节点1", "Child1 value mismatch")
-	assert(parsed_root.children[1].value == "子节点2", "Child2 value mismatch")
+	assert(parsed_root.children_size() == 2, "Children size mismatch")
+	assert(parsed_root.get_children(1).value == "子节点1", "Child1 value mismatch")
+	assert(parsed_root.get_children(2).value == "子节点2", "Child2 value mismatch")
 	
 	print("TreeNode test passed!")
 
@@ -378,7 +382,7 @@ func test_field_rules():
 	# Set required fields
 	msg.required_field = "必填字段"
 	msg.optional_field = "可选字段"
-	msg.repeated_field.append_array(["重复1", "重复2"])
+	msg.append_repeated_field(["重复1", "重复2"])
 	msg.required_message = ComplexProto.ComplexMessage.NestedMessage.new()
 	msg.required_message.id = "required_nested"
 	
@@ -390,7 +394,7 @@ func test_field_rules():
 	# Verify fields
 	assert(parsed_msg.required_field == "必填字段", "Required field mismatch")
 	assert(parsed_msg.optional_field == "可选字段", "Optional field mismatch")
-	assert(parsed_msg.repeated_field.size() == 2, "Repeated field size mismatch")
+	assert(parsed_msg.repeated_field_size() == 2, "Repeated field size mismatch")
 	assert(parsed_msg.required_message.id == "required_nested", "Required message field mismatch")
 	
 	print("FieldRules test passed!")

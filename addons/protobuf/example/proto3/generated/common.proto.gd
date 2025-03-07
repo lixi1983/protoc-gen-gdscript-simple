@@ -10,18 +10,24 @@ enum CommonEnum {
 } 
  
 class CommonMessage extends Message:
-	#1
+	#1 : common_field1
 	var common_field1: int = 0
-	#2
+
+	#2 : common_sint32
 	var common_sint32: int = 0
-	#3
+
+	#3 : common_field2
 	var common_field2: String = ""
-	#4
+
+	#4 : common_sfixed32
 	var common_sfixed32: int = 0
-	#5
+
+	#5 : common_sfixed64
 	var common_sfixed64: int = 0
-	#6
+
+	#6 : common_sint64
 	var common_sint64: int = 0
+
 
 	func Init() -> void:
 		self.common_field1 = 0
@@ -132,3 +138,4 @@ class CommonMessage extends Message:
 			self.common_sint64 = dict.get("common_sint64")
 
 # =========================================
+

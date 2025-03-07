@@ -11,26 +11,32 @@ class ComplexMessage extends Message:
 		PENDING = 3,
 	} 
  
-	#1
+	#1 : int_field
 	var int_field: int = 0
-	#2
+
+	#2 : long_field
 	var long_field: int = 1000000
-	#3
+
+	#3 : bool_field
 	var bool_field: bool = true
-	#4
+
+	#4 : float_field
 	var float_field: float = 3.14
-	#5
+
+	#5 : string_field
 	var string_field: String = "hello"
-	#6
+
+	#6 : bytes_field
 	var bytes_field: PackedByteArray = PackedByteArray()
-	#7
+
+	#7 : status
 	var status: ComplexMessage.Status = ComplexMessage.Status.UNKNOWN
-	#8
+
+	#8 : nested_messages
 	var _nested_messages: Array[ComplexMessage.NestedMessage] = []
 	var _nested_messages_size: int = 0
 	func nested_messages_size() -> int:
 		return self._nested_messages_size
-
 	func nested_messages() -> Array[ComplexMessage.NestedMessage]:
 		return self._nested_messages.slice(0, self._nested_messages_size)
 	func get_nested_messages(index: int) -> ComplexMessage.NestedMessage: # index begin from 1
@@ -44,23 +50,27 @@ class ComplexMessage extends Message:
 			self._nested_messages.append(item)
 		self._nested_messages_size += 1
 		return item
-	func append_nested_messages(item_array: Array[ComplexMessage.NestedMessage]):
+	func append_nested_messages(item_array: Array):
 		for item in item_array:
-			self.add_nested_messages(item)
+			if item is ComplexMessage.NestedMessage:
+				self.add_nested_messages(item)
 	func clear_nested_messages() -> void:
 		self._nested_messages_size = 0
-	#11
+
+	#11 : name
 	var name: String = ""
-	#12
+
+	#12 : id
 	var id: int = 0
-	#13
+
+	#13 : message
 	var message: ComplexMessage.NestedMessage = null
-	#14
+
+	#14 : status_list
 	var _status_list: Array[ComplexMessage.Status] = []
 	var _status_list_size: int = 0
 	func status_list_size() -> int:
 		return self._status_list_size
-
 	func status_list() -> Array[ComplexMessage.Status]:
 		return self._status_list.slice(0, self._status_list_size)
 	func get_status_list(index: int) -> ComplexMessage.Status: # index begin from 1
@@ -74,27 +84,32 @@ class ComplexMessage extends Message:
 			self._status_list.append(item)
 		self._status_list_size += 1
 		return item
-	func append_status_list(item_array: Array[ComplexMessage.Status]):
+	func append_status_list(item_array: Array):
 		for item in item_array:
-			self.add_status_list(item)
+			if item is ComplexMessage.Status:
+				self.add_status_list(item)
 	func clear_status_list() -> void:
 		self._status_list_size = 0
+
 	class NestedMessage extends Message:
-		#1
+		#1 : id
 		var id: String = ""
-		#2
+
+		#2 : value
 		var value: int = 0
-		#3
+
+		#3 : deep
 		var deep: ComplexMessage.NestedMessage.DeepNested = null
+
 		class DeepNested extends Message:
-			#1
+			#1 : data
 			var data: String = ""
-			#2
+
+			#2 : numbers
 			var _numbers: Array[int] = []
 			var _numbers_size: int = 0
 			func numbers_size() -> int:
 				return self._numbers_size
-
 			func numbers() -> Array[int]:
 				return self._numbers.slice(0, self._numbers_size)
 			func get_numbers(index: int) -> int: # index begin from 1
@@ -108,11 +123,13 @@ class ComplexMessage extends Message:
 					self._numbers.append(item)
 				self._numbers_size += 1
 				return item
-			func append_numbers(item_array: Array[int]):
+			func append_numbers(item_array: Array):
 				for item in item_array:
-					self.add_numbers(item)
+					if item is int:
+						self.add_numbers(item)
 			func clear_numbers() -> void:
 				self._numbers_size = 0
+
 
 			func Init() -> void:
 				self.data = ""
@@ -424,7 +441,7 @@ class ComplexMessage extends Message:
 		dict["string_field"] = self.string_field
 		dict["bytes_field"] = self.bytes_field
 		dict["status"] = self.status
-		dict["<bound method GDRepeatedField.field_name of <gd_protobuf_info.GDRepeatedField object at 0x10a830140>>"] = []
+		dict["nested_messages"] = []
 		for index in range(1, self._nested_messages_size + 1):
 			var item = self.get_nested_messages(index)
 			dict["nested_messages"].append(item.SerializeToDictionary())
@@ -480,14 +497,14 @@ class ComplexMessage extends Message:
 # =========================================
 
 class TreeNode extends Message:
-	#1
+	#1 : value
 	var value: String = ""
-	#2
+
+	#2 : children
 	var _children: Array[TreeNode] = []
 	var _children_size: int = 0
 	func children_size() -> int:
 		return self._children_size
-
 	func children() -> Array[TreeNode]:
 		return self._children.slice(0, self._children_size)
 	func get_children(index: int) -> TreeNode: # index begin from 1
@@ -501,13 +518,16 @@ class TreeNode extends Message:
 			self._children.append(item)
 		self._children_size += 1
 		return item
-	func append_children(item_array: Array[TreeNode]):
+	func append_children(item_array: Array):
 		for item in item_array:
-			self.add_children(item)
+			if item is TreeNode:
+				self.add_children(item)
 	func clear_children() -> void:
 		self._children_size = 0
-	#3
+
+	#3 : parent
 	var parent: TreeNode = null
+
 
 	func Init() -> void:
 		self.value = ""
@@ -577,7 +597,7 @@ class TreeNode extends Message:
 	func SerializeToDictionary() -> Dictionary:
 		var dict = {}
 		dict["value"] = self.value
-		dict["<bound method GDRepeatedField.field_name of <gd_protobuf_info.GDRepeatedField object at 0x10a7ebfb0>>"] = []
+		dict["children"] = []
 		for index in range(1, self._children_size + 1):
 			var item = self.get_children(index)
 			dict["children"].append(item.SerializeToDictionary())
@@ -609,30 +629,42 @@ class TreeNode extends Message:
 # =========================================
 
 class NumberTypes extends Message:
-	#1
+	#1 : int32_field
 	var int32_field: int = -42
-	#2
+
+	#2 : int64_field
 	var int64_field: int = -9223372036854775808
-	#3
+
+	#3 : uint32_field
 	var uint32_field: int = 4294967295
-	#4
+
+	#4 : uint64_field
 	var uint64_field: int = 1844674407370955161
-	#5
+
+	#5 : sint32_field
 	var sint32_field: int = -2147483648
-	#6
+
+	#6 : sint64_field
 	var sint64_field: int = -9223372036854775808
-	#7
+
+	#7 : fixed32_field
 	var fixed32_field: int = 4294967295
-	#8
+
+	#8 : fixed64_field
 	var fixed64_field: int = 1844674407370955161
-	#9
+
+	#9 : sfixed32_field
 	var sfixed32_field: int = -2147483648
-	#10
+
+	#10 : sfixed64_field
 	var sfixed64_field: int = -9223372036854775808
-	#11
+
+	#11 : float_field
 	var float_field: float = 3.40282347e+38
-	#12
+
+	#12 : double_field
 	var double_field: float = 2.2250738585072014e-308
+
 
 	func Init() -> void:
 		self.int32_field = -42
@@ -817,18 +849,24 @@ class NumberTypes extends Message:
 # =========================================
 
 class DefaultValues extends Message:
-	#1
+	#1 : int_with_default
 	var int_with_default: int = 42
-	#2
+
+	#2 : string_with_default
 	var string_with_default: String = "default string"
-	#3
+
+	#3 : bytes_with_default
 	var bytes_with_default: PackedByteArray = PackedByteArray()
-	#4
+
+	#4 : bool_with_default
 	var bool_with_default: bool = true
-	#5
+
+	#5 : float_with_default
 	var float_with_default: float = 3.14159
-	#6
+
+	#6 : enum_with_default
 	var enum_with_default: ComplexMessage.Status = ComplexMessage.Status.ACTIVE
+
 
 	func Init() -> void:
 		self.int_with_default = 42
@@ -941,16 +979,17 @@ class DefaultValues extends Message:
 # =========================================
 
 class FieldRules extends Message:
-	#1
+	#1 : required_field
 	var required_field: String = ""
-	#2
+
+	#2 : optional_field
 	var optional_field: String = ""
-	#3
+
+	#3 : repeated_field
 	var _repeated_field: Array[String] = []
 	var _repeated_field_size: int = 0
 	func repeated_field_size() -> int:
 		return self._repeated_field_size
-
 	func repeated_field() -> Array[String]:
 		return self._repeated_field.slice(0, self._repeated_field_size)
 	func get_repeated_field(index: int) -> String: # index begin from 1
@@ -964,21 +1003,24 @@ class FieldRules extends Message:
 			self._repeated_field.append(item)
 		self._repeated_field_size += 1
 		return item
-	func append_repeated_field(item_array: Array[String]):
+	func append_repeated_field(item_array: Array):
 		for item in item_array:
-			self.add_repeated_field(item)
+			if item is String:
+				self.add_repeated_field(item)
 	func clear_repeated_field() -> void:
 		self._repeated_field_size = 0
-	#4
+
+	#4 : required_message
 	var required_message: ComplexMessage.NestedMessage = null
-	#5
+
+	#5 : optional_message
 	var optional_message: ComplexMessage.NestedMessage = null
-	#6
+
+	#6 : repeated_message
 	var _repeated_message: Array[ComplexMessage.NestedMessage] = []
 	var _repeated_message_size: int = 0
 	func repeated_message_size() -> int:
 		return self._repeated_message_size
-
 	func repeated_message() -> Array[ComplexMessage.NestedMessage]:
 		return self._repeated_message.slice(0, self._repeated_message_size)
 	func get_repeated_message(index: int) -> ComplexMessage.NestedMessage: # index begin from 1
@@ -992,11 +1034,13 @@ class FieldRules extends Message:
 			self._repeated_message.append(item)
 		self._repeated_message_size += 1
 		return item
-	func append_repeated_message(item_array: Array[ComplexMessage.NestedMessage]):
+	func append_repeated_message(item_array: Array):
 		for item in item_array:
-			self.add_repeated_message(item)
+			if item is ComplexMessage.NestedMessage:
+				self.add_repeated_message(item)
 	func clear_repeated_message() -> void:
 		self._repeated_message_size = 0
+
 
 	func Init() -> void:
 		self.required_field = ""
@@ -1109,7 +1153,7 @@ class FieldRules extends Message:
 			dict["required_message"] = self.required_message.SerializeToDictionary()
 		if self.optional_message != null:
 			dict["optional_message"] = self.optional_message.SerializeToDictionary()
-		dict["<bound method GDRepeatedField.field_name of <gd_protobuf_info.GDRepeatedField object at 0x10a8303b0>>"] = []
+		dict["repeated_message"] = []
 		for index in range(1, self._repeated_message_size + 1):
 			var item = self.get_repeated_message(index)
 			dict["repeated_message"].append(item.SerializeToDictionary())
@@ -1151,3 +1195,4 @@ class FieldRules extends Message:
 				self.add_repeated_message(item_msg)
 
 # =========================================
+

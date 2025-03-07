@@ -233,20 +233,17 @@ def generate_message_class(message_type: MessageType, indent_level: int = 0) -> 
     for enum_type in message_type.enum_type:
         content += generate_enum_type(enum_type, message_type.name, indent_level + 1)
 
-#    for gd_field in gd_msg.field_dic.values():
+    # for gd_field in gd_msg.field_dic.values():
     for gd_field in gd_msg.field_list:
         if isinstance(gd_field, GDField):
-            content += f"{indent}\t#{gd_field.field_number()}\n"
-            content += f"{gd_field.field_define(indent + "\t")}\n"
-
-   # content += generate_fields(message_type, message_type.field, indent_level + 1)
+            content += f"{indent}\t#{gd_field.field_number()} : {gd_field.name}\n"
+            content += f"{gd_field.field_define(indent + "\t")}\n\n"
 
     # Generate nested types
     for nested_type in message_type.nested_type:
         if nested_type.options.map_entry:
             # This is a map field
             continue
-#        content += generate_message_class(nested_type, message_type.name, indent_level + 1)
         content += generate_message_class(nested_type, indent_level + 1)
 
     # Generate Init method

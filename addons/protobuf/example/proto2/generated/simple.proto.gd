@@ -16,40 +16,57 @@ class SimpleMessage extends Message:
 		E_VALUE2 = 2,
 	} 
  
-	#1
+	#1 : int32_v
 	var int32_v: int = 0
-	#2
+
+	#2 : int64_v
 	var int64_v: int = 0
-	#3
+
+	#3 : uint32_v
 	var uint32_v: int = 0
-	#4
+
+	#4 : uint64_v
 	var uint64_v: int = 0
-	#5
+
+	#5 : sint32_v
 	var sint32_v: int = 0
-	#6
+
+	#6 : sint64_v
 	var sint64_v: int = 0
-	#7
+
+	#7 : fixed32_v
 	var fixed32_v: int = 0
-	#8
+
+	#8 : fixed64_v
 	var fixed64_v: int = 0
-	#9
+
+	#9 : sfixed32_v
 	var sfixed32_v: int = 0
-	#10
+
+	#10 : sfixed64_v
 	var sfixed64_v: int = 0
-	#11
+
+	#11 : float_v
 	var float_v: float = 0.0
-	#12
+
+	#12 : double_v
 	var double_v: float = 0.0
-	#13
+
+	#13 : bool_v
 	var bool_v: bool = false
-	#14
+
+	#14 : string_v
 	var string_v: String = ""
-	#15
+
+	#15 : bytes_v
 	var bytes_v: PackedByteArray = PackedByteArray()
-	#16
+
+	#16 : elem_v
 	var elem_v: SimpleEnum = 0
-	#17
+
+	#17 : elem_vd
 	var elem_vd: SimpleMessage.EnumDemo = 0
+
 
 	func Init() -> void:
 		self.int32_v = 0
@@ -294,40 +311,57 @@ class SimpleMessage extends Message:
 # =========================================
 
 class SimpleDefaultMessage extends Message:
-	#1
+	#1 : int32_v
 	var int32_v: int = 101
-	#2
+
+	#2 : int64_v
 	var int64_v: int = 102
-	#3
+
+	#3 : uint32_v
 	var uint32_v: int = 103
-	#4
+
+	#4 : uint64_v
 	var uint64_v: int = 104
-	#5
+
+	#5 : sint32_v
 	var sint32_v: int = 105
-	#6
+
+	#6 : sint64_v
 	var sint64_v: int = 106
-	#7
+
+	#7 : fixed32_v
 	var fixed32_v: int = 107
-	#8
+
+	#8 : fixed64_v
 	var fixed64_v: int = 108
-	#9
+
+	#9 : sfixed32_v
 	var sfixed32_v: int = 109
-	#10
+
+	#10 : sfixed64_v
 	var sfixed64_v: int = 110
-	#11
+
+	#11 : float_v
 	var float_v: float = 11.1
-	#12
+
+	#12 : double_v
 	var double_v: float = 11.2
-	#13
+
+	#13 : bool_v
 	var bool_v: bool = true
-	#14
+
+	#14 : string_v
 	var string_v: String = "simple_demo"
-	#15
+
+	#15 : bytes_v
 	var bytes_v: PackedByteArray = PackedByteArray()
-	#16
+
+	#16 : elem_v
 	var elem_v: SimpleEnum = SimpleEnum.VALUE1
-	#17
+
+	#17 : elem_vd
 	var elem_vd: SimpleMessage.EnumDemo = SimpleMessage.EnumDemo.E_VALUE1
+
 
 	func Init() -> void:
 		self.int32_v = 101
@@ -572,12 +606,11 @@ class SimpleDefaultMessage extends Message:
 # =========================================
 
 class SimpleRepeatedMessage extends Message:
-	#1
+	#1 : int32_v
 	var _int32_v: Array[int] = []
 	var _int32_v_size: int = 0
 	func int32_v_size() -> int:
 		return self._int32_v_size
-
 	func int32_v() -> Array[int]:
 		return self._int32_v.slice(0, self._int32_v_size)
 	func get_int32_v(index: int) -> int: # index begin from 1
@@ -591,17 +624,18 @@ class SimpleRepeatedMessage extends Message:
 			self._int32_v.append(item)
 		self._int32_v_size += 1
 		return item
-	func append_int32_v(item_array: Array[int]):
+	func append_int32_v(item_array: Array):
 		for item in item_array:
-			self.add_int32_v(item)
+			if item is int:
+				self.add_int32_v(item)
 	func clear_int32_v() -> void:
 		self._int32_v_size = 0
-	#2
+
+	#2 : int64_v
 	var _int64_v: Array[int] = []
 	var _int64_v_size: int = 0
 	func int64_v_size() -> int:
 		return self._int64_v_size
-
 	func int64_v() -> Array[int]:
 		return self._int64_v.slice(0, self._int64_v_size)
 	func get_int64_v(index: int) -> int: # index begin from 1
@@ -615,17 +649,18 @@ class SimpleRepeatedMessage extends Message:
 			self._int64_v.append(item)
 		self._int64_v_size += 1
 		return item
-	func append_int64_v(item_array: Array[int]):
+	func append_int64_v(item_array: Array):
 		for item in item_array:
-			self.add_int64_v(item)
+			if item is int:
+				self.add_int64_v(item)
 	func clear_int64_v() -> void:
 		self._int64_v_size = 0
-	#3
+
+	#3 : uint32_v
 	var _uint32_v: Array[int] = []
 	var _uint32_v_size: int = 0
 	func uint32_v_size() -> int:
 		return self._uint32_v_size
-
 	func uint32_v() -> Array[int]:
 		return self._uint32_v.slice(0, self._uint32_v_size)
 	func get_uint32_v(index: int) -> int: # index begin from 1
@@ -639,17 +674,18 @@ class SimpleRepeatedMessage extends Message:
 			self._uint32_v.append(item)
 		self._uint32_v_size += 1
 		return item
-	func append_uint32_v(item_array: Array[int]):
+	func append_uint32_v(item_array: Array):
 		for item in item_array:
-			self.add_uint32_v(item)
+			if item is int:
+				self.add_uint32_v(item)
 	func clear_uint32_v() -> void:
 		self._uint32_v_size = 0
-	#4
+
+	#4 : uint64_v
 	var _uint64_v: Array[int] = []
 	var _uint64_v_size: int = 0
 	func uint64_v_size() -> int:
 		return self._uint64_v_size
-
 	func uint64_v() -> Array[int]:
 		return self._uint64_v.slice(0, self._uint64_v_size)
 	func get_uint64_v(index: int) -> int: # index begin from 1
@@ -663,17 +699,18 @@ class SimpleRepeatedMessage extends Message:
 			self._uint64_v.append(item)
 		self._uint64_v_size += 1
 		return item
-	func append_uint64_v(item_array: Array[int]):
+	func append_uint64_v(item_array: Array):
 		for item in item_array:
-			self.add_uint64_v(item)
+			if item is int:
+				self.add_uint64_v(item)
 	func clear_uint64_v() -> void:
 		self._uint64_v_size = 0
-	#5
+
+	#5 : sint32_v
 	var _sint32_v: Array[int] = []
 	var _sint32_v_size: int = 0
 	func sint32_v_size() -> int:
 		return self._sint32_v_size
-
 	func sint32_v() -> Array[int]:
 		return self._sint32_v.slice(0, self._sint32_v_size)
 	func get_sint32_v(index: int) -> int: # index begin from 1
@@ -687,17 +724,18 @@ class SimpleRepeatedMessage extends Message:
 			self._sint32_v.append(item)
 		self._sint32_v_size += 1
 		return item
-	func append_sint32_v(item_array: Array[int]):
+	func append_sint32_v(item_array: Array):
 		for item in item_array:
-			self.add_sint32_v(item)
+			if item is int:
+				self.add_sint32_v(item)
 	func clear_sint32_v() -> void:
 		self._sint32_v_size = 0
-	#6
+
+	#6 : sint64_v
 	var _sint64_v: Array[int] = []
 	var _sint64_v_size: int = 0
 	func sint64_v_size() -> int:
 		return self._sint64_v_size
-
 	func sint64_v() -> Array[int]:
 		return self._sint64_v.slice(0, self._sint64_v_size)
 	func get_sint64_v(index: int) -> int: # index begin from 1
@@ -711,17 +749,18 @@ class SimpleRepeatedMessage extends Message:
 			self._sint64_v.append(item)
 		self._sint64_v_size += 1
 		return item
-	func append_sint64_v(item_array: Array[int]):
+	func append_sint64_v(item_array: Array):
 		for item in item_array:
-			self.add_sint64_v(item)
+			if item is int:
+				self.add_sint64_v(item)
 	func clear_sint64_v() -> void:
 		self._sint64_v_size = 0
-	#7
+
+	#7 : fixed32_v
 	var _fixed32_v: Array[int] = []
 	var _fixed32_v_size: int = 0
 	func fixed32_v_size() -> int:
 		return self._fixed32_v_size
-
 	func fixed32_v() -> Array[int]:
 		return self._fixed32_v.slice(0, self._fixed32_v_size)
 	func get_fixed32_v(index: int) -> int: # index begin from 1
@@ -735,17 +774,18 @@ class SimpleRepeatedMessage extends Message:
 			self._fixed32_v.append(item)
 		self._fixed32_v_size += 1
 		return item
-	func append_fixed32_v(item_array: Array[int]):
+	func append_fixed32_v(item_array: Array):
 		for item in item_array:
-			self.add_fixed32_v(item)
+			if item is int:
+				self.add_fixed32_v(item)
 	func clear_fixed32_v() -> void:
 		self._fixed32_v_size = 0
-	#8
+
+	#8 : fixed64_v
 	var _fixed64_v: Array[int] = []
 	var _fixed64_v_size: int = 0
 	func fixed64_v_size() -> int:
 		return self._fixed64_v_size
-
 	func fixed64_v() -> Array[int]:
 		return self._fixed64_v.slice(0, self._fixed64_v_size)
 	func get_fixed64_v(index: int) -> int: # index begin from 1
@@ -759,17 +799,18 @@ class SimpleRepeatedMessage extends Message:
 			self._fixed64_v.append(item)
 		self._fixed64_v_size += 1
 		return item
-	func append_fixed64_v(item_array: Array[int]):
+	func append_fixed64_v(item_array: Array):
 		for item in item_array:
-			self.add_fixed64_v(item)
+			if item is int:
+				self.add_fixed64_v(item)
 	func clear_fixed64_v() -> void:
 		self._fixed64_v_size = 0
-	#9
+
+	#9 : sfixed32_v
 	var _sfixed32_v: Array[int] = []
 	var _sfixed32_v_size: int = 0
 	func sfixed32_v_size() -> int:
 		return self._sfixed32_v_size
-
 	func sfixed32_v() -> Array[int]:
 		return self._sfixed32_v.slice(0, self._sfixed32_v_size)
 	func get_sfixed32_v(index: int) -> int: # index begin from 1
@@ -783,17 +824,18 @@ class SimpleRepeatedMessage extends Message:
 			self._sfixed32_v.append(item)
 		self._sfixed32_v_size += 1
 		return item
-	func append_sfixed32_v(item_array: Array[int]):
+	func append_sfixed32_v(item_array: Array):
 		for item in item_array:
-			self.add_sfixed32_v(item)
+			if item is int:
+				self.add_sfixed32_v(item)
 	func clear_sfixed32_v() -> void:
 		self._sfixed32_v_size = 0
-	#10
+
+	#10 : sfixed64_v
 	var _sfixed64_v: Array[int] = []
 	var _sfixed64_v_size: int = 0
 	func sfixed64_v_size() -> int:
 		return self._sfixed64_v_size
-
 	func sfixed64_v() -> Array[int]:
 		return self._sfixed64_v.slice(0, self._sfixed64_v_size)
 	func get_sfixed64_v(index: int) -> int: # index begin from 1
@@ -807,17 +849,18 @@ class SimpleRepeatedMessage extends Message:
 			self._sfixed64_v.append(item)
 		self._sfixed64_v_size += 1
 		return item
-	func append_sfixed64_v(item_array: Array[int]):
+	func append_sfixed64_v(item_array: Array):
 		for item in item_array:
-			self.add_sfixed64_v(item)
+			if item is int:
+				self.add_sfixed64_v(item)
 	func clear_sfixed64_v() -> void:
 		self._sfixed64_v_size = 0
-	#11
+
+	#11 : float_v
 	var _float_v: Array[float] = []
 	var _float_v_size: int = 0
 	func float_v_size() -> int:
 		return self._float_v_size
-
 	func float_v() -> Array[float]:
 		return self._float_v.slice(0, self._float_v_size)
 	func get_float_v(index: int) -> float: # index begin from 1
@@ -831,17 +874,18 @@ class SimpleRepeatedMessage extends Message:
 			self._float_v.append(item)
 		self._float_v_size += 1
 		return item
-	func append_float_v(item_array: Array[float]):
+	func append_float_v(item_array: Array):
 		for item in item_array:
-			self.add_float_v(item)
+			if item is float:
+				self.add_float_v(item)
 	func clear_float_v() -> void:
 		self._float_v_size = 0
-	#12
+
+	#12 : double_v
 	var _double_v: Array[float] = []
 	var _double_v_size: int = 0
 	func double_v_size() -> int:
 		return self._double_v_size
-
 	func double_v() -> Array[float]:
 		return self._double_v.slice(0, self._double_v_size)
 	func get_double_v(index: int) -> float: # index begin from 1
@@ -855,17 +899,18 @@ class SimpleRepeatedMessage extends Message:
 			self._double_v.append(item)
 		self._double_v_size += 1
 		return item
-	func append_double_v(item_array: Array[float]):
+	func append_double_v(item_array: Array):
 		for item in item_array:
-			self.add_double_v(item)
+			if item is float:
+				self.add_double_v(item)
 	func clear_double_v() -> void:
 		self._double_v_size = 0
-	#13
+
+	#13 : bool_v
 	var _bool_v: Array[bool] = []
 	var _bool_v_size: int = 0
 	func bool_v_size() -> int:
 		return self._bool_v_size
-
 	func bool_v() -> Array[bool]:
 		return self._bool_v.slice(0, self._bool_v_size)
 	func get_bool_v(index: int) -> bool: # index begin from 1
@@ -879,17 +924,18 @@ class SimpleRepeatedMessage extends Message:
 			self._bool_v.append(item)
 		self._bool_v_size += 1
 		return item
-	func append_bool_v(item_array: Array[bool]):
+	func append_bool_v(item_array: Array):
 		for item in item_array:
-			self.add_bool_v(item)
+			if item is bool:
+				self.add_bool_v(item)
 	func clear_bool_v() -> void:
 		self._bool_v_size = 0
-	#14
+
+	#14 : string_v
 	var _string_v: Array[String] = []
 	var _string_v_size: int = 0
 	func string_v_size() -> int:
 		return self._string_v_size
-
 	func string_v() -> Array[String]:
 		return self._string_v.slice(0, self._string_v_size)
 	func get_string_v(index: int) -> String: # index begin from 1
@@ -903,19 +949,21 @@ class SimpleRepeatedMessage extends Message:
 			self._string_v.append(item)
 		self._string_v_size += 1
 		return item
-	func append_string_v(item_array: Array[String]):
+	func append_string_v(item_array: Array):
 		for item in item_array:
-			self.add_string_v(item)
+			if item is String:
+				self.add_string_v(item)
 	func clear_string_v() -> void:
 		self._string_v_size = 0
-	#15
+
+	#15 : bytes_v
 	var bytes_v: PackedByteArray = PackedByteArray()
-	#16
+
+	#16 : elem_v
 	var _elem_v: Array[SimpleEnum] = []
 	var _elem_v_size: int = 0
 	func elem_v_size() -> int:
 		return self._elem_v_size
-
 	func elem_v() -> Array[SimpleEnum]:
 		return self._elem_v.slice(0, self._elem_v_size)
 	func get_elem_v(index: int) -> SimpleEnum: # index begin from 1
@@ -929,17 +977,18 @@ class SimpleRepeatedMessage extends Message:
 			self._elem_v.append(item)
 		self._elem_v_size += 1
 		return item
-	func append_elem_v(item_array: Array[SimpleEnum]):
+	func append_elem_v(item_array: Array):
 		for item in item_array:
-			self.add_elem_v(item)
+			if item is SimpleEnum:
+				self.add_elem_v(item)
 	func clear_elem_v() -> void:
 		self._elem_v_size = 0
-	#17
+
+	#17 : elem_vd
 	var _elem_vd: Array[SimpleMessage.EnumDemo] = []
 	var _elem_vd_size: int = 0
 	func elem_vd_size() -> int:
 		return self._elem_vd_size
-
 	func elem_vd() -> Array[SimpleMessage.EnumDemo]:
 		return self._elem_vd.slice(0, self._elem_vd_size)
 	func get_elem_vd(index: int) -> SimpleMessage.EnumDemo: # index begin from 1
@@ -953,11 +1002,13 @@ class SimpleRepeatedMessage extends Message:
 			self._elem_vd.append(item)
 		self._elem_vd_size += 1
 		return item
-	func append_elem_vd(item_array: Array[SimpleMessage.EnumDemo]):
+	func append_elem_vd(item_array: Array):
 		for item in item_array:
-			self.add_elem_vd(item)
+			if item is SimpleMessage.EnumDemo:
+				self.add_elem_vd(item)
 	func clear_elem_vd() -> void:
 		self._elem_vd_size = 0
+
 
 	func Init() -> void:
 		self.clear_int32_v
@@ -1280,3 +1331,4 @@ class SimpleRepeatedMessage extends Message:
 				self.add_elem_vd(item)
 
 # =========================================
+

@@ -242,9 +242,11 @@ class GDRepeatedField(GDField):
         content += f"{indent}\tself.{self.field_size_name()} += 1\n"
         content += f"{indent}\treturn item\n"
         # append 方法
-        content += f"{indent}func {self.method_field_append_name()}(item_array: Array[{self.sub_field.field_type_name()}]):\n"
+#        content += f"{indent}func {self.method_field_append_name()}(item_array: Array[{self.sub_field.field_type_name()}]):\n"
+        content += f"{indent}func {self.method_field_append_name()}(item_array: Array):\n"
         content += f"{indent}\tfor item in item_array:\n"
-        content += f"{indent}\t\tself.{self.method_field_add_name()}(item)\n"
+        content += f"{indent}\t\tif item is {self.sub_field.field_type_name()}:\n"
+        content += f"{indent}\t\t\tself.{self.method_field_add_name()}(item)\n"
         # 添加clean方法
         content += f"{indent}func {self.method_field_clear_name()}() -> void:\n"
         content += f"{indent}\tself.{self.field_size_name()} = 0"
@@ -285,7 +287,7 @@ class GDRepeatedField(GDField):
 
     def field_serialize_to_dictionary(self, indent: str, to_dict: str = "to_dict") -> str:
         if self.sub_field.type == FieldDescriptor.TYPE_MESSAGE:
-            content = f"{indent}{to_dict}[\"{self.field_name}\"] = []\n"
+            content = f"{indent}{to_dict}[\"{self.name}\"] = []\n"
             content += f"{indent}for index in range(1, self.{self.field_size_name()} + 1):\n"
             content += f"{indent}\tvar item = self.{self.method_field_get_name()}(index)\n"
             content += f"{indent}\t{to_dict}[\"{self.name}\"].append(item.SerializeToDictionary())"

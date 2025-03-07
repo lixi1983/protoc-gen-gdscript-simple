@@ -161,7 +161,7 @@ func test_repeated_message():
 	msg2.ParseFromBytes(bytes)
 	
 	# Verify repeated values
-	assert(msg2.int32_v_size() == 2 && msg2.get_int32_v(0) == 1 && msg2.get_int32_v(1) == 2, "Repeated int32_v mismatch")
-	assert(msg2.string_v_size() == 2 && msg2.get_string_v(0) == "one" && msg2.get_string_v(1) == "two", "Repeated string_v mismatch")
-	assert(msg2.elem_v_size() == 2 && msg2.get_elem_v(0) == SimpleProto.SimpleEnum.VALUE1 && msg2.get_elem_v(1) == SimpleProto.SimpleEnum.VALUE2, "Repeated elem_v mismatch")
+	assert(msg2.int32_v_size() == 2 && msg2.get_int32_v(1) == 1 && msg2.get_int32_v(2) == 2, "Repeated int32_v mismatch")
+	assert(msg2.string_v_size() == 2 && msg2.get_string_v(1) == "one" && msg2.get_string_v(2) == "two", "Repeated string_v mismatch")
+	assert(msg2.elem_v_size() == 2 && msg2.get_elem_v(1) == SimpleProto.SimpleEnum.VALUE1 && msg2.get_elem_v(2) == SimpleProto.SimpleEnum.VALUE2, "Repeated elem_v mismatch")
 	print("Repeated message test passed!")

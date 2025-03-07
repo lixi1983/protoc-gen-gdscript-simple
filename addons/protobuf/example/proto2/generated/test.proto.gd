@@ -10,20 +10,23 @@ class Character extends Message:
 		ROGUE = 2,
 	} 
  
-	#1
+	#1 : name
 	var name: String = ""
-	#2
+
+	#2 : level
 	var level: int = 1
-	#3
+
+	#3 : health
 	var health: float = 100
-	#4
+
+	#4 : character
 	var character: Character.CharacterClass = Character.CharacterClass.WARRIOR
-	#5
+
+	#5 : skills
 	var _skills: Array[String] = []
 	var _skills_size: int = 0
 	func skills_size() -> int:
 		return self._skills_size
-
 	func skills() -> Array[String]:
 		return self._skills.slice(0, self._skills_size)
 	func get_skills(index: int) -> String: # index begin from 1
@@ -37,22 +40,25 @@ class Character extends Message:
 			self._skills.append(item)
 		self._skills_size += 1
 		return item
-	func append_skills(item_array: Array[String]):
+	func append_skills(item_array: Array):
 		for item in item_array:
-			self.add_skills(item)
+			if item is String:
+				self.add_skills(item)
 	func clear_skills() -> void:
 		self._skills_size = 0
-	#6
+
+	#6 : inventory
 	var inventory: Character.Inventory = null
+
 	class Inventory extends Message:
-		#1
+		#1 : slots
 		var slots: int = 10
-		#2
+
+		#2 : items
 		var _items: Array[Character.Item] = []
 		var _items_size: int = 0
 		func items_size() -> int:
 			return self._items_size
-
 		func items() -> Array[Character.Item]:
 			return self._items.slice(0, self._items_size)
 		func get_items(index: int) -> Character.Item: # index begin from 1
@@ -66,11 +72,13 @@ class Character extends Message:
 				self._items.append(item)
 			self._items_size += 1
 			return item
-		func append_items(item_array: Array[Character.Item]):
+		func append_items(item_array: Array):
 			for item in item_array:
-				self.add_items(item)
+				if item is Character.Item:
+					self.add_items(item)
 		func clear_items() -> void:
 			self._items_size = 0
+
 
 		func Init() -> void:
 			self.slots = 10
@@ -123,7 +131,7 @@ class Character extends Message:
 		func SerializeToDictionary() -> Dictionary:
 			var dict = {}
 			dict["slots"] = self.slots
-			dict["<bound method GDRepeatedField.field_name of <gd_protobuf_info.GDRepeatedField object at 0x105065a60>>"] = []
+			dict["items"] = []
 			for index in range(1, self._items_size + 1):
 				var item = self.get_items(index)
 				dict["items"].append(item.SerializeToDictionary())
@@ -144,12 +152,15 @@ class Character extends Message:
 					self.add_items(item_msg)
 
 	class Item extends Message:
-		#1
+		#1 : id
 		var id: String = ""
-		#2
+
+		#2 : name
 		var name: String = ""
-		#3
+
+		#3 : quantity
 		var quantity: int = 1
+
 
 		func Init() -> void:
 			self.id = ""
@@ -360,18 +371,20 @@ class GameSession extends Message:
 		FINISHED = 2,
 	} 
  
-	#1
+	#1 : session_id
 	var session_id: String = ""
-	#2
+
+	#2 : start_time
 	var start_time: int = 0
-	#3
+
+	#3 : end_time
 	var end_time: int = 0
-	#4
+
+	#4 : players
 	var _players: Array[Character] = []
 	var _players_size: int = 0
 	func players_size() -> int:
 		return self._players_size
-
 	func players() -> Array[Character]:
 		return self._players.slice(0, self._players_size)
 	func get_players(index: int) -> Character: # index begin from 1
@@ -385,13 +398,16 @@ class GameSession extends Message:
 			self._players.append(item)
 		self._players_size += 1
 		return item
-	func append_players(item_array: Array[Character]):
+	func append_players(item_array: Array):
 		for item in item_array:
-			self.add_players(item)
+			if item is Character:
+				self.add_players(item)
 	func clear_players() -> void:
 		self._players_size = 0
-	#5
+
+	#5 : state
 	var state: GameSession.GameState = GameSession.GameState.WAITING
+
 
 	func Init() -> void:
 		self.session_id = ""
@@ -473,7 +489,7 @@ class GameSession extends Message:
 		dict["session_id"] = self.session_id
 		dict["start_time"] = self.start_time
 		dict["end_time"] = self.end_time
-		dict["<bound method GDRepeatedField.field_name of <gd_protobuf_info.GDRepeatedField object at 0x1050656d0>>"] = []
+		dict["players"] = []
 		for index in range(1, self._players_size + 1):
 			var item = self.get_players(index)
 			dict["players"].append(item.SerializeToDictionary())
