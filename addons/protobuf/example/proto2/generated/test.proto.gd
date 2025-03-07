@@ -103,6 +103,11 @@ class Character extends Message:
 			var msg = Inventory.new()
 			return msg
 
+		## Message ProtoName
+		## Returns: String - ProtoName
+		func ProtoName() -> String:
+			return "test.proto2.Inventory"
+
 		func MergeFrom(other : Message) -> void:
 			if other is Inventory:
 				self.slots += other.slots
@@ -189,6 +194,11 @@ class Character extends Message:
 			var msg = Item.new()
 			return msg
 
+		## Message ProtoName
+		## Returns: String - ProtoName
+		func ProtoName() -> String:
+			return "test.proto2.Item"
+
 		func MergeFrom(other : Message) -> void:
 			if other is Item:
 				self.id += other.id
@@ -267,6 +277,11 @@ class Character extends Message:
 	func New() -> Message:
 		var msg = Character.new()
 		return msg
+
+	## Message ProtoName
+	## Returns: String - ProtoName
+	func ProtoName() -> String:
+		return "test.proto2.Character"
 
 	func MergeFrom(other : Message) -> void:
 		if other is Character:
@@ -449,6 +464,11 @@ class GameSession extends Message:
 	func New() -> Message:
 		var msg = GameSession.new()
 		return msg
+
+	## Message ProtoName
+	## Returns: String - ProtoName
+	func ProtoName() -> String:
+		return "test.proto2.GameSession"
 
 	func MergeFrom(other : Message) -> void:
 		if other is GameSession:

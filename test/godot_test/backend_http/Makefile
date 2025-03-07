@@ -4,7 +4,6 @@ all: proto build
 
 proto:
 	protoc --go_out=. --go_opt=paths=source_relative proto3/*.proto
-	ls -l proto3
 
 build: 
 	go build -o server main.go

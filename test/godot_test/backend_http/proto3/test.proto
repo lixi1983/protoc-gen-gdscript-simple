@@ -27,6 +27,10 @@ message MsgBase {
     SubMsg sub_msg = 8;
     common.CommonMessage common_msg = 9;
     common.CommonEnum common_enum = 10;
+    fixed32 fixed_field32 = 11;
+    fixed64 fixed_field64 = 12;
+    double double_field = 13;
+    map<string, SubMsg> map_field_sub = 14;
 }
 
 message MsgTest {

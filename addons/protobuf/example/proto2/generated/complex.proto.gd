@@ -160,6 +160,11 @@ class ComplexMessage extends Message:
 				var msg = DeepNested.new()
 				return msg
 
+			## Message ProtoName
+			## Returns: String - ProtoName
+			func ProtoName() -> String:
+				return "DeepNested"
+
 			func MergeFrom(other : Message) -> void:
 				if other is DeepNested:
 					self.data += other.data
@@ -229,6 +234,11 @@ class ComplexMessage extends Message:
 		func New() -> Message:
 			var msg = NestedMessage.new()
 			return msg
+
+		## Message ProtoName
+		## Returns: String - ProtoName
+		func ProtoName() -> String:
+			return "NestedMessage"
 
 		func MergeFrom(other : Message) -> void:
 			if other is NestedMessage:
@@ -328,6 +338,11 @@ class ComplexMessage extends Message:
 	func New() -> Message:
 		var msg = ComplexMessage.new()
 		return msg
+
+	## Message ProtoName
+	## Returns: String - ProtoName
+	func ProtoName() -> String:
+		return "ComplexMessage"
 
 	func MergeFrom(other : Message) -> void:
 		if other is ComplexMessage:
@@ -574,6 +589,11 @@ class TreeNode extends Message:
 		var msg = TreeNode.new()
 		return msg
 
+	## Message ProtoName
+	## Returns: String - ProtoName
+	func ProtoName() -> String:
+		return "TreeNode"
+
 	func MergeFrom(other : Message) -> void:
 		if other is TreeNode:
 			self.value += other.value
@@ -722,6 +742,11 @@ class NumberTypes extends Message:
 	func New() -> Message:
 		var msg = NumberTypes.new()
 		return msg
+
+	## Message ProtoName
+	## Returns: String - ProtoName
+	func ProtoName() -> String:
+		return "NumberTypes"
 
 	func MergeFrom(other : Message) -> void:
 		if other is NumberTypes:
@@ -922,6 +947,11 @@ class DefaultValues extends Message:
 		var msg = DefaultValues.new()
 		return msg
 
+	## Message ProtoName
+	## Returns: String - ProtoName
+	func ProtoName() -> String:
+		return "DefaultValues"
+
 	func MergeFrom(other : Message) -> void:
 		if other is DefaultValues:
 			self.int_with_default += other.int_with_default
@@ -1111,6 +1141,11 @@ class FieldRules extends Message:
 		var msg = FieldRules.new()
 		return msg
 
+	## Message ProtoName
+	## Returns: String - ProtoName
+	func ProtoName() -> String:
+		return "FieldRules"
+
 	func MergeFrom(other : Message) -> void:
 		if other is FieldRules:
 			self.required_field += other.required_field
@@ -1252,4 +1287,3 @@ class FieldRules extends Message:
 				self.add_repeated_message(item_msg)
 
 # =========================================
-

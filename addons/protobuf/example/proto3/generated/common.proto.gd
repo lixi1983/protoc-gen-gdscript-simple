@@ -44,6 +44,11 @@ class CommonMessage extends Message:
 		var msg = CommonMessage.new()
 		return msg
 
+	## Message ProtoName
+	## Returns: String - ProtoName
+	func ProtoName() -> String:
+		return "common.CommonMessage"
+
 	func MergeFrom(other : Message) -> void:
 		if other is CommonMessage:
 			self.common_field1 += other.common_field1
@@ -141,4 +146,3 @@ class CommonMessage extends Message:
 			self.common_sint64 = dict.get("common_sint64")
 
 # =========================================
-

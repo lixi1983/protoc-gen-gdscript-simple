@@ -94,13 +94,8 @@ test: install
 
 check:
 	@echo "Running all tests..."
-#	${GODOT} --headless --script addons/protobuf/example/syntax_check.gd addons/protobuf/proto
-#	${GODOT} --headless --script addons/protobuf/example/syntax_check.gd addons/protobuf/example/proto2/generated
-#	${GODOT} --headless --script addons/protobuf/example/syntax_check.gd addons/protobuf/example/proto3/generated
 	${GODOT} --headless --script addons/protobuf/example/syntax_check.gd addons
 	@echo "Running all tests end ......"
-
-#	@$(CD) test/godot_test && $(MAKE) link check_only
 
 # 清理目标
 clean:
@@ -149,3 +144,7 @@ proto2_serialize:
 
 http_client:
 	${GODOT} --headless --script addons/protobuf/example/http_client/http_client.gd
+
+http_test:
+	${MAKE} -C test run
+	make http_client

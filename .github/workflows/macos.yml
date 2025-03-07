@@ -72,8 +72,22 @@ jobs:
         which protoc
         which protoc-gen-gdscript
         which Godot
+        
+        # Start the HTTP backend server
+        cd test/godot_test/backend_http
+        python -m http.server 8000 &
+        cd ../../..
+        
+        # Wait for server to start
+        sleep 2
+        
+        # Run tests
         make GODOT=Godot test check
         make GODOT=Godot serialize
+        
+        # HTTP server check
+        make GODOT=Godot http_test &
+        make GODOT=Godot http_client
 
     - name: Create release package
       run: |

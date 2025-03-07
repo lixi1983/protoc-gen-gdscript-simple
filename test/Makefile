@@ -35,3 +35,7 @@ $(clean_dirs):
 # 清理目标
 .PHONY: clean
 clean: $(clean_dirs)
+
+run:
+	@echo "================ Running in $@ directory.. ===============:"
+	$(MAKE) -C godot_test proto run

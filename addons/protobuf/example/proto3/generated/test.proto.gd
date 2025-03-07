@@ -100,6 +100,11 @@ class MsgBase extends Message:
 			var msg = SubMsg.new()
 			return msg
 
+		## Message ProtoName
+		## Returns: String - ProtoName
+		func ProtoName() -> String:
+			return "SubMsg"
+
 		func MergeFrom(other : Message) -> void:
 			if other is SubMsg:
 				self.sub_field1 += other.sub_field1
@@ -175,6 +180,11 @@ class MsgBase extends Message:
 	func New() -> Message:
 		var msg = MsgBase.new()
 		return msg
+
+	## Message ProtoName
+	## Returns: String - ProtoName
+	func ProtoName() -> String:
+		return "MsgBase"
 
 	func MergeFrom(other : Message) -> void:
 		if other is MsgBase:
@@ -373,11 +383,11 @@ class MsgBase extends Message:
 								map_key = map_key_tag[GDScriptUtils.VALUE_KEY]
 								map_pos += map_key_tag[GDScriptUtils.SIZE_KEY]
 							2:
-								if self.value == null:
-									self.value = MsgBase.SubMsg.new()
-								self.value.Init()
-								var map_value_tag = GDScriptUtils.decode_message(map_buff, map_pos, self.value)
-								self.value = map_value_tag[GDScriptUtils.VALUE_KEY]
+								if map_value == null:
+									map_value = MsgBase.SubMsg.new()
+								map_value.Init()
+								var map_value_tag = GDScriptUtils.decode_message(map_buff, map_pos, map_value)
+								map_value = map_value_tag[GDScriptUtils.VALUE_KEY]
 								map_pos += map_value_tag[GDScriptUtils.SIZE_KEY]
 							_:
 								pass
@@ -505,6 +515,11 @@ class MsgTest extends Message:
 		var msg = MsgTest.new()
 		return msg
 
+	## Message ProtoName
+	## Returns: String - ProtoName
+	func ProtoName() -> String:
+		return "MsgTest"
+
 	func MergeFrom(other : Message) -> void:
 		if other is MsgTest:
 			if other.common_msg != null:
@@ -577,4 +592,3 @@ class MsgTest extends Message:
 				self.add_common_enums(item)
 
 # =========================================
-

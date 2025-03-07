@@ -10,6 +10,9 @@ func _init() -> void:
 func Init() -> void:
 	pass
 
+func ProtoName() -> String:
+	return ""
+
 ## Serialize message to binary string
 ## Returns: PackedByteArray - Serialized binary data
 func SerializeToBytes(bytes: PackedByteArray = PackedByteArray()) -> PackedByteArray:

@@ -208,17 +208,17 @@ def generate_gdscript(request: plugin_pb2.CodeGeneratorRequest) -> plugin_pb2.Co
                 continue
                 
             # Generate message class line by line
-            file.content += generate_message_class(message_type)
+            file.content += generate_message_class(message_type, 0, package_name)
             # Add separator between message types
             file.content += "# =========================================\n\n"
             
     return response
 
 
-def generate_message_class(message_type: MessageType, indent_level: int = 0) -> str:
+def generate_message_class(message_type: MessageType, indent_level: int = 0, msg_package_name="") -> str:
 
-    global package_name
-    gd_msg = gd_protobuf_info.init_message_type(message_type, package_name)
+#    global package_name
+    gd_msg = gd_protobuf_info.init_message_type(message_type, msg_package_name)
 
     """Generate a message class."""
     content = ""
@@ -241,13 +241,13 @@ def generate_message_class(message_type: MessageType, indent_level: int = 0) -> 
         if nested_type.options.map_entry:
             # This is a map field
             continue
-        content += generate_message_class(nested_type, indent_level + 1)
+        content += generate_message_class(nested_type, indent_level + 1, msg_package_name)
 
     # Generate Init method
     content += generate_init_method(message_type, gd_msg, indent + "\t")
 
     # Generate serialization methods
-    content += generate_serialization_methods(message_type, gd_msg, indent + "\t")
+    content += generate_serialization_methods(message_type, gd_msg, indent + "\t", package_name)
 #    lines.extend(line for line in serialization_lines if line)
 
     return content
@@ -437,16 +437,23 @@ def generate_init_method(message_type: MessageType, gd_message_type: GDMessageTy
     content += "\n"
     return content
 
-def generate_new_methods(message_type: MessageType, indent):
+def generate_new_methods(message_type: MessageType, gd_message_type: GDMessageType, indent, msg_package_name: str = None):
     """Generate new instance methods for a message type."""
     content = ""
 
     content += f"{indent}## Create a new message instance\n"
     content += f"{indent}## Returns: Message - New message instance\n"
     content += f"{indent}func New() -> Message:\n"
+#    content += f"{indent}\tvar msg = {message_type.name}.new()\n"
     content += f"{indent}\tvar msg = {message_type.name}.new()\n"
     content += f"{indent}\treturn msg\n"
     content += "\n"
+
+    content += f"{indent}## Message ProtoName\n"
+    content += f"{indent}## Returns: String - ProtoName\n"
+    content += f"{indent}func ProtoName() -> String:\n"
+    content += f"{indent}\treturn \"{package_name + "." if msg_package_name is not None and len(msg_package_name) > 0 else ""}{message_type.name}\"\n"
+    content += f"\n"
 
     return content
 
@@ -584,11 +591,11 @@ def generate_parse_from_dictionary_methods(message_type: MessageType, gd_message
     content += "\n"
     return content
 
-def generate_serialization_methods(message_type: MessageType, gd_message_type: GDMessageType, indent):
+def generate_serialization_methods(message_type: MessageType, gd_message_type: GDMessageType, indent, msg_package_name: str = "" ):
     """Generate serialization methods for a message type."""
     content = ""
 
-    content += generate_new_methods(message_type, indent)
+    content += generate_new_methods(message_type, gd_message_type, indent, msg_package_name)
     content += generate_merge_methods(message_type, gd_message_type, indent)
 
     content += generate_serialize_to_string_methods(message_type, gd_message_type, indent)

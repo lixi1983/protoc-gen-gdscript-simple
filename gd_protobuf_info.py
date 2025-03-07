@@ -50,10 +50,12 @@ class GDField:
                      from_buffer: str = "buffer",
                      pos: str = "pos",
                      decode_value: str = "decode_value",
-                     decode_msg: str = "self",
+                     decode_msg: str = None,
                      field_value: str = None) -> str:
         if field_value is None:
             field_value = f"self.{self.field_name()}"
+        if decode_msg is None:
+            decode_msg = "self"
         content = f"{indent}var {decode_value} = GDScriptUtils.decode_{self.mash_coder}({from_buffer}, {pos}, {decode_msg})\n"
         content += f"{indent}{field_value} = {decode_value}[GDScriptUtils.VALUE_KEY]\n"
         content += f"{indent}{pos} += {decode_value}[GDScriptUtils.SIZE_KEY]\n"
@@ -70,7 +72,7 @@ class GDField:
                     from_buffer: str = "buffer",
                     pos: str = "pos",
                     decode_value: str = "decode_value",
-                    decode_msg: str = "self",
+                    decode_msg: str = None,
                     field_value: str = None) -> str:
         content = self.field_decode(indent, from_buffer, pos, decode_value, "self", field_value)
         return content
@@ -122,16 +124,19 @@ class GDMessageField(GDField):
                     from_buffer: str = "buffer",
                     pos: str = "pos",
                     decode_value: str = "decode_value",
-                    decode_msg: str = "self",
+                    decode_msg: str = None,
                     field_value: str = None) -> str:
-        content = f"{indent}if self.{self.field_name()} == null:\n"
-        content += f"{indent}\tself.{self.field_name()} = {self.field_type_name()}.new()\n"
-        content += f"{indent}self.{self.field_name()}.Init()\n"
+        if field_value is None:
+            field_value = f"self.{self.field_name()}"
+        content = f"{indent}if {field_value} == null:\n"
+        content += f"{indent}\t{field_value} = {self.field_type_name()}.new()\n"
+        content += f"{indent}{field_value}.Init()\n"
         content += self.field_decode(indent,
-                                     from_buffer,
-                                     pos,
-                                     decode_value,
-                                    f"self.{self.field_name()}")
+                                    from_buffer,
+                                    pos,
+                                    decode_value,
+                                    field_value,
+                                    field_value)
 
         return content
 
@@ -256,10 +261,13 @@ class GDRepeatedField(GDField):
                      from_buffer: str = "buffer",
                      pos: str = "pos",
                      decode_value: str = "decode_value",
-                     decode_msg: str = "self",
+                     decode_msg: str = None,
                      field_value: str = None) -> str:
         if field_value is None:
             field_value = f"self.{self.field_name()}"
+
+        if decode_msg is None:
+            decode_msg = f"self"
 
         content = ""
         content += f"{indent}var {decode_value} = GDScriptUtils.decode_{self.sub_field.mash_coder}({from_buffer}, {pos}, {decode_msg})\n"
@@ -272,7 +280,7 @@ class GDRepeatedField(GDField):
                     from_buffer: str = "buffer",
                     pos: str = "pos",
                     decode_value: str = "decode_value",
-                    decode_msg: str = "self",
+                    decode_msg: str = None,
                     field_value: str = None) -> str:
         content = ""
         if self.sub_field.type == FieldDescriptor.TYPE_MESSAGE:
@@ -353,9 +361,9 @@ class GDMapField(GDField):
         content += f"{indent}\tmap_pos += map_tag[GDScriptUtils.SIZE_KEY]\n"
         content += f"{indent}\tmatch map_field_number:\n"
         content += f"{indent}\t\t{self.key_field.number}:\n"
-        content += self.key_field.field_parse(f"{indent}\t\t\t", "map_buff", "map_pos", "map_key_tag", "", "map_key")
+        content += self.key_field.field_parse(f"{indent}\t\t\t", "map_buff", "map_pos", "map_key_tag", "map_key", "map_key")
         content += f"{indent}\t\t{self.value_field.number}:\n"
-        content += self.value_field.field_parse(f"{indent}\t\t\t", "map_buff", "map_pos", "map_value_tag", "", "map_value")
+        content += self.value_field.field_parse(f"{indent}\t\t\t", "map_buff", "map_pos", "map_value_tag", "map_value", "map_value")
         content += f"{indent}\t\t_:\n"
         content += f"{indent}\t\t\tpass\n"
         content += "\n"

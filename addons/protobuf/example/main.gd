@@ -4,6 +4,7 @@ extends Node
 var proto2_complex_test = preload("res://addons/protobuf/example/proto2/test/test_complex_message.gd")
 var proto2_simple_test = preload("res://addons/protobuf/example/proto2/test/test_simple_message.gd")
 var proto3_serialize_test = preload("res://addons/protobuf/example/proto3/test/proto_serialize.gd")
+var http_test = preload("res://addons/protobuf/example/http_client/http_client.gd")
 
 func _ready():
 	print("\n=== Starting Proto2 Complex Message Tests ===")
@@ -20,5 +21,7 @@ func _ready():
 	var serialize_test = proto3_serialize_test.new()
 #	serialize_test.run_tests()	
 	serialize_test.free()
+	
+	var http_client = http_test.new()
 	
 	print("\n=== All Tests Completed ===")

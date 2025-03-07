@@ -94,6 +94,11 @@ class SimpleMessage extends Message:
 		var msg = SimpleMessage.new()
 		return msg
 
+	## Message ProtoName
+	## Returns: String - ProtoName
+	func ProtoName() -> String:
+		return "SimpleMessage"
+
 	func MergeFrom(other : Message) -> void:
 		if other is SimpleMessage:
 			self.int32_v += other.int32_v
@@ -391,6 +396,11 @@ class SimpleDefaultMessage extends Message:
 	func New() -> Message:
 		var msg = SimpleDefaultMessage.new()
 		return msg
+
+	## Message ProtoName
+	## Returns: String - ProtoName
+	func ProtoName() -> String:
+		return "SimpleDefaultMessage"
 
 	func MergeFrom(other : Message) -> void:
 		if other is SimpleDefaultMessage:
@@ -1138,6 +1148,11 @@ class SimpleRepeatedMessage extends Message:
 		var msg = SimpleRepeatedMessage.new()
 		return msg
 
+	## Message ProtoName
+	## Returns: String - ProtoName
+	func ProtoName() -> String:
+		return "SimpleRepeatedMessage"
+
 	func MergeFrom(other : Message) -> void:
 		if other is SimpleRepeatedMessage:
 			self._int32_v = self._int32_v.slice(0, _int32_v_size)
@@ -1436,4 +1451,3 @@ class SimpleRepeatedMessage extends Message:
 				self.add_elem_vd(item)
 
 # =========================================
-
